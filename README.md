@@ -1,0 +1,2 @@
+# GLTC121
+GLTC联合协议是一款利用RykenSlimeCustomizer制作的独立且原创的Slimefun4附属，其提供的所有物品与机器中的名称与描述皆非AI生成。

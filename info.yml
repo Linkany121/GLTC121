@@ -3,7 +3,7 @@ name: 'GLTC联合协议'
 depends: []
 pluginDepends: []
 scriptListener: 监听
-version: 4.0.1
+version: 4.0.0
 description: "GLTC联合协议"
 authors:
 - 'Linkany121'

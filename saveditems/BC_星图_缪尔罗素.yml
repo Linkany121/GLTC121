@@ -1,0 +1,26 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: RED_BANNER
+  meta:
+    ==: ItemMeta
+    meta-type: BANNER
+    patterns:
+    - ==: Pattern
+      color: ORANGE
+      pattern: minecraft:stripe_right
+    - ==: Pattern
+      color: RED
+      pattern: minecraft:small_stripes
+    - ==: Pattern
+      color: BLACK
+      pattern: minecraft:gradient
+    - ==: Pattern
+      color: RED
+      pattern: minecraft:flower
+    - ==: Pattern
+      color: RED
+      pattern: minecraft:rhombus
+    - ==: Pattern
+      color: ORANGE
+      pattern: minecraft:circle

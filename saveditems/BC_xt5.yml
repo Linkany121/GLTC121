@@ -1,0 +1,23 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3465
+  type: WHITE_BANNER
+  meta:
+    ==: ItemMeta
+    meta-type: BANNER
+    patterns:
+    - ==: Pattern
+      color: LIME
+      pattern: lud
+    - ==: Pattern
+      color: WHITE
+      pattern: mr
+    - ==: Pattern
+      color: WHITE
+      pattern: gru
+    - ==: Pattern
+      color: LIME
+      pattern: dls
+    - ==: Pattern
+      color: LIME
+      pattern: rs

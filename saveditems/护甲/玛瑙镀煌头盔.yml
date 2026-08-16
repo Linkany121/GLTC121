@@ -1,0 +1,29 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: DIAMOND_HELMET
+  meta:
+    ==: ItemMeta
+    meta-type: ARMOR
+    enchants:
+      minecraft:aqua_affinity: 1
+      minecraft:protection: 4
+      minecraft:respiration: 3
+    attribute-modifiers:
+      minecraft:generic.armor:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 4.0
+        slot: head
+        operation: 0
+        key: minecraft:armor.helmet
+      minecraft:generic.armor_toughness:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 2.0
+        slot: head
+        operation: 0
+        key: minecraft:armor.helmet
+    repair-cost: 7
+    Unbreakable: true
+    trim:
+      material: minecraft:gold
+      pattern: minecraft:shaper

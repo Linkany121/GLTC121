@@ -1,0 +1,23 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 4189
+  type: PINK_BANNER
+  meta:
+    ==: ItemMeta
+    meta-type: BANNER
+    patterns:
+    - ==: Pattern
+      color: MAGENTA
+      pattern: minecraft:small_stripes
+    - ==: Pattern
+      color: PURPLE
+      pattern: minecraft:gradient
+    - ==: Pattern
+      color: PINK
+      pattern: minecraft:triangle_bottom
+    - ==: Pattern
+      color: PINK
+      pattern: minecraft:circle
+    - ==: Pattern
+      color: PURPLE
+      pattern: minecraft:globe

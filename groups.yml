@@ -1,0 +1,502 @@
+##信息
+A_A:
+  lateInit: false
+  type: nested
+  tier: -99999
+  item:
+    material_type: skull_hash
+    material: 9d3d250e25bbca3a62be5b3ef02cfcab6dcdc424884c9a7d5cc95c9d0
+    name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#49b2ff- &#45ccfa诞&#3bdde6于&#30eed3诸&#26ffbf星&8(第一章)&#26ffbf '
+
+B_A:
+  lateInit: false
+  type: nested
+  tier: -99998
+  item:
+    material_type: skull_hash
+    material: 5f524166f7ce88a537158766a1c511e322a93a5e11dbf30fa6e85e78da861d8
+    name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#d67ff3- &#ff62e4再&#ff4bb3造&#ff3383深&#ff1c52渊&8(第二章)&#ff1c52 '
+
+DLC_A:
+  lateInit: false
+  type: nested
+  tier: -99997
+  item:
+    material_type: skull_hash
+    material: 9e52f7960ff3cec2f519a6353648c6e33bc51e131cc80917cf13081decbff24d
+    name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#55ff52- &#49ea37D&#3ed41bL&#32bf00C&7（比例更改 不轮椅版）'
+
+SHOP_A:
+  lateInit: false
+  type: nested
+  tier: -99996
+  item:
+    material_type: skull_hash
+    material: 760bcb45278e7e8ad41d8a6503ffcd4ca293874a03b25a4ff0c9827ba7dfff0a
+    name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#2cff52- &#24ff1f能&#6df922源&#b6f326流&#ffed29兑&#ffba25换&#ff8621面&#ff531d板'
+
+#GLTC物品
+A_A1:
+  lateInit: false
+  type: sub
+  tier: -21
+  item:
+    material_type: skull_hash
+    material: 889108634a6ff93d423f1043eeaa07fe7e3bf530a3bd93b818a24f77e6301a27
+    name: '&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会 &e信息'
+  parent: A_A
+
+##蓝图
+A_nt:
+  lateInit: false
+  type: sub
+  tier: -21
+  item:
+    material_type: skull_hash
+    material: bb0f722aec27490cf056f560afdd457a0a794e703556cc4c3b51a582f5c57aa4
+    name: '&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会 &e蓝图'
+  parent: A_A
+
+###############################################################
+
+#ato物品
+A_B1:
+  lateInit: false
+  type: sub
+  tier: -20
+  item:
+    material: orange_wool
+    name: '&#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会 &e物品'
+  parent: A_A
+
+#ato机器
+A_B2:
+  lateInit: false
+  type: sub
+  tier: -19
+  item:
+    material: orange_concrete
+    name: '&#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会 &e机器'
+  parent: A_A
+
+###############################################################
+
+#蓝图物品
+A_C1:
+  lateInit: false
+  type: sub
+  tier: -18
+  item:
+    material: purple_wool
+    name: '&#ec00ff星&#ac00ff渊&#6c00ff造&#8c00ff物&#ac00ff™ &e物品'
+  parent: A_A
+
+#蓝图机器
+A_C2:
+  lateInit: false
+  type: sub
+  tier: -17
+  item:
+    material: purple_concrete
+    name: '&#ec00ff星&#ac00ff渊&#6c00ff造&#8c00ff物&#ac00ff™ &e机器'
+  parent: A_A
+
+###############################################################
+
+#霆石矿物
+A_D1:
+  lateInit: false
+  type: sub
+  tier: -16
+  item:
+    material: light_blue_wool
+    name: '&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工 &e矿物/合金资源'
+  parent: A_A
+
+#霆石污染重油
+A_D1b:
+  lateInit: false
+  type: sub
+  tier: -15
+  item:
+    material: light_blue_wool
+    name: '&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工 &e悖论/投影资源'
+  parent: A_A
+
+#霆石材料与发电
+A_D1c:
+  lateInit: false
+  type: sub
+  tier: -14
+  item:
+    material: light_blue_wool
+    name: '&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工 &e电能/器械组件'
+  parent: A_A
+
+#霆石机器
+A_D2:
+  lateInit: false
+  type: sub
+  tier: -13
+  item:
+    material: light_blue_concrete
+    name: '&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工 &e机器'
+  parent: A_A
+
+###############################################################
+
+#莉尔幸丝物品
+A_E1:
+  lateInit: false
+  type: sub
+  tier: -12
+  item:
+    material: minecraft:lime_wool
+    name: '&#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业 &e物品'
+  parent: A_A
+
+A_E1a:
+  lateInit: false
+  type: sub
+  tier: -11
+  item:
+    material: minecraft:lime_wool
+    name: '&#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业 &e乐谱'
+  parent: A_A
+
+#莉尔幸丝机器
+A_E2:
+  lateInit: false
+  type: sub
+  tier: -10
+  item:
+    material: minecraft:lime_concrete
+    name: '&#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业 &e机器'
+  parent: A_A
+
+###############################################################
+
+#EAE物品
+A_F1:
+  lateInit: false
+  type: sub
+  tier: -9
+  item:
+    material: minecraft:yellow_wool
+    name: '&#ea9f2f伊&#eaaa33赭&#ebb637璃&#ebc13b离&#eccd40岸&#ecd844工&#ede348业&#ebdb46群&#e7be3d专&#e3a135利&#e0842c管&#dc6724理&#d84a1b工&#d42d13会 &e物品'
+  parent: A_A
+
+#EAE机器
+A_F2:
+  lateInit: false
+  type: sub
+  tier: -8
+  item:
+    material: minecraft:yellow_concrete
+    name: '&#ea9f2f伊&#eaaa33赭&#ebb637璃&#ebc13b离&#eccd40岸&#ecd844工&#ede348业&#ebdb46群&#e7be3d专&#e3a135利&#e0842c管&#dc6724理&#d84a1b工&#d42d13会 &e机器'
+  parent: A_A
+
+###############################################################
+
+A_G1:
+  lateInit: false
+  type: sub
+  tier: -7
+  item:
+    material: minecraft:red_wool
+    name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e物品/道具'
+  parent: A_A
+
+A_G1a:
+  lateInit: false
+  type: sub
+  tier: -6
+  item:
+    material: minecraft:red_wool
+    name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e工具/武器'
+  parent: A_A
+
+A_G1b:
+  lateInit: false
+  type: sub
+  tier: -5
+  item:
+    material: minecraft:red_wool
+    name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e护具'
+  parent: A_A
+
+A_G1c:
+  lateInit: false
+  type: sub
+  tier: -4
+  item:
+    material: minecraft:red_wool
+    name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e枪械/异能武器'
+  parent: A_A
+
+A_G2:
+  lateInit: false
+  type: sub
+  tier: -3
+  item:
+    material: minecraft:red_concrete
+    name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e机器'
+  parent: A_A
+
+################################################################
+
+A_H1:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: minecraft:pink_wool
+    name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e物品'
+  parent: A_A
+
+A_H1b1:
+  lateInit: false
+  type: sub
+  tier: 2
+  item:
+    material: minecraft:pink_wool
+    name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e食材/药材'
+  parent: A_A
+
+A_H1b2:
+  lateInit: false
+  type: sub
+  tier: 3
+  item:
+    material: minecraft:pink_wool
+    name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e料理/药物'
+  parent: A_A
+
+A_H2:
+  lateInit: false
+  type: sub
+  tier: 5
+  item:
+    material: minecraft:pink_concrete
+    name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e机器'
+  parent: A_A
+
+################################################################
+#第二阶段
+################################################################
+
+B_A0:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: minecraft:blue_stained_glass
+    name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e物品'
+  parent: B_A
+
+B_A01:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: minecraft:blue_stained_glass
+    name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e机器框架/芯盘'
+  parent: B_A
+
+B_A1:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: minecraft:blue_stained_glass
+    name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e辐能原料'
+  parent: B_A
+
+B_A2:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: minecraft:blue_stained_glass
+    name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e荒宙植系'
+  parent: B_A
+
+B_B0:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: minecraft:blue_shulker_box
+    name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e核心机器'
+  parent: B_A
+
+B_B1:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: minecraft:blue_shulker_box
+    name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e机器'
+  parent: B_A
+
+
+
+
+
+#咆哮
+Z_PX:
+  lateInit: false
+  type: sub
+  tier: 99
+  item:
+    material: black_glazed_terracotta
+    name: '&#ffffffn&#e6d6fau&#ccaef6l&#b385f1l&#9a5cecG&#9745d5#&#ac40ac &#c13b83咆&#d63559哮&#eb3030系统'
+  parent: A_A
+
+
+################################################################
+#能源流
+################################################################
+
+SHOP_ZiW:
+  lateInit: false
+  type: button
+  tier: 1
+  item:
+    material: poppy
+    name: '&#77f7ff协&#60fada议&#49fdb5内&#63ff93容&#b0ff75：&#fcff57植物'
+  parent: SHOP_A
+  actions:
+  - "script 能源流/植物"
+
+SHOP_KW:
+  lateInit: false
+  type: button
+  tier: 1
+  item:
+    material: iron_ingot
+    name: '&#77f7ff协&#60fada议&#49fdb5内&#63ff93容&#b0ff75：&#fcff57矿物'
+  parent: SHOP_A
+  actions:
+  - "script 能源流/矿物"
+
+SHOP_DLW:
+  lateInit: false
+  type: button
+  tier: 1
+  item:
+    material: leather
+    name: '&#77f7ff协&#60fada议&#49fdb5内&#63ff93容&#b0ff75：&#fcff57掉落物'
+  parent: SHOP_A
+  actions:
+  - "script 能源流/掉落物"
+
+SHOP_ZaW:
+  lateInit: false
+  type: button
+  tier: 1
+  item:
+    material: clay_ball
+    name: '&#77f7ff协&#60fada议&#49fdb5内&#63ff93容&#b0ff75：&#fcff57杂物'
+  parent: SHOP_A
+  actions:
+  - "script 能源流/杂物"
+
+SHOP_FK:
+  lateInit: false
+  type: button
+  tier: 1
+  item:
+    material: andesite
+    name: '&#77f7ff协&#60fada议&#49fdb5内&#63ff93容&#b0ff75：&#fcff57方块'
+  parent: SHOP_A
+  actions:
+  - "script 能源流/方块"
+
+SHOP_SF:
+  lateInit: false
+  type: button
+  tier: 1
+  item:
+    material: slime_block
+    name: '&#77f7ff协&#60fada议&#49fdb5内&#63ff93容&#b0ff75：&#fcff57原版粘液'
+  parent: SHOP_A
+  actions:
+  - "script 能源流/粘液科技"
+
+################################################################
+################################################################
+################################################################
+#DLC
+################################################################
+################################################################
+################################################################
+
+#GLTC物品
+DLC_A1:
+  lateInit: false
+  type: sub
+  tier: -21
+  item:
+    material_type: skull_hash
+    material: dcedb2f4c97016cae7b89e4c6d6978d22ac3476c815c5a09a6792450dd918b6c
+    name: '&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会&#1ff4a4-&#15f883D&#0afb61L&#00ff40C &e信息'
+  parent: DLC_A
+
+##蓝图
+DLC_nt:
+  lateInit: false
+  type: sub
+  tier: -21
+  item:
+    material_type: skull_hash
+    material: 72a7dcbf7eca6b6f6386591d237991ca1b888a4f0c753ff9a3202cf0e92229e3
+    name: '&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会&#1ff4a4-&#15f883D&#0afb61L&#00ff40C &e蓝图'
+  parent: DLC_A
+
+#OST物品
+DLC_B1:
+  lateInit: false
+  type: sub
+  tier: -20
+  item:
+    material: minecraft:green_wool
+    name: '&#22a719奥&#1fb218史&#1cbe18莱&#19c917特&#16d416中&#13e016古&#10eb15科&#1ce616技&#27e117爱&#33dc18好&#3fd61a者&#4ad11b协&#56cc1c会 &e物品'
+  parent: DLC_A
+
+#OST机器
+DLC_B2:
+  lateInit: false
+  type: sub
+  tier: -19
+  item:
+    material: minecraft:green_concrete
+    name: '&#22a719奥&#1fb218史&#1cbe18莱&#19c917特&#16d416中&#13e016古&#10eb15科&#1ce616技&#27e117爱&#33dc18好&#3fd61a者&#4ad11b协&#56cc1c会 &e机器'
+  parent: DLC_A
+
+#hin物品
+DLC_C1:
+  lateInit: false
+  type: sub
+  tier: -18
+  item:
+    material: minecraft:light_blue_wool
+    name: '&#a0ff40乎&#9bff55维&#96ff6b米&#90ff80亚&#8bff96运&#86ffab输&#7af2bc网&#6fe5cd络&#63d8dd供&#58cbee应&#4cbeff商 &e物品'
+  parent: DLC_A
+
+#hin机器
+DLC_C2:
+  lateInit: false
+  type: sub
+  tier: -17
+  item:
+    material: minecraft:light_blue_concrete
+    name: '&#a0ff40乎&#9bff55维&#96ff6b米&#90ff80亚&#8bff96运&#86ffab输&#7af2bc网&#6fe5cd络&#63d8dd供&#58cbee应&#4cbeff商 &e机器'
+  parent: DLC_A
+
+
+
+
+
+
+

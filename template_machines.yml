@@ -1,0 +1,1331 @@
+
+
+YSJ_咆哮盒:
+  item_group: Z_PX
+  item:
+    name: "&#2effb6A&#3ee2beC&#4dc4c5I&#5da7cdL&#6d89d5 &#7c6cdc御&#8c4fe4三&#9a3ed9家&#a73bbcG&#b4379f#&#c13481 &#cd3064咆&#da2d46哮&#e72929盒"
+    material: light_blue_carpet
+    glow: false
+    lore:
+    - '&b归属&9：&#7c6cdc御&#8c4fe4三&#9a3ed9家&4？'
+    - '&#fff5b3兼容ATO、霆石、莉尔幸丝技术的咆哮盒，改进版将更加便捷。'
+    - '&f[&e!&f]&#fff5b3第二格需放入自身，根据数量提升效率，但绝非越多越好。'
+    - '&8⇨ &7初始速度:30秒/次'
+    - '&8⇨ &e⚡&7 1024J/秒'
+  #机器自身配方
+  recipe_type: PF_PX
+  recipe:
+        1:
+          amount: 1
+          material_type: slimefun
+          material: 咆哮外壳
+          slot: 10
+        2:
+          amount: 1
+          material_type: slimefun
+          material: ntts3
+          slot: 11
+        3:
+          amount: 1
+          material_type: slimefun
+          material: ntls3
+          slot: 12
+  capacity: 5120
+  consumption: 512
+  templateSlot: 1
+  input: [0,1]
+  output: [3,4,5,6,7,8,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52]
+  fasterIfMoreTemplates: true
+  moreOutputIfMoreTemplates: true
+  recipes:
+    YSJ_咆哮盒:
+      PF1: #多物品输出
+              seconds: 30
+              noConsume: true
+              input:
+                2:
+                  material_type: slimefun
+                  material: AL_A2
+              output:
+                1:
+                  material_type: slimefun
+                  material: LSYQ10
+                  amount: 3
+                2:
+                  material_type: slimefun
+                  material: TS2TJ3
+                  amount: 3
+                3:
+                  material_type: slimefun
+                  material: TSZZRZ
+                  amount: 3
+                4:
+                  material_type: slimefun
+                  material: AL_B1
+                  amount: 3
+                5:
+                  material_type: slimefun
+                  material: TSYJT
+                  amount: 3
+                6:
+                  material_type: slimefun
+                  material: TSJST
+                  amount: 3
+                7:
+                  material_type: slimefun
+                  material: AL_A6
+                  amount: 3
+                8:
+                  material_type: slimefun
+                  material: AL_A4
+                  amount: 3
+                9:
+                  material_type: slimefun
+                  material: AL_A5
+                  amount: 3
+                10:
+                  material_type: slimefun
+                  material: AL_A3
+                  amount: 3
+                11:
+                  material_type: slimefun
+                  material: AL_A2
+                  amount: 3
+                12:
+                  material_type: slimefun
+                  material: AL_A1
+                  amount: 3
+      PF2: #
+              seconds: 30
+              noConsume: true
+              input:
+                2:
+                  material_type: slimefun
+                  material: AL_A1
+              output:
+                1:
+                  material_type: slimefun
+                  material: AL_A1
+                  amount: 16
+      PF3: #多物品输出
+              seconds: 30
+              noConsume: true
+              input:
+                2:
+                  material_type: slimefun
+                  material: AL_B1
+              output:
+                1:
+                  material_type: slimefun
+                  material: AL_B1
+                  amount: 16
+      PF14: #机器
+        seconds: 30
+        noConsume: false
+        input:
+          2:
+            material_type: slimefun
+            material: 咆哮外壳
+            amount: 64
+        output:
+          1:
+            material_type: slimefun
+            material: TACdw2
+            amount: 1
+          2:
+            material_type: slimefun
+            material: TAChx2
+            amount: 1
+          3:
+            material_type: slimefun
+            material: TACbz2
+            amount: 1
+          4:
+            material_type: slimefun
+            material: tscyzj3
+            amount: 1
+          5:
+            material_type: slimefun
+            material: tsgxdy3
+            amount: 1
+          6:
+            material_type: slimefun
+            material: tsylg3
+            amount: 1
+          7:
+            material_type: slimefun
+            material: tstyj1
+            amount: 1
+          8:
+            material_type: slimefun
+            material: tszspt2
+            amount: 1
+          9:
+            material_type: slimefun
+            material: tsmsft3
+            amount: 1
+          10:
+            material_type: slimefun
+            material: tssyyl2
+            amount: 1
+          11:
+            material_type: slimefun
+            material: tslhfy1
+            amount: 1
+          12:
+            material_type: slimefun
+            material: TShjl3
+            amount: 1
+          13:
+            material_type: slimefun
+            material: TSmlq2
+            amount: 1
+          14:
+            material_type: slimefun
+            material: TShc2
+            amount: 1
+          15:
+            material_type: slimefun
+            material: LIScssp1
+            amount: 1
+          16:
+            material_type: slimefun
+            material: LISls4
+            amount: 1
+
+EAE_咆哮盒:
+  item_group: Z_PX
+  item:
+    name: "&#eac92fE&#df7b21A&#d42d13E  &#ffac00伊&#e3933b赭&#c67a75璃&#aa61b0G&#8d48ea#&#a542bb &#bc3c8d咆&#d3365f哮&#eb3030盒"
+    material: yellow_carpet
+    glow: false
+    lore:
+    - '&b归属&9：&#ede94a伊&#ecd442赭&#ebbf3b璃&#eaaa33离&#e78f2b岸&#e16e23工&#da4e1b业&#d42d13群&4？'
+    - '&#fff5b3兼容伊赭璃离岸专利技术的咆哮盒，改进版将更加便捷。'
+    - '&f[&e!&f]&#fff5b3第二格需放入自身，根据数量提升效率，但绝非越多越好。'
+    - '&8⇨ &7初始速度:30秒/次'
+    - '&8⇨ &e⚡&7 1024J/秒'
+  #机器自身配方
+  recipe_type: PF_PX
+  recipe:
+        1:
+          amount: 1
+          material_type: slimefun
+          material: 咆哮外壳
+          slot: 10
+        2:
+          amount: 1
+          material_type: slimefun
+          material: nteae3
+          slot: 11
+  capacity: 5120
+  consumption: 512
+  templateSlot: 1
+  input: [0,1]
+  output: [3,4,5,6,7,8,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52]
+  fasterIfMoreTemplates: true
+  moreOutputIfMoreTemplates: true
+  recipes:
+    EAE_咆哮盒:
+      PF_NEW1:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: white_wool
+        output:
+          1:
+            material: white_wool
+            amount: 2
+          2:
+            material: orange_wool
+            amount: 2
+          3:
+            material: magenta_wool
+            amount: 2
+          4:
+            material: light_blue_wool
+            amount: 2
+          5:
+            material: yellow_wool
+            amount: 2
+          6:
+            material: lime_wool
+            amount: 2
+          7:
+            material: pink_wool
+            amount: 2
+          8:
+            material: gray_wool
+            amount: 2
+          9:
+            material: light_gray_wool
+            amount: 2
+          10:
+            material: cyan_wool
+            amount: 2
+          11:
+            material: purple_wool
+            amount: 2
+          12:
+            material: blue_wool
+            amount: 2
+          13:
+            material: brown_wool
+            amount: 2
+          14:
+            material: green_wool
+            amount: 2
+          15:
+            material: red_wool
+            amount: 2
+          16:
+            material: black_wool
+            amount: 2
+      PF_NEW2:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: white_terracotta
+        output:
+          1:
+            material: white_terracotta
+            amount: 2
+          2:
+            material: terracotta
+            amount: 2
+          3:
+            material: orange_terracotta
+            amount: 2
+          4:
+            material: magenta_terracotta
+            amount: 2
+          5:
+            material: light_blue_terracotta
+            amount: 2
+          6:
+            material: yellow_terracotta
+            amount: 2
+          7:
+            material: lime_terracotta
+            amount: 2
+          8:
+            material: pink_terracotta
+            amount: 2
+          9:
+            material: gray_terracotta
+            amount: 2
+          10:
+            material: light_gray_terracotta
+            amount: 2
+          11:
+            material: cyan_terracotta
+            amount: 2
+          12:
+            material: purple_terracotta
+            amount: 2
+          13:
+            material: blue_terracotta
+            amount: 2
+          14:
+            material: brown_terracotta
+            amount: 2
+          15:
+            material: green_terracotta
+            amount: 2
+          16:
+            material: red_terracotta
+            amount: 2
+          17:
+            material: black_terracotta
+            amount: 2
+      PF_NEW3:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: white_stained_glass
+        output:
+          1:
+            material: white_stained_glass
+            amount: 2
+          2:
+            material: glass
+            amount: 2
+          3:
+            material: orange_stained_glass
+            amount: 2
+          4:
+            material: magenta_stained_glass
+            amount: 2
+          5:
+            material: light_blue_stained_glass
+            amount: 2
+          6:
+            material: yellow_stained_glass
+            amount: 2
+          7:
+            material: lime_stained_glass
+            amount: 2
+          8:
+            material: pink_stained_glass
+            amount: 2
+          9:
+            material: gray_stained_glass
+            amount: 2
+          10:
+            material: light_gray_stained_glass
+            amount: 2
+          11:
+            material: cyan_stained_glass
+            amount: 2
+          12:
+            material: purple_stained_glass
+            amount: 2
+          13:
+            material: blue_stained_glass
+            amount: 2
+          14:
+            material: brown_stained_glass
+            amount: 2
+          15:
+            material: green_stained_glass
+            amount: 2
+          16:
+            material: red_stained_glass
+            amount: 2
+          17:
+            material: black_stained_glass
+            amount: 2
+      PF_NEW4:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: white_candle
+        output:
+          1:
+            material: white_candle
+            amount: 2
+          2:
+            material: orange_candle
+            amount: 2
+          3:
+            material: magenta_candle
+            amount: 2
+          4:
+            material: light_blue_candle
+            amount: 2
+          5:
+            material: yellow_candle
+            amount: 2
+          6:
+            material: lime_candle
+            amount: 2
+          7:
+            material: pink_candle
+            amount: 2
+          8:
+            material: gray_candle
+            amount: 2
+          9:
+            material: light_gray_candle
+            amount: 2
+          10:
+            material: cyan_candle
+            amount: 2
+          11:
+            material: purple_candle
+            amount: 2
+          12:
+            material: blue_candle
+            amount: 2
+          13:
+            material: brown_candle
+            amount: 2
+          14:
+            material: green_candle
+            amount: 2
+          15:
+            material: red_candle
+            amount: 2
+          16:
+            material: black_candle
+            amount: 2
+      PF_NEW5:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: white_banner
+        output:
+          1:
+            material: white_banner
+            amount: 2
+          2:
+            material: orange_banner
+            amount: 2
+          3:
+            material: magenta_banner
+            amount: 2
+          4:
+            material: light_blue_banner
+            amount: 2
+          5:
+            material: yellow_banner
+            amount: 2
+          6:
+            material: lime_banner
+            amount: 2
+          7:
+            material: pink_banner
+            amount: 2
+          8:
+            material: gray_banner
+            amount: 2
+          9:
+            material: light_gray_banner
+            amount: 2
+          10:
+            material: cyan_banner
+            amount: 2
+          11:
+            material: purple_banner
+            amount: 2
+          12:
+            material: blue_banner
+            amount: 2
+          13:
+            material: brown_banner
+            amount: 2
+          14:
+            material: green_banner
+            amount: 2
+          15:
+            material: red_banner
+            amount: 2
+          16:
+            material: black_banner
+            amount: 2
+      PF_NEW6:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: white_concrete
+        output:
+          1:
+            material: white_concrete
+            amount: 2
+          2:
+            material: orange_concrete
+            amount: 2
+          3:
+            material: magenta_concrete
+            amount: 2
+          4:
+            material: light_blue_concrete
+            amount: 2
+          5:
+            material: yellow_concrete
+            amount: 2
+          6:
+            material: lime_concrete
+            amount: 2
+          7:
+            material: pink_concrete
+            amount: 2
+          8:
+            material: gray_concrete
+            amount: 2
+          9:
+            material: light_gray_concrete
+            amount: 2
+          10:
+            material: cyan_concrete
+            amount: 2
+          11:
+            material: purple_concrete
+            amount: 2
+          12:
+            material: blue_concrete
+            amount: 2
+          13:
+            material: brown_concrete
+            amount: 2
+          14:
+            material: green_concrete
+            amount: 2
+          15:
+            material: red_concrete
+            amount: 2
+          16:
+            material: black_concrete
+            amount: 2
+      PF_NEW7:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: white_glazed_terracotta
+        output:
+          1:
+            material: white_glazed_terracotta
+            amount: 2
+          2:
+            material: orange_glazed_terracotta
+            amount: 2
+          3:
+            material: magenta_glazed_terracotta
+            amount: 2
+          4:
+            material: light_blue_glazed_terracotta
+            amount: 2
+          5:
+            material: yellow_glazed_terracotta
+            amount: 2
+          6:
+            material: lime_glazed_terracotta
+            amount: 2
+          7:
+            material: pink_glazed_terracotta
+            amount: 2
+          8:
+            material: gray_glazed_terracotta
+            amount: 2
+          9:
+            material: light_gray_glazed_terracotta
+            amount: 2
+          10:
+            material: cyan_glazed_terracotta
+            amount: 2
+          11:
+            material: purple_glazed_terracotta
+            amount: 2
+          12:
+            material: blue_glazed_terracotta
+            amount: 2
+          13:
+            material: brown_glazed_terracotta
+            amount: 2
+          14:
+            material: green_glazed_terracotta
+            amount: 2
+          15:
+            material: red_glazed_terracotta
+            amount: 2
+          16:
+            material: black_glazed_terracotta
+            amount: 2
+      PF_NEW8:
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material_type: slimefun
+            material: EAE_有机合金滤芯
+        output:
+          1:
+            material_type: slimefun
+            material: EAE_有机合金滤芯
+      PF11:
+        seconds: 30
+        noConsume: false
+        input:
+          2:
+            material_type: slimefun
+            material: 咆哮外壳
+            amount: 64
+        output:
+          1:
+            material_type: slimefun
+            material: EAE_空气滤网风帆2
+            amount: 1
+          2:
+            material_type: slimefun
+            material: EAE_家用单元合成器
+            amount: 1
+          3:
+            material_type: slimefun
+            material: EAE_木材加工反应盒2
+            amount: 1
+          4:
+            material_type: slimefun
+            material: EAE_陈轩石匠一型2
+            amount: 1
+          5:
+            material_type: slimefun
+            material: EAE_小型工件装配站点
+            amount: 1
+          6:
+            material_type: slimefun
+            material: EAE_陈轩石匠二型2
+            amount: 1
+          7:
+            material_type: slimefun
+            material: EAE_一体融合器
+            amount: 1
+
+OST_咆哮盒:
+  item_group: Z_PX
+  item:
+    name: "&#10eb15O&#19c917S&#22a719T &#00c654奥&#1faa75史&#3f8e97莱&#5e72b8特&#7d56d9G&#9745d5#&#ac40ac &#c13b83咆&#d63559哮&#eb3030盒"
+    material: lime_carpet
+    glow: false
+    lore:
+    - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会&4？'
+    - '&#fff5b3兼容奥史莱特的咆哮盒，改进版将更加便捷。'
+    - '&f[&e!&f]&#fff5b3第二格需放入自身，根据数量提升效率，但绝非越多越好。'
+    - '&8⇨ &7初始速度:30秒/次'
+    - '&8⇨ &e⚡&7 1024J/秒'
+  #机器自身配方
+  recipe_type: PF_PX
+  recipe:
+        1:
+          amount: 1
+          material_type: slimefun
+          material: 咆哮外壳
+          slot: 10
+        2:
+          amount: 1
+          material_type: slimefun
+          material: ntost3
+          slot: 11
+  capacity: 5120
+  consumption: 512
+  templateSlot: 1
+  input: [0,1]
+  output: [3,4,5,6,7,8,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52]
+  fasterIfMoreTemplates: true
+  moreOutputIfMoreTemplates: true
+  recipes:
+    OST_咆哮盒:
+      PF1: #原版矿粉/矿锭
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material_type: slimefun
+            material: AL_A2
+        output:
+          1:
+            material_type: slimefun
+            material: IRON_DUST
+            amount: 2
+          2:
+            material_type: slimefun
+            material: GOLD_DUST
+            amount: 2
+          3:
+            material_type: slimefun
+            material: COPPER_DUST
+            amount: 2
+          4:
+            material_type: slimefun
+            material: TIN_DUST
+            amount: 2
+          5:
+            material_type: slimefun
+            material: SILVER_DUST
+            amount: 2
+          6:
+            material_type: slimefun
+            material: LEAD_DUST
+            amount: 2
+          7:
+            material_type: slimefun
+            material: ZINC_DUST
+            amount: 2
+          8:
+            material_type: slimefun
+            material: MAGNESIUM_DUST
+            amount: 2
+          9:
+            material_type: slimefun
+            material: ALUMINUM_DUST
+            amount: 2
+          10:
+            material: IRON_INGOT
+            amount: 2
+          11:
+            material_type: slimefun
+            material: GOLD_4K
+            amount: 2
+          12:
+            material_type: slimefun
+            material: COPPER_INGOT
+            amount: 2
+          13:
+            material_type: slimefun
+            material: TIN_INGOT
+            amount: 2
+          14:
+            material_type: slimefun
+            material: SILVER_INGOT
+            amount: 2
+          15:
+            material_type: slimefun
+            material: LEAD_INGOT
+            amount: 2
+          16:
+            material_type: slimefun
+            material: ZINC_INGOT
+            amount: 2
+          17:
+            material_type: slimefun
+            material: MAGNESIUM_INGOT
+            amount: 2
+          18:
+            material_type: slimefun
+            material: ALUMINUM_INGOT
+            amount: 2
+
+      PF2: #原版高级合金
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material_type: slimefun
+            material: TSzmkw
+        output:
+          1:
+            material_type: slimefun
+            material: STEEL_INGOT
+            amount: 2
+          2:
+            material_type: slimefun
+            material: DAMASCUS_STEEL_INGOT
+            amount: 2
+          3:
+            material_type: slimefun
+            material: BRONZE_INGOT
+            amount: 2
+          4:
+            material_type: slimefun
+            material: DURALUMIN_INGOT
+            amount: 2
+          5:
+            material_type: slimefun
+            material: BILLON_INGOT
+            amount: 2
+          6:
+            material_type: slimefun
+            material: BRASS_INGOT
+            amount: 2
+          7:
+            material_type: slimefun
+            material: ALUMINUM_BRASS_INGOT
+            amount: 2
+          8:
+            material_type: slimefun
+            material: ALUMINUM_BRONZE_INGOT
+            amount: 2
+          9:
+            material_type: slimefun
+            material: CORINTHIAN_BRONZE_INGOT
+            amount: 2
+          10:
+            material_type: slimefun
+            material: SOLDER_INGOT
+            amount: 2
+          11:
+            material_type: slimefun
+            material: NICKEL_INGOT
+            amount: 2
+          12:
+            material_type: slimefun
+            material: COBALT_INGOT
+            amount: 2
+          13:
+            material_type: slimefun
+            material: FERROSILICON
+            amount: 2
+          14:
+            material_type: slimefun
+            material: GOLD_24K
+            amount: 2
+          15:
+            material_type: slimefun
+            material: GILDED_IRON
+            amount: 2
+          16:
+            material_type: slimefun
+            material: HARDENED_METAL_INGOT
+            amount: 2
+          17:
+            material_type: slimefun
+            material: REINFORCED_ALLOY_INGOT
+            amount: 2
+          18:
+            material_type: slimefun
+            material: REDSTONE_ALLOY
+            amount: 2
+
+      PF3: #矿类资源
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: coal
+        output:
+          1:
+              material_type: slimefun
+              material: CARBON
+              amount: 4
+          2:
+              material_type: slimefun
+              material: SILICON
+              amount: 4
+          3:
+              material_type: slimefun
+              material: SULFATE
+              amount: 4
+          6:
+              material_type: slimefun
+              material: CARBONADO
+              amount: 4
+          7:
+              material_type: slimefun
+              material: SYNTHETIC_SAPPHIRE
+              amount: 4
+          8:
+              material_type: slimefun
+              material: SYNTHETIC_EMERALD
+              amount: 4
+          9:
+              material_type: slimefun
+              material: SYNTHETIC_DIAMOND
+              amount: 4
+
+      PF4: #科技材料
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material_type: slimefun
+            material: BASIC_CIRCUIT_BOARD
+        output:
+          1:
+              material_type: slimefun
+              material: ELECTRO_MAGNET
+              amount: 2
+          2:
+              material_type: slimefun
+              material: ELECTRIC_MOTOR
+              amount: 2
+          3:
+              material_type: slimefun
+              material: HEATING_COIL
+              amount: 2
+          4:
+              material_type: slimefun
+              material: COOLING_UNIT
+              amount: 2
+          5:
+              material_type: slimefun
+              material: POWER_CRYSTAL
+              amount: 2
+          6:
+              material_type: slimefun
+              material: SOLAR_PANEL
+              amount: 2
+          7:
+              material_type: slimefun
+              material: ANDROID_MEMORY_CORE
+              amount: 2
+          8:
+              material_type: slimefun
+              material: STEEL_PLATE
+              amount: 2
+          9:
+              material_type: slimefun
+              material: REINFORCED_PLATE
+              amount: 2
+          10:
+              material_type: slimefun
+              material: ADVANCED_CIRCUIT_BOARD
+              amount: 2
+          11:
+              material_type: slimefun
+              material: BASIC_CIRCUIT_BOARD
+              amount: 2
+          12:
+              material_type: slimefun
+              material: MAGNET
+              amount: 2
+
+      PF5: #机器人
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material_type: slimefun
+            material: ADVANCED_CIRCUIT_BOARD
+        output:
+          1:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID
+            amount: 2
+          2:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_MINER
+            amount: 2
+          3:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_FARMER
+            amount: 2
+          4:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_FISHERMAN
+            amount: 2
+          5:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_WOODCUTTER
+            amount: 2
+          6:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_BUTCHER
+            amount: 2
+          7:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_2
+            amount: 2
+          8:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_2_FARMER
+            amount: 2
+          9:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_2_BUTCHER
+            amount: 2
+          10:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_2_FISHERMAN
+            amount: 2
+          11:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_3
+            amount: 2
+          12:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_3_BUTCHER
+            amount: 2
+          13:
+            material_type: slimefun
+            material: PROGRAMMABLE_ANDROID_3_FISHERMAN
+            amount: 2
+
+      PF6: #GPS
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: compass
+        output:
+          1:
+            material_type: slimefun
+            material: GPS_TELEPORTATION_MATRIX
+            amount: 2
+          2:
+            material_type: slimefun
+            material: GPS_TELEPORTER_PYLON
+            amount: 2
+          3:
+            material_type: slimefun
+            material: GPS_ACTIVATION_DEVICE_SHARED
+            amount: 2
+          4:
+            material_type: slimefun
+            material: GPS_ACTIVATION_DEVICE_PERSONAL
+            amount: 2
+          5:
+            material_type: slimefun
+            material: GPS_TRANSMITTER
+            amount: 2
+          6:
+            material_type: slimefun
+            material: GPS_TRANSMITTER_2
+            amount: 2
+          7:
+            material_type: slimefun
+            material: GPS_TRANSMITTER_3
+            amount: 2
+          8:
+            material_type: slimefun
+            material: GPS_TRANSMITTER_4
+            amount: 2
+
+      PF7: #货运与电器
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: redstone_torch
+        output:
+          1:
+            material_type: slimefun
+            material: ENERGY_CONNECTOR
+            amount: 2
+          7:
+            material_type: slimefun
+            material: ENERGIZED_CAPACITOR
+            amount: 2
+          8:
+            material_type: slimefun
+            material: CARGO_NODE
+            amount: 2
+          9:
+            material_type: slimefun
+            material: CARGO_NODE_OUTPUT
+            amount: 2
+          10:
+            material_type: slimefun
+            material: CARGO_NODE_INPUT
+            amount: 2
+          11:
+            material_type: slimefun
+            material: CARGO_NODE_OUTPUT_ADVANCED
+            amount: 2
+          12:
+            material_type: slimefun
+            material: ENHANCED_AUTO_CRAFTER
+            amount: 2
+          14:
+            material_type: slimefun
+            material: VANILLA_AUTO_CRAFTER
+            amount: 2
+
+      PF8: #魔法
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: ender_pearl
+        output:
+          1:
+            material_type: slimefun
+            material: BLANK_RUNE
+            amount: 2
+          2:
+            material_type: slimefun
+            material: STAFF_ELEMENTAL
+            amount: 2
+          3:
+            material_type: slimefun
+            material: ANCIENT_RUNE_AIR
+            amount: 2
+          4:
+            material_type: slimefun
+            material: ANCIENT_RUNE_FIRE
+            amount: 2
+          5:
+            material_type: slimefun
+            material: ANCIENT_RUNE_EARTH
+            amount: 2
+          6:
+            material_type: slimefun
+            material: ANCIENT_RUNE_WATER
+            amount: 2
+          7:
+            material_type: slimefun
+            material: ANCIENT_RUNE_LIGHTNING
+            amount: 2
+          8:
+            material_type: slimefun
+            material: ANCIENT_RUNE_ENDER
+            amount: 2
+          9:
+            material_type: slimefun
+            material: ANCIENT_RUNE_RAINBOW
+            amount: 2
+          10:
+            material_type: slimefun
+            material: ANCIENT_RUNE_ENCHANTMENT
+            amount: 2
+          11:
+            material_type: slimefun
+            material: ANCIENT_RUNE_SOULBOUND
+            amount: 2
+          12:
+            material_type: slimefun
+            material: ANCIENT_RUNE_VILLAGERS
+            amount: 2
+          13:
+            material_type: slimefun
+            material: STAFF_ELEMENTAL_WIND
+            amount: 2
+          14:
+            material_type: slimefun
+            material: STAFF_ELEMENTAL_FIRE
+            amount: 2
+          15:
+            material_type: slimefun
+            material: STAFF_ELEMENTAL_WATER
+            amount: 2
+          16:
+            material_type: slimefun
+            material: STAFF_ELEMENTAL_STORM
+            amount: 2
+          23:
+            material_type: slimefun
+            material: INFUSED_MAGNET
+            amount: 2
+          24:
+            material_type: slimefun
+            material: MAGICAL_ZOMBIE_PILLS
+            amount: 2
+          25:
+            material_type: slimefun
+            material: INFUSED_HOPPER
+            amount: 2
+          26:
+            material_type: slimefun
+            material: REINFORCED_SPAWNER
+            amount: 2
+          27:
+            material_type: slimefun
+            material: BROKEN_SPAWNER
+            amount: 2
+          28:
+            material_type: slimefun
+            material: INFERNAL_BONEMEAL
+            amount: 2
+          29:
+            material_type: slimefun
+            material: FLASK_OF_KNOWLEDGE
+            amount: 2
+          30:
+            material_type: slimefun
+            material: COMMON_TALISMAN
+            amount: 2
+          31:
+            material_type: slimefun
+            material: MAGICAL_BOOK_COVER
+            amount: 2
+          32:
+            material_type: slimefun
+            material: RAINBOW_LEATHER
+            amount: 2
+          33:
+            material_type: slimefun
+            material: SYNTHETIC_SHULKER_SHELL
+            amount: 2
+          34:
+            material_type: slimefun
+            material: NECROTIC_SKULL
+            amount: 2
+          35:
+            material_type: slimefun
+            material: ESSENCE_OF_AFTERLIFE
+            amount: 2
+          36:
+            material_type: slimefun
+            material: LAVA_CRYSTAL
+            amount: 2
+          37:
+            material_type: slimefun
+            material: STRANGE_NETHER_GOO
+            amount: 2
+          38:
+            material_type: slimefun
+            material: ELYTRA_SCALE
+            amount: 2
+          39:
+            material_type: slimefun
+            material: MAGICAL_GLASS
+            amount: 2
+
+      PF9: #魔法结晶
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: ender_eye
+        output:
+          1:
+            material_type: slimefun
+            material: MAGIC_LUMP_3
+            amount: 8
+          2:
+            material_type: slimefun
+            material: ENDER_LUMP_3
+            amount: 8
+          1:
+            material_type: slimefun
+            material: MAGIC_LUMP_2
+            amount: 4
+          2:
+            material_type: slimefun
+            material: ENDER_LUMP_2
+            amount: 4
+          1:
+            material_type: slimefun
+            material: MAGIC_LUMP_1
+            amount: 4
+          2:
+            material_type: slimefun
+            material: ENDER_LUMP_1
+            amount: 4
+
+      PF10: #核
+        seconds: 30
+        noConsume: true
+        input:
+          2:
+            material: emerald
+        output:
+          1:
+            material_type: slimefun
+            material: URANIUM
+            amount: 2
+          2:
+            material_type: slimefun
+            material: BOOSTED_URANIUM
+            amount: 2
+          3:
+            material_type: slimefun
+            material: NEPTUNIUM
+            amount: 2
+          4:
+            material_type: slimefun
+            material: PLUTONIUM
+            amount: 2
+          7:
+            material_type: slimefun
+            material: BLISTERING_INGOT_3
+            amount: 2
+
+      PF11: #机器
+        seconds: 30
+        noConsume: false
+        input:
+          2:
+            material_type: slimefun
+            material: 咆哮外壳
+            amount: 64
+        output:
+          1:
+            material_type: slimefun
+            material: OST_幼儿启蒙金属合成机2
+            amount: 1
+          2:
+            material_type: slimefun
+            material: OST_儿童玩具零件组装机
+            amount: 1
+          3:
+            material_type: slimefun
+            material: OST_古代机器人益趣合成箱
+            amount: 1
+          4:
+            material_type: slimefun
+            material: OST_工程师入门工具生产器
+            amount: 1
+          5:
+            material_type: slimefun
+            material: OST_旧日魔法帽模拟器
+            amount: 1
+          6:
+            material_type: slimefun
+            material: OST_弱辐益智科学套件
+            amount: 1

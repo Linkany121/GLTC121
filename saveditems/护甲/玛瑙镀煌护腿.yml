@@ -1,0 +1,28 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: DIAMOND_LEGGINGS
+  meta:
+    ==: ItemMeta
+    meta-type: ARMOR
+    enchants:
+      minecraft:protection: 4
+      minecraft:swift_sneak: 3
+    attribute-modifiers:
+      minecraft:generic.armor:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 7.0
+        slot: legs
+        operation: 0
+        key: minecraft:armor.leggings
+      minecraft:generic.armor_toughness:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 2.0
+        slot: legs
+        operation: 0
+        key: minecraft:armor.leggings
+    repair-cost: 3
+    Unbreakable: true
+    trim:
+      material: minecraft:gold
+      pattern: minecraft:wayfinder

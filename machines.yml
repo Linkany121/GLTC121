@@ -1,0 +1,135 @@
+
+ATO_能源流储蓄站:
+  item_group: A_B2
+  item:
+    name: "&#ff5300A&#ff5b00T&#ff6300O &#ffb46f能&#ffce79源&#ffe783流&#ecf992拇&#b3fcad指&#7afec8终&#65f3dd端&#63e1ee站&#60cfff点"
+    material: lectern
+    glow: true
+    lore:
+    - '&b归属&9：&#ff25f1G&#d22af5L&#a52ff9T&#7834fdC&#584cff联&#4576ff合&#319fff协&#1ec9ff议'
+    - '&#fff5b3一个能够储存能源流的机器。'
+    - '&#fff5b3通过该站点，能够将通用基础资源转化为能源流信用点。'
+    - '&8⇨ &7速度:瞬间'
+    - '&8⇨ &e⚡&7 0 J/次(不耗电)'
+  recipe_type: ENHANCED_CRAFTING_TABLE
+  recipe:
+    1:
+      material_type: slimefun
+      material: AL_a1
+    2:
+      material: crafting_table
+    3:
+      material_type: slimefun
+      material: AL_a1
+  input: [2,3,4,5,6]
+  output: [19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43,46,47,48,49,50,51,52]
+  script: 能源流货币/充值机
+
+FKR_枪械外观客制化组装桌:
+  item_group: A_G2
+  item:
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#52e62d枪&#58e92d械&#5eec2d外&#64ee2c观&#6af12c客&#70f42c制&#76f72c化&#7cf92b组&#82fc2b装&#88ff2b桌"
+    material: lectern
+    glow: true
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3一台可自定义枪械外观的组装站；'
+    - '&#fff5b3可以更换枪械的外观，将枪械材质自由切换为铁剑/金锄头/弩中任意一个，'
+    - '&#fff5b3由于工程师所处环境的不同，为因地制宜，FKRT低价出售此机器。'
+    - '&8⇨ &7速度:瞬间'
+    - '&8⇨ &e⚡&7 0 J/次(不耗电)'
+  recipe_type: ENHANCED_CRAFTING_TABLE
+  recipe:
+    1:
+      material_type: slimefun
+      material: ntfkr1
+    2:
+      material: crafting_table
+    3:
+      material_type: slimefun
+      material: ntfkr1
+  input: [2,3,4,5,6]
+  output: [19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43,46,47,48,49,50,51,52]
+  script: 机器/枪械外观客制化组装桌
+
+skey_舰体订单发布机:
+  item_group: B_B0
+  item:
+    name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#9db8ff舰&#94a9ff体&#8b99ff订&#838aff单&#7a7aff发&#716bff布&#685bff机"
+    material: lectern
+    glow: true
+    lore:
+    - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
+    - '&#fff5b3一台用于发布舰体物资需求订单的机器；'
+    - '&#fff5b3投入 &e1张空白订单&r&#fff5b3，即可随机生成一张舰体订单，'
+    - '&#fff5b3订单等级越高，所需物资的数量与品质越高，报酬也越丰厚。'
+    - '&f[&b订单报酬&f]&#fff5b3以舰体货币结算：I等货币、V等货币、X等货币。'
+    - '&8⇨ &7速度:瞬间'
+    - '&8⇨ &e⚡&7 0 J/次(不耗电)'
+  recipe_type: ENHANCED_CRAFTING_TABLE
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_空白订单
+    2:
+      material: crafting_table
+    3:
+      material_type: slimefun
+      material: skey_空白订单
+  input: [2,3,4,5,6]
+  output: [19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43,46,47,48,49,50,51,52]
+  script: 机器/舰体订单发布机
+
+skey_舰体订单接收机:
+  item_group: B_B0
+  item:
+    name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#43b6da舰&#44abe0体&#459fe6订&#4794ed单&#4889f3接&#497df9收&#4a72ff机"
+    material: lectern
+    glow: true
+    lore:
+    - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
+    - '&#fff5b3一台用于接收舰体物资需求订单的机器；'
+    - '&#fff5b3放入订单并交付对应物资，即可获得舰体货币报酬。'
+    - '&f[&b交付报酬&f]&#fff5b3按订单等级发放：I等货币、V等货币、X等货币。'
+    - '&8⇨ &7速度:瞬间'
+    - '&8⇨ &e⚡&7 0 J/次(不耗电)'
+  recipe_type: ENHANCED_CRAFTING_TABLE
+  recipe:
+    1:
+      material_type: slimefun
+      material: ntskey1
+    2:
+      material: crafting_table
+    3:
+      material_type: slimefun
+      material: ntskey1
+  input: [2,3,4,5,6]
+  output: [19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43,46,47,48,49,50,51,52]
+  script: 机器/舰体订单接收机
+
+skey_舰体链接协议访问站:
+  item_group: B_B0
+  item:
+    name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#cffff6舰&#f3fffd体&#ddf9ff链&#a9f0ff接&#75e6ff协&#50d3ff议&#47aeff访&#3e88ff问&#3562ff站"
+    material: lectern
+    glow: true
+    lore:
+    - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
+    - '&#fff5b3一台舰体网络协议中继访问站；'
+    - '&#fff5b3右键访问，可查看当前舰体货币余额，'
+    - '&#fff5b3并在终端交易选项中兑换所需物资。'
+    - '&8⇨ &7速度:无'
+    - '&8⇨ &e⚡&7 0 J/次(不耗电)'
+  recipe_type: ENHANCED_CRAFTING_TABLE
+  recipe:
+    1:
+      material_type: slimefun
+      material: ntskey3
+    2:
+      material: crafting_table
+    3:
+      material_type: slimefun
+      material: ntskey3
+  input: [2,3,4,5,6]
+  output: [19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43,46,47,48,49,50,51,52]
+  script: 机器/舰体链接协议访问站

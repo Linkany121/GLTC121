@@ -1,0 +1,320 @@
+
+fkr_榆芒珀金:
+  protection_types: [RADIATION]
+  fullSet: true
+  item_group: A_G1b
+  helmet:
+    id: FKR_榆芒珀金头盔
+    material: 护甲/榆芒珀金头盔
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ffd200榆&#ffda0b芒&#ffe216珀&#ffea22金&#fff22d头&#fffa38盔"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由榆芒珀金锭打造的护具，在皮革夹层中镶嵌了红石；'
+    - '&#fff5b3人体工效优秀，能提供较好的防护。'
+    - '&f[&#96bed6防护等级&f] &f一级'
+    - '&f[&#96d6a7套装效果&f] &f急迫I'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: tspjd
+            amount: 24
+
+  chestplate:
+    id: FKR_榆芒珀金肩甲
+    material: 护甲/榆芒珀金肩甲
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ffd200榆&#ffda0b芒&#ffe216珀&#ffea22金&#fff22d肩&#fffa38甲"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由榆芒珀金锭打造的护具，在皮革夹层中镶嵌了红石；'
+    - '&#fff5b3人体工效优秀，能提供较好的防护。'
+    - '&f[&#96bed6防护等级&f] &f一级'
+    - '&f[&#96d6a7套装效果&f] &f急迫I'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: tspjd
+            amount: 24
+
+  leggings:
+    id: FKR_榆芒珀金护胫
+    material: 护甲/榆芒珀金护胫
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ffd200榆&#ffda0b芒&#ffe216珀&#ffea22金&#fff22d护&#fffa38胫"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由榆芒珀金锭打造的护具，在皮革夹层中镶嵌了红石；'
+    - '&#fff5b3人体工效优秀，能提供较好的防护。'
+    - '&f[&#96bed6防护等级&f] &f一级'
+    - '&f[&#96d6a7套装效果&f] &f急迫I'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: tspjd
+            amount: 24
+
+  boots:
+    id: FKR_榆芒珀金短靴
+    material: 护甲/榆芒珀金短靴
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ffd200榆&#ffda0b芒&#ffe216珀&#ffea22金&#fff22d短&#fffa38靴"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由榆芒珀金锭打造的护具，在皮革夹层中镶嵌了红石；'
+    - '&#fff5b3人体工效优秀，能提供较好的防护。'
+    - '&f[&#96bed6防护等级&f] &f一级'
+    - '&f[&#96d6a7套装效果&f] &f急迫I'
+    potion_effects:
+      - "HASTE 0"
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: tspjd
+            amount: 24
+
+fkr_玛瑙镀煌:
+  protection_types: []
+  fullSet: true
+  item_group: A_G1b
+  helmet:
+    id: FKR_玛瑙镀煌头盔
+    material: 护甲/玛瑙镀煌头盔
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#187aff玛&#4596f3瑙&#72b1e6镀&#a0c9cf煌&#cfdcac头&#fff089盔"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由金属为底，交叉镶嵌了玛瑙与煌锇镧合金的高级护具；'
+    - '&#fff5b3整体较为沉重，能优秀的保护人体脆弱部位。'
+    - '&f[&#96bed6防护等级&f] &f二级'
+    - '&f[&#96d6a7套装效果&f] &f生命提升I 抗辐射'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TShel
+            amount: 24
+
+  chestplate:
+    id: FKR_玛瑙镀煌板甲
+    material: 护甲/玛瑙镀煌板甲
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#187aff玛&#4596f3瑙&#72b1e6镀&#a0c9cf煌&#cfdcac板&#fff089甲"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由金属为底，交叉镶嵌了玛瑙与煌锇镧合金的高级护具；'
+    - '&#fff5b3整体较为沉重，能优秀的保护人体脆弱部位。'
+    - '&f[&#96bed6防护等级&f] &f二级'
+    - '&f[&#96d6a7套装效果&f] &f生命提升I 抗辐射'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TShel
+            amount: 24
+
+  leggings:
+    id: FKR_玛瑙镀煌护腿
+    material: 护甲/玛瑙镀煌护腿
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#187aff玛&#4596f3瑙&#72b1e6镀&#a0c9cf煌&#cfdcac护&#fff089腿"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由金属为底，交叉镶嵌了玛瑙与煌锇镧合金的高级护具；'
+    - '&#fff5b3整体较为沉重，能优秀的保护人体脆弱部位。'
+    - '&f[&#96bed6防护等级&f] &f二级'
+    - '&f[&#96d6a7套装效果&f] &f生命提升I 抗辐射'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TShel
+            amount: 24
+
+  boots:
+    id: FKR_玛瑙镀煌重靴
+    material: 护甲/玛瑙镀煌重靴
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#187aff玛&#4596f3瑙&#72b1e6镀&#a0c9cf煌&#cfdcac重&#fff089靴"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由金属为底，交叉镶嵌了玛瑙与煌锇镧合金的高级护具；'
+    - '&#fff5b3整体较为沉重，能优秀的保护人体脆弱部位。'
+    - '&f[&#96bed6防护等级&f] &f二级'
+    - '&f[&#96d6a7套装效果&f] &f生命提升I 抗辐射'
+    potion_effects:
+      - "HEALTH_BOOST 0"
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TShel
+            amount: 24
+
+fkr_占位符1:
+  protection_types: []
+  fullSet: true
+  item_group: A_G1b
+  helmet:
+    id: FKR_占位符1
+    material: black_stained_glass_pane
+    name: "&8 "
+    lore:
+    - '&7为了保持美观与易读性放置的占位符'
+
+fkr_终界寒子素钢:
+  protection_types: []
+  fullSet: true
+  item_group: A_G1b
+  helmet:
+    id: FKR_终界寒子素钢盔
+    material: 护甲/终界寒子素钢盔
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e636ff终&#be36ff界&#9637ff寒&#6e37ff子&#577af1素&#3fbce2钢&#28ffd4盔"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由强化纤维打底，镶嵌数万枚微型终界寒素压缩板的高级护甲；'
+    - '&#fff5b3虽然整套装备非常厚重，但优秀的设计使穿戴者的活动不受限制，'
+    - '&#fff5b3内置的辅助组件更是提升装备者的身体机能，就算身披重甲也能保持高机动性。'
+    - '&f[&#96bed6防护等级&f] &f三级'
+    - '&f[&#96d6a7套装效果&f] &f力量II 生命提升V 抗辐射'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TSzjg
+            amount: 24
+
+  chestplate:
+    id: FKR_终界寒子素钢甲
+    material: 护甲/终界寒子素钢甲
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e636ff终&#be36ff界&#9637ff寒&#6e37ff子&#577af1素&#3fbce2钢&#28ffd4甲"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由强化纤维打底，镶嵌数万枚微型终界寒素压缩板的高级护甲；'
+    - '&#fff5b3虽然整套装备非常厚重，但优秀的设计使穿戴者的活动不受限制，'
+    - '&#fff5b3内置的辅助组件更是提升装备者的身体机能，就算身披重甲也能保持高机动性。'
+    - '&f[&#96bed6防护等级&f] &f三级'
+    - '&f[&#96d6a7套装效果&f] &f力量II 生命提升V 抗辐射'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TSzjg
+            amount: 24
+
+  leggings:
+    id: FKR_终界寒子素钢裙
+    material: 护甲/终界寒子素钢裙
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e636ff终&#be36ff界&#9637ff寒&#6e37ff子&#577af1素&#3fbce2钢&#28ffd4裙"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由强化纤维打底，镶嵌数万枚微型终界寒素压缩板的高级护甲；'
+    - '&#fff5b3虽然整套装备非常厚重，但优秀的设计使穿戴者的活动不受限制，'
+    - '&#fff5b3内置的辅助组件更是提升装备者的身体机能，就算身披重甲也能保持高机动性。'
+    - '&f[&#96bed6防护等级&f] &f三级'
+    - '&f[&#96d6a7套装效果&f] &f力量II 生命提升V 抗辐射'
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TSzjg
+            amount: 24
+
+  boots:
+    id: FKR_终界寒子素钢靴
+    material: 护甲/终界寒子素钢靴
+    material_type: saveditem
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e636ff终&#be36ff界&#9637ff寒&#6e37ff子&#577af1素&#3fbce2钢&#28ffd4靴"
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3由强化纤维打底，镶嵌数万枚微型终界寒素压缩板的高级护甲；'
+    - '&#fff5b3虽然整套装备非常厚重，但优秀的设计使穿戴者的活动不受限制，'
+    - '&#fff5b3内置的辅助组件更是提升装备者的身体机能，就算身披重甲也能保持高机动性。'
+    - '&f[&#96bed6防护等级&f] &f三级'
+    - '&f[&#96d6a7套装效果&f] &f力量II 生命提升V 抗辐射'
+    potion_effects:
+      - "STRENGTH 1"
+      - "HEALTH_BOOST 4"
+    recipe_type: PF_DZC
+    recipe:
+          1:
+            material_type: slimefun
+            material: FKR_护具模板
+            amount: 1
+            noConsume: true
+          2:
+            material_type: slimefun
+            material: TSzjg
+            amount: 24
+
+
+
+
+
+
+
+
+
+

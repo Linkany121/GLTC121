@@ -1,0 +1,686 @@
+
+UMPV_浅香红脆果:
+  item_group: A_H1b1
+  item:
+    name: "&#92b4cfα农作物 &#fff4cf浅&#ffe2c6香&#ffd0bd红&#ffbdb4脆&#ffabab果"
+    material: APPLE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一颗红色的脆质果实；'
+    - '&#fff5b3香脆可口，汁水饱满，至少比苹果好吃很多。'
+    - '&f[&e!&f]&#fff5b3平凡的料理原材料。'
+  nutrition: 1
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_淡绿鸧种子
+          amount: 1
+
+UMPV_白卷卷心菜:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα农作物 &#f5ffcf白&#e3ffc6卷&#d1ffbd卷&#bfffb4心&#adffab菜"
+    material: SUGAR_CANE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3几片白里透绿，绿里透白的卷心菜片；'
+    - '&#fff5b3这种蔬菜在烹饪之前几乎没有香味，但是嘛...'
+    - '&f[&e!&f]&#fff5b3平凡的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_淡绿鸧种子
+          amount: 1
+
+UMPV_鎏明金脆果:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ农作物 &#fff975鎏&#feed77明&#fee27a金&#fdd67c脆&#fcca7e果"
+    material: GOLDEN_APPLE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一颗黄灿灿、手感踏实的脆质果实；'
+    - '&#fff5b3虽然很香，但是直接吃是有毒的，很可惜？料理一下再试试。'
+    - '&f[&e!&f]&#fff5b3优秀的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_淡绿鸧种子
+          amount: 1
+
+UMPV_香甜辣瓜片:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα农作物 &#ff9e9e香&#ffb2b2甜&#ffc6c6辣&#ffdada瓜&#ffeeee片"
+    material: MELON_SLICE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一片看上去很普通的瓜；'
+    - '&#fff5b3别怕！直接吃是没有辣味的，而水煮一下会变辣，很神奇。'
+    - '&f[&e!&f]&#fff5b3平凡的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_块结香颗粒
+          amount: 1
+
+UMPV_浮空兰蔬:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα农作物 &#c2fff0浮&#bbfccb空&#b5faa5兰&#aef780蔬"
+    material: KELP
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3几片很轻却柔韧的蔬菜叶；'
+    - '&#fff5b3不盖盖子水煮时会莫名其妙的飘出锅来，口感劲道；'
+    - '&f[&e!&f]&#fff5b3平凡的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_块结香颗粒
+          amount: 1
+
+UMPV_涟音绿化根:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ农作物 &#fff6a1涟&#e1ec8f音&#c3e27d绿&#a4d86b化&#86ce59根"
+    material: POISONOUS_POTATO
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一块长着苔藓的特殊土豆；'
+    - '&#fff5b3料理要先切下苔藓备用，土豆本身有毒会直接扔掉。'
+    - '&f[&e!&f]&#fff5b3优秀的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_块结香颗粒
+          amount: 1
+
+UMPV_沙海小萝卜:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ农作物 &#f0ebbc沙&#f4d7b0海&#f8c3a4小&#fbae98萝&#ff9a8c卜"
+    material: CARROT
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一块碗口粗细的黄色小萝卜；'
+    - '&#fff5b3如果种在沙漠里，会长出非常庞大的根系。'
+    - '&f[&e!&f]&#fff5b3优秀的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_九里绕黄根茎
+          amount: 1
+
+UMPV_深坑马铃薯:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ农作物 &#ffc1b8深&#fec7b2坑&#fcceac马&#fbd4a5铃&#f9da9f薯"
+    material: POTATO
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一块比拳头略大的深色土豆；'
+    - '&#fff5b3由于其大小和淀粉含量，这是超级薯条的完美原料！'
+    - '&f[&e!&f]&#fff5b3优秀的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_九里绕黄根茎
+          amount: 1
+
+UMPV_宝珠玉色根茎:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc894γ农作物 &#fffa8c宝&#ffe87f珠&#ffd572玉&#fdc85d色&#f8c140根&#f3b923茎"
+    material: GOLDEN_CARROT
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一根略有珠宝色泽的超大胡萝卜；'
+    - '&#fff5b3斜着切开有独特的纹路，相传纹路越复杂，熬的汤就越美味。'
+    - '&f[&e!&f]&#fff5b3绝佳的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_九里绕黄根茎
+          amount: 1
+
+UMPV_黯色片香菌:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ农作物 &#f1daff黯&#e8cbed色&#e0bbdb片&#d7acc9香&#ce9cb7菌"
+    material: RED_MUSHROOM
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3几片淡红色的常见小蘑菇；'
+    - '&#fff5b3有独特的清香，更适合清蒸煲汤。'
+    - '&f[&e!&f]&#fff5b3优秀的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_腐糯粉状菌丝
+          amount: 1
+
+UMPV_螺剑菇:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ农作物 &#e6959a螺&#e8acaf剑&#eac3c3菇"
+    material: BROWN_MUSHROOM
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一摞有着棕色坚硬伞头的螺纹蘑菇；'
+    - '&#fff5b3水煮后，棕色变为白色就可以大快朵颐了，几乎不需要调料。'
+    - '&f[&e!&f]&#fff5b3优秀的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_腐糯粉状菌丝
+          amount: 1
+
+UMPV_猎斑化见手青:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc894γ农作物 &#ff9162猎&#f1a19a斑&#e4b1d3化&#cba8e8见&#a885da手&#8463cc青"
+    material: WARPED_FUNGUS
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一块看上去十分诡异的细腻见手青；'
+    - '&#fff5b3看到这名字你就知道这玩意不能随便吃了，先晒着备用吧。'
+    - '&f[&e!&f]&#fff5b3绝佳的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_腐糯粉状菌丝
+          amount: 1
+
+UMPV_宝色浆果:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc894γ农作物 &#ff3131宝&#ff4e42色&#ff6b52浆&#ff8863果"
+    material: SWEET_BERRIES
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一把鲜艳亮眼、饱满多汁，每一颗都有虎口大小的浆果；'
+    - '&#fff5b3这种东西真的是工业化生产的？抱着这样的想法愉快的看着仓库数量增加吧。'
+    - '&f[&e!&f]&#fff5b3绝佳的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_铑金化石稻谷块
+          amount: 1
+
+UMPV_传统烨金稻:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc894γ农作物 &#ff6c2d传&#ff7d36统&#ff8d3e烨&#ff9e47金&#ffae4f稻"
+    material: GLOW_BERRIES
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一堆还未脱谷的闪着金光的圆润细长的稻谷；'
+    - '&#fff5b3用这种稻米煮出的饭堪称怒晖座第一米，热气腾腾、粒粒饱满而不粘碗筷，干吃三大碗也不腻。'
+    - '&f[&e!&f]&#fff5b3绝佳的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_铑金化石稻谷块
+          amount: 1
+
+UMPV_镀铑夜明灼叶草:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc494δ&#ffada4农&#ff97b3作&#ff80c3物 &#ff5925镀&#ff8b3b铑&#ffbe51夜&#fff067明&#ffe950灼&#ffe338叶&#ffdc21草"
+    material: HONEY_BOTTLE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一大瓶透光性极强的金色灼夜草露，隔着瓶子也能闻到满盈的花草香气；'
+    - '&#fff5b3十株灼叶草才可能诞生一株夜明灼夜草，更别说天生带镀铑般色泽的夜明灼夜草了，'
+    - '&#fff5b3可以当做酱料、蘸料、煲汤、炒料或是猛炖，无论做什么都美味异常，或许有些成瘾性。'
+    - '&f[&e!&f]&#fff5b3奇异珍稀的料理原材料。'
+  recipe_type: PF_PYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_铑金化石稻谷块
+          amount: 1
+
+UMPV_玉兔染黄草:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#85ff26玉&#a4fd2c兔&#c2fb32染&#e1f938黄&#fff73e草"
+    material: DANDELION
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3苦、甘，寒。归肝、胃经。'
+    - '&#fff5b3主效清热解毒，消痈散结，催乳助孕，外敷可缓解蚊虫叮咬肿痛。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_啜滑嗅幽茎:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#fc9c43啜&#ddb340滑&#bdc93c嗅&#9ee039幽&#7ef635茎"
+    material: TORCHFLOWER
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3辛，温。归肺、脾、心经。'
+    - '&#fff5b3主效风寒感冒、恶寒无汗、胸痹冷痛，也能熏洗缓解眼部疾病。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_猛毒镇毒骨:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#812aa0猛&#8139ac毒&#8148b7镇&#8157c3毒&#8166ce骨"
+    material: WITHER_ROSE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3苦、辛，大毒。归心、肝经。'
+    - '&#fff5b3毒性极强且生猛，不慎入体半刻后无药可救；但亦能以毒攻毒，回阳转命。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_奇珏霸王荚:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#6b7aff奇&#5e99ff珏&#52b7ff霸&#45d6ff王&#38f4ff荚"
+    material: PITCHER_POD
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3甘、微苦，平。归肝、胃、大肠经。'
+    - '&#fff5b3主效虫蛇咬伤、痈肿疔疮；可制奇毒与强效续命丸，后遗症严重。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_碳碾树末根:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#bf7f7f碳&#b08783碾&#a18e87树&#92968b末&#839d8f根"
+    material: fire_charge
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3辛，大热。归心、肾、脾经。'
+    - '&#fff5b3主效散寒定痛，增力壮魄，安神辟邪；不能外敷！！！'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_甜香朱露瓤:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#f76767甜&#f26a72香&#ee6c7e朱&#e96f89露&#e47194瓤"
+    material: BEETROOT
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3甘，平。归脾、胃、心经。'
+    - '&#fff5b3主效健胃消食、补血润心；少见的可以略微缓解心病的药材。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_夜明华巧片:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#e6ffee夜&#e2fbf2明&#ddf6f7华&#d9f2fb巧&#d4edff片"
+    material: QUARTZ
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3甘、辛，温。归肺、肾、心经。'
+    - '&#fff5b3主效温肺定喘，壮骨坚腰；泡水可补钙，磨粉可壮阳。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_香炼盈穗烧:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#f4f08a香&#f7e68f炼&#fadb93盈&#fcd198穗&#ffc69d烧"
+    material: WHEAT
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3甘，凉。归心、脾、肺经。'
+    - '&#fff5b3主效养心除烦，固表止汗；可制香为香薰，煮成饭吃了也行。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_古金甘露巢:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#12deadη&#1de696富&#28ef80集&#33f769药&#3eff52材 &#d5cd09古&#e0d821金&#eae339甘&#f5ee50露&#fff968巢"
+    material: HONEYCOMB
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3甘，平。归肝、胃、肺经。'
+    - '&#fff5b3主效攻毒祛风、驻颜防衰；只要能想办法点燃，很多疑难杂症都能压制缓解。'
+    - '&f[&e!&f]&#fff5b3一种富集病理作物，可用于制药。'
+  recipe_type: PF_DDYQ
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_一堆药材
+          amount: 1
+
+UMPV_生岩兽肉排:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα音培食材 &#ffb967生&#efb871岩&#dfb67a兽&#ceb484肉&#beb38d排"
+    material: BEEF
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一块鲜血淋漓的大肉排；'
+    - '&#fff5b3岩兽这种生活在山地的野兽，肉质确实上乘。'
+    - '&f[&e!&f]&#fff5b3平凡的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_被动生物DNA集束片
+          amount: 1
+
+UMPV_生餮头兽肉片:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα音培食材 &#f9eab8生&#fadea3餮&#fbd28e头&#fbc578兽&#fcb963肉&#fdad4e片"
+    material: PORKCHOP
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3堆起来的刀片状肉条；'
+    - '&#fff5b3一种个体重量极大，容易把自己撑死的家畜的肉。'
+    - '&f[&e!&f]&#fff5b3平凡的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_被动生物DNA集束片
+          amount: 1
+
+UMPV_生完整全料羽兽:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ音培食材 &#f4d78c生&#f2dc88完&#f1e185整&#efe681全&#edea7d料&#ecef7a羽&#eaf476兽"
+    material: CHICKEN
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一整个完整的生羽兽肉；'
+    - '&#fff5b3别管有的没的了，疯狂星期四V我50。'
+    - '&f[&e!&f]&#fff5b3优秀的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_被动生物DNA集束片
+          amount: 1
+
+UMPV_极地高酷鲁毛兽卵:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc894γ音培食材 &#9c83ff极&#8b8afd地&#7a91fc高&#6998fa酷&#57a0f8鲁&#46a7f6毛&#35aef5兽&#24b5f3卵"
+    material: EGG
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一颗坚硬而略大于鹅蛋的卵；'
+    - '&#fff5b3不愧是极地食物链顶端生物的蛋，无论如何料理口感也十分不错。'
+    - '&f[&e!&f]&#fff5b3奇特的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_被动生物DNA集束片
+          amount: 1
+
+UMPV_生比诺丁鱼:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα音培食材 &#a6e9d9生&#98d0e3比&#8ab7ec诺&#7b9df6丁&#6d84ff鱼"
+    material: TROPICAL_FISH
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一条常见的淡水鱼；'
+    - '&#fff5b3唯一的优点是几乎没刺，存活也不挑条件。'
+    - '&f[&e!&f]&#fff5b3平凡的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_水生生物DNA集束片
+          amount: 1
+
+UMPV_生古域鲸海鱼:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα音培食材 &#e4a6e9生&#cb9cdf古&#b292d5域&#9887cc鲸&#7f7dc2海&#6673b8鱼"
+    material: COD
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一条常见的深海鱼类；'
+    - '&#fff5b3这个海域的鱼以拥有美味强劲的尾部肉质而闻名。'
+    - '&f[&e!&f]&#fff5b3平凡的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_水生生物DNA集束片
+          amount: 1
+
+UMPV_霓斯那庭大海骡:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ音培食材 &#ffded3霓&#f7d6cb斯&#efcdc3那&#e7c5bc庭&#dfbdb4大&#d7b4ac海&#cfaca4骡"
+    material: NAUTILUS_SHELL
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一个两拳大小的大海螺；'
+    - '&#fff5b3直接火烤会猛地爆开，是一种十分考验厨师功力的食材。'
+    - '&f[&e!&f]&#fff5b3优秀的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_水生生物DNA集束片
+          amount: 1
+
+UMPV_奇迹海域特产鱼子酱:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc894γ音培食材 &#acff41奇&#c1f851迹&#d6f160海&#eaea70域&#ffe37f特&#ffca68产&#ffb151鱼&#ff9839子&#ff7f22酱"
+    material: EXPERIENCE_BOTTLE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一瓶散发橙黄荧光的尖锐颗粒状鱼子酱；'
+    - '&#fff5b3奇迹海域是格泰拉垩洲北部的海域统称，盛产各类攻击性极强的鱼类与水手。'
+    - '&f[&e!&f]&#fff5b3奇特的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_水生生物DNA集束片
+          amount: 1
+
+UMPV_生野兽排肉:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα音培食材 &#a8be7b生&#baa770野&#cc8f64兽&#de7859排&#f0604d肉"
+    material: ROTTEN_FLESH
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一块散发怪味的排骨肉；'
+    - '&#fff5b3在料理它之前必须先学会分辨这玩意到底有没有发霉。'
+    - '&f[&e!&f]&#fff5b3平凡的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_敌意生物DNA集束片
+          amount: 1
+
+UMPV_弃拉泊齿兽腿肉:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#92b4cfα音培食材 &#de8275弃&#d78374拉&#d08372泊&#c98471齿&#c1856f兽&#ba856e腿&#b3866c肉"
+    material: RABBIT_FOOT
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一条看着就带劲的大腿肉；'
+    - '&#fff5b3正常齿兽还没一个人的头大，能长成这么大个腿肉已经很少见了。'
+    - '&f[&e!&f]&#fff5b3平凡的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_敌意生物DNA集束片
+          amount: 1
+
+UMPV_剧毒厄索斯内脏肉排:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#af92cfβ音培食材 &#dc75de剧&#d870cb毒&#d46bb8厄&#d066a5索&#cc6192斯&#c85c7f内&#c4576c脏&#c05259肉&#bc4d46排"
+    material: FERMENTED_SPIDER_EYE
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一块剧毒陆生兽的内脏肉排；'
+    - '&#fff5b3优秀的厨师能让顾客体验到天堂般的珍馐美味，平庸的厨师能借此直接让顾客下地狱。'
+    - '&f[&e!&f]&#fff5b3优秀的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_敌意生物DNA集束片
+          amount: 1
+
+UMPV_完整幼年虐王兽颈脊肉条:
+  item_group: A_H1b1
+  nutrition: 1
+  item:
+    name: "&#ffc894γ音培食材 &#4ba8ff完&#6cb6e3整&#8cc5c7幼&#add3ab年&#cde28f虐&#eef073王&#efc35c兽&#f09645颈&#f2692e脊&#f33c17肉&#f40f00条"
+    material: GLOW_INK_SAC
+    glow: true
+    lore:
+    - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
+    - '&#fff5b3一条蜷缩着的蓝色完整背脊部肉条；'
+    - '&#fff5b3幼年的虐兽很常见，但幼年的虐王兽可比成年虐兽还不好对付，'
+    - '&#fff5b3不过完整的肉条之所以稀缺，正是因为虐王兽比起被人捕获，更多的是被虐兽围殴致死。'
+    - '&f[&e!&f]&#fff5b3奇特的料理用肉材。'
+  recipe_type: PF_YYC
+  recipe:
+        1:
+          material_type: slimefun
+          material: UMPV_敌意生物DNA集束片
+          amount: 1

@@ -1,0 +1,229 @@
+
+#手动沉淀仪
+ATO_GT:
+  item_group: A_B2
+  item:
+    name: "&#ff5300A&#ff5b00T&#ff6300O &e临时杂质沉淀仪"
+    material: amethyst_block
+    glow: true
+    lore:
+    - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
+    - '&#fff5b3新生星系中的物质成分于银河中大多数物质相悖；'
+    - '&#fff5b3临时使用它来略微清除杂质，以获取通用材料。'
+  recipe:
+    2:
+      material: cobblestone_wall
+    5:
+      material: amethyst_block
+    8:
+      material: DISPENSER
+  work: 5
+  sound: MAGIC_WORKBENCH_FINISH_SOUND
+  recipes:
+    AL_A1: #
+      input:
+        1:
+          material_type: mc
+          material: COBBLESTONE
+          amount: 2
+      output:
+         material_type: slimefun
+         material: AL_A1
+         amount: 1
+    AL_A2: #
+      input:
+        1:
+          material_type: mc
+          material: iron_ingot
+          amount: 1
+      output:
+         material_type: slimefun
+         material: AL_A2
+         amount: 1
+    AL_A3: #
+      input:
+        1:
+          material_type: mc
+          material: carrot
+          amount: 1
+      output:
+         material_type: slimefun
+         material: AL_A3
+         amount: 1
+    AL_A4: #
+      input:
+        1:
+          material_type: mc
+          material: diorite
+          amount: 1
+      output:
+         material_type: slimefun
+         material: AL_A4
+         amount: 1
+    AL_A5: #
+      input:
+        1:
+          material_type: mc
+          material: white_wool
+          amount: 1
+      output:
+         material_type: slimefun
+         material: AL_A5
+         amount: 1
+    AL_A6: #
+      input:
+        1:
+          material_type: mc
+          material: redstone
+          amount: 1
+      output:
+         material_type: slimefun
+         material: AL_A6
+         amount: 1
+    AL_dlb: #
+      input:
+        1:
+          material_type: mc
+          material: redstone
+          amount: 16
+        2:
+          material_type: mc
+          material: iron_ingot
+          amount: 16
+      output:
+         material_type: slimefun
+         material: BASIC_CIRCUIT_BOARD
+         amount: 2
+    AL_mt: #
+      input:
+        1:
+          material_type: mc
+          material: diamond
+          amount: 8
+      output:
+          material_type: mc
+          material: coal_block
+          amount: 48
+    AL_电线1: #
+      input:
+        1:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+        2:
+          material_type: mc
+          material: redstone
+          amount: 1
+        3:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+      output:
+         material_type: slimefun
+         material: GLTC_能源调节器
+         amount: 1
+    AL_电线2: #
+      input:
+        1:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+        2:
+          material_type: mc
+          material: amethyst_shard
+          amount: 1
+        3:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+      output:
+         material_type: slimefun
+         material: GLTC_能源调节器2
+         amount: 1
+    AL_电线3: #
+      input:
+        2:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+        5:
+          material: redstone
+          amount: 1
+        8:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+      output:
+         material_type: slimefun
+         material: GLTC_能源连接器
+         amount: 16
+    AL_电线4: #
+      input:
+        2:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+        5:
+          material: amethyst_shard
+          amount: 1
+        8:
+          material_type: slimefun
+          material: al_a6
+          amount: 1
+      output:
+         material_type: slimefun
+         material: GLTC_能源连接器2
+         amount: 16
+    AL_电线4: #
+      input:
+        1:
+          material: iron_ingot
+          amount: 1
+        2:
+          material_type: slimefun
+          material: AL_B1
+          amount: 1
+      output:
+         material_type: slimefun
+         material: GLTC_银行卡
+         amount: 1
+
+#手动升华仪
+ATO_GS:
+  item_group: A_B2
+  item:
+    name: "&#ff5300A&#ff5b00T&#ff6300O &e临时颗粒升华器"
+    material: enchanting_table
+    glow: true
+    lore:
+    - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
+    - '&#fff5b3经过检测，ATO发现该星系中的某种原生技术，'
+    - '&#fff5b3与银河广泛存在的术式有异曲同工之妙。'
+    - '&#fff5b3利用临时升华器将这种产物转化为通用涵粒子。'
+  recipe:
+    5:
+      material: cauldron
+    7:
+      material: enchanting_table
+    8:
+      material: DISPENSER
+    9:
+      material: blast_furnace
+  work: 5
+  sound: MAGIC_WORKBENCH_FINISH_SOUND
+  recipes:
+    AL_A1:
+      input:
+        1:
+          material: nether_wart
+          amount: 1
+        2:
+          material: blaze_powder
+          amount: 1
+        3:
+          material: amethyst_shard
+          amount: 1
+      output:
+         material_type: slimefun
+         material: AL_B1
+         amount: 3

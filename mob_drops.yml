@@ -1,0 +1,79 @@
+#雪傀儡
+TSstxkl:
+  entity: snow_golem
+  chance: 60
+  lateInit: false
+  item_group: A_E1a
+  item:
+    name: "&#a8caff战&#a8e0ff利&#a8f5ff品 &#a8feff雪傀儡掉落物"
+    material_type: skull_hash
+    material: d56295230022556a3823629b43385b0b2dac10ccc853586287f334e46b977002
+    lore:
+    - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
+    - '&#fff5b3雪电核心。'
+    - '&8如果雪傀儡无法掉落，也可以合成。'
+
+#爬行者
+TSstklp:
+  entity: CREEPER
+  chance: 60
+  lateInit: false
+  item_group: A_E1a
+  item:
+    name: "&#a8caff战&#a8e0ff利&#a8f5ff品 &#279141苦力怕掉落物"
+    material_type: skull_hash
+    material: 3976aac76210b03e4c3891bdf799322e30a7e8a1272b2790326bf08f2192acd6
+    lore:
+    - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
+    - '&#fff5b3皮呢？'
+
+#嗅探
+TSstxts:
+  entity: SNIFFER
+  chance: 60
+  lateInit: false
+  item_group: A_E1a
+  item:
+    name: "&#a8caff战&#a8e0ff利&#a8f5ff品 &#b84242嗅探兽掉落物"
+    material_type: skull_hash
+    material: 3d6c9f43510cb90d24493e07b7cf8ca9f54132d09a257f20b7048022e3b1b707
+    lore:
+    - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
+    - '&#fff5b3古代生物的头。'
+
+#坚守
+TSstjsz:
+  entity: WARDEN
+  chance: 60
+  lateInit: false
+  item_group: A_E1a
+  item:
+    name: "&#a8caff战&#a8e0ff利&#a8f5ff品 &#13957b坚&#16a286守&#1aaf91者&#1dbc9c掉&#21c9a7落&#24d6b2物"
+    material_type: skull_hash
+    material: cf6481c7c435c34f21dff1043a4c7034c445a383a5435fa1f2a503a348afd62f
+    lore:
+    - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
+    - '&#fff5b3坚守者的头，还会动，但不咬人。'
+
+#末影龙
+TSstmyl:
+  entity: ender_dragon
+  chance: 99
+  lateInit: false
+  item_group: A_E1a
+  item:
+    name: "&#a8caff战&#a8e0ff利&#a8f5ff品 &#ff8a8a终&#ff6daf界&#ff50d3龙&#ff33f8眼"
+    material_type: skull_hash
+    material: aba9647ec7c8f359d8d0952bdbf72cbb4b5743cf8455dcb7664e2bf9bdf8b718
+    lore:
+    - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
+    - '&#fff5b3终界守护者的左眼，炽热而可怖的气息久久不散。'
+
+
+
+
+
+
+
+
+

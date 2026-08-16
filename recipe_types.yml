@@ -1,0 +1,387 @@
+####配方类型
+
+##咆哮组合器
+PF_PX:
+  material: "end_crystal"
+  name: "&#ffffffn&#eadefbu&#d6bcf7l&#c19bf4l&#ac7af0G&#9759ec#&#9646d9 &#a741b7咆&#b83d95哮&#c93974组&#da3452合&#eb3030器"
+  lore:
+    - "&4你好，世界？"
+
+##e临时杂质沉淀仪
+PF_ATO_GT:
+  material: "amethyst_block"
+  name: "&#ff5300A&#ff5b00T&#ff6300O &e临时杂质沉淀仪&f(右键紫水晶)"
+  lore:
+    - "&7这是一个多方块机器。"
+
+##e临时颗粒升华仪
+PF_ATO_GS:
+  material: "enchanting_table"
+  name: "&#ff5300A&#ff5b00T&#ff6300O &e临时颗粒升华仪&f(右键炼药锅)"
+  lore:
+    - "&7这是一个多方块机器。"
+
+##e星图定位器
+PF_TAC_1:
+  glow: true
+  material: "beacon"
+  name: "&dTAC &e星图定位器"
+  lore:
+    - "&7你需精准定位遥远却不再闪烁的群星。"
+
+##e星图唤醒器
+PF_TAC_2:
+  glow: true
+  material: "smithing_table"
+  name: "&dTAC &e星图唤醒器"
+  lore:
+    - "&7你需唤醒曾伟大、曾炽热过的星座中沉睡的记忆。"
+
+##e蓝图编织器
+PF_TAC_3:
+  glow: true
+  material: "loom"
+  name: "&dTAC &e蓝图编织器"
+  lore:
+    - "&7你需从破败的星尘洪流中编织学者们穷极一生的智慧。"
+
+##开尔文
+PF_KEW:
+  glow: true
+  material: "sculk_shrieker"
+  name: "&dTAC &#018dffK&#1a7bff2&#326aff7&#4b58ff3&#6447ff-&#7c35ff开&#9523ff尔&#ad12ff文&#c600ff桌"
+  lore:
+    - "&7使用智慧与理想的结晶打造机器。"
+
+##灌装器
+PF_GZQ:
+  material: "stripped_bamboo_block"
+  name: "&4!&eATO与C.GC &#5c9cf0灌装器"
+  lore:
+    - "&7消耗电力为液体进行装罐。"
+
+##e岩层开采器
+PF_TS11:
+  glow: true
+  material: "gray_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#bfa8ff层岩钻机"
+  lore:
+    - "&7这是一个消耗石材与通用电能的矿物开采器。"
+
+##光析锻仪
+PF_TS12:
+  glow: true
+  material: "white_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffe59e光析锻仪"
+  lore:
+    - "&7这是一个消耗燃料后一体化熔炼并铸锭的智能仪器。"
+
+##精炼分馏
+PF_TS13:
+  glow: true
+  material: "light_gray_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ff6b6b匡喀斯升压馏罐"
+  lore:
+    - "&7这是一个消耗辅料与电力产生高压并以此馏出二级资源的机器。"
+    - "&7注意：每次精炼，会产出数种数个产物，并且产出的概率因压力罐的等级而变化。"
+
+##投影井
+PF_TSTYJ:
+  glow: true
+  material: "cyan_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#a8ffaa光锥帷幕解压井"
+  lore:
+    - "&7一种能解压残余的视界信息的机器，不过概率较低。"
+    - "&7生产时不会消耗。"
+
+##油井
+PF_TSLJPT:
+  glow: true
+  material: "pink_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#aa559e深渊棱镜平台"
+  lore:
+    - "&7透过uFex场挖掘悖论油质的钻井，"
+    - "&7速度极慢，但单次产量较高。"
+
+##魔素蒸馏
+PF_TSMSFT:
+  glow: true
+  material: "blue_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#774cdc沸腾魔素热馏塔"
+  lore:
+    - "&7对侵蚀油块施加压力，使其在临界点中分解熔融。"
+    - "&7小概率产生交界态物质，收集并妥善保管。"
+
+##深渊催化
+PF_TSCHFY:
+  glow: true
+  material: "purple_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#bd28e6深渊催化反应炉"
+  lore:
+    - "&7准备好你的发电与物流系统：这对它们是个严峻的考验。"
+    - "&7对了，还有密封性足够好的容器，我提醒过你了。"
+
+##灵活贴合
+PF_TSLYTH:
+  glow: true
+  material: "soul_campfire"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#3acfb1灵焰粘合器"
+  lore:
+    - "&7利用它来进行悖论材料的第二道工序，"
+    - "&7像烫毛肚一样贴一下，放太久会烧焦。"
+
+##合金炉
+PF_TSHJL:
+  glow: true
+  material: "red_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffe042漩&#ffce40涡&#ffbc3e聚&#ffab3c变&#ff993a高&#ff8738压&#ff7536反&#ff6334应&#ff5232搅&#ff4030拌&#ff2e2e炉"
+  lore:
+    - "&7高压！高温！高速！"
+    - "&7再用非常大的力气搅拌，让一锅又一锅热乎乎的合金出炉。"
+
+##模拟器
+PF_TSMNQ:
+  glow: true
+  material: "black_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ff1ac2主&#ff17a1序&#ff147f星&#ff115e风&#ff0e3c暴&#ff0b1b反&#ff1709应&#ff3007模&#ff4905拟&#ff6204仓"
+  lore:
+    - "&7模拟恒星级的温压来铸造特种合金，"
+    - "&4发电机组的信念正在接受考验..."
+    - "&4&l...狂喜！"
+
+##合金炉
+PF_TSCC:
+  glow: true
+  material: "light_blue_glazed_terracotta"
+  name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#94edff微型蓝硅车床"
+  lore:
+    - "&7说是车床，确实就是个智能工作台。"
+    - "&7但它支持的工序非常多！虽然不太智能只能生产器械组件。"
+
+##录音机
+PF_LYJ:
+  glow: true
+  material: "lodestone"
+  name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#47f3ff录音机"
+  lore:
+    - "&7使用录音机将素材转化为频率。"
+    - "&7由于不同的星系中生物所含频率不同，我们无法提供准确的配方。"
+
+##乐盘
+PF_YP:
+  glow: true
+  material: "lectern"
+  name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#D251F8乐盘"
+  lore:
+    - "&7使用乐盘将和弦/鼓点/旋律转化为被称为乐曲的特殊植物。"
+    - "&7由于不同的星系中生物所含频率不同，我们无法提供准确的配方。"
+
+##暗房
+PF_AF:
+  glow: true
+  material: "soul_lantern"
+  name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#ff1e8e“&#f121a1上&#e425b4帝&#d628c7的&#c82bd9暗&#bb2fec房&#ad32ff”"
+  lore:
+    - "&7投入伪创世之歌的碎片并等待。"
+    - "&7出于对四想座陨落前与人之领官方签署的部分协议的尊重，原理暂且保密。"
+    - "&7不过如果你愿意，有一个无伤大雅的提示：这是一种将能够探索尚未诞生的文明可能性的机器。"
+
+##空气滤网
+PF_KQLW:
+  glow: true
+  material: BC_FF1
+  material_type: saveditem
+  name: "&#eac92fE&#df7b21A&#d42d13E &#2efaffC&#30dff82&#32c3f1空&#34a8ea气&#368de4滤&#3872dd网&#3a56d6风&#3c3bcf帆&f-&eI"
+  lore:
+    - "&7看似风帆，实则超级吸尘器，能够过滤与吸收大范围内的空气。"
+
+##合成器
+PF_HCQ:
+  glow: true
+  material: "cartography_table"
+  name: "&#eac92fE&#df7b21A&#d42d13E &#24c257家&#35c44f用&#47c746单&#58c93e元&#69cb35合&#7bce2d成&#8cd024器"
+  lore:
+    - "&7一种快速而简单的合成台，是EAE工人们的偷懒与智慧之作。"
+
+##锻造锤
+PF_DZC:
+  glow: true
+  material: "magma_block"
+  name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ff5300灼&#ff3700尔&#ff1c00格&#ff0000涅&#de0000巨&#be0000恒&#9d0000星&#8a1c1c锻&#783939造&#655555锤"
+  lore:
+    - "&7通过模拟恒星环境——宇宙中最常见、也最奇伟的史诗巨物来达成你的一切目的。"
+
+##枪械车床
+PF_QXCC:
+  glow: true
+  material: "black_bed"
+  name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ebbd77零&#ecb573件&#eead6e灌&#efa56a钮&#f09c66组&#f19462装&#f38c5d车&#f48459床"
+  lore:
+    - "&7一个打造枪械零件的单元化车床。"
+
+##星轨发射
+PF_XGFS:
+  glow: true
+  material: "beacon"
+  name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#f87fbbR&#ed78c33&#e272cc.&#d76bd4J&#cd65dcE&#c25ee4F&#b758ed行&#ac51f5星&#a057f5级&#945ef4星&#8864f4轨&#7b6bf3遥&#6f71f3测&#6378f2站&#577ef2点"
+  lore:
+    - "&7能够自动发射并灵活部署星轨卫星的发射器，将自动投递控制信标。"
+
+##种子
+PF_YBZZ:
+  glow: true
+  material: "dirt"
+  name: "&#7effb2挖掘掉落"
+  lore:
+    - "&7挖掘泥土时概率掉落。"
+##种子
+PF_TQQ:
+  glow: true
+  material: "jukebox"
+  name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#6dff48种&#84ff65子&#9aff81分&#92e6c0析&#89cdff仪"
+  lore:
+    - "&7从一堆种子中提取出的种子母本。"
+##培育仓
+PF_PYC:
+  glow: true
+  material: "emerald_block"
+  name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#15e111可&#26e520密&#36e92f堆&#47ec3e式&#57f04d生&#68f45c态&#79f86b培&#89fb7a育&#9aff89仓"
+  lore:
+    - "&7给种子母本提供大量养分与发育的土壤。"
+##药材
+PF_DDYQ:
+  glow: true
+  material: "calibrated_sculk_sensor"
+  name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#fffb9d强&#e5faa0化&#ccf9a4追&#b2f7a7溯&#98f6ab型&#7ff5ae植&#65f4b2物&#4bf2b5富&#32f1b9集&#18f0bc舱"
+  lore:
+    - "&7通过富集生产，高效种植多年生药材的机器。"
+##液电集束
+PF_YYC:
+  glow: true
+  material: "red_nether_bricks"
+  name: "&#ffa99d插&#ffa78f槽&#ffa580式&#ffa372t&#ffa0633&#ff9e55#&#ff9c46D&#ff984bN&#ff9162A&#ff8a79液&#ff8390电&#ff7ca8集&#ff75bf束&#ff6ed6房"
+  lore:
+    - "&7提供引导胚胎干细胞精准定位，获得所需的生物食材。"
+##烹饪台
+PF_MLCF:
+  glow: true
+  material: "smoker"
+  name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#4bffdfU&#3dffcc7&#30ffb83&#22ffa5智&#14ff92能&#07ff7f一&#13ff6c体&#39ff5b化&#5fff49烹&#84ff38饪&#aaff26方&#d0ff15案"
+  lore:
+    - "&7一台内置了巨量菜肴料理方法的智能厨房，能够自动根据材料烹饪"
+##制药台
+PF_ZYT:
+  glow: true
+  material: "brewing_stand"
+  name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#b6ff3f药&#91f53d草&#6cea3b成&#47e039分&#4bc87a萃&#4eafbc取&#5297fd台"
+  lore:
+    - "&7一台能够提取药物成分，制作药物的机器。"
+##营养成分
+PF_TCFJJ:
+  glow: true
+  material: "composter"
+  name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#acff26植&#99fd26械&#85fb26突&#72fa26触&#5ef825分&#4bf625解&#37f425机"
+  lore:
+    - "&7一台能够分解生物质并提取成胶泥的机器。"
+##胶泥分解
+PF_YYFJJ:
+  glow: true
+  material: "shroomlight"
+  name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#bc6c49营&#d6904b养&#f0b44d分&#dbbb51解&#c5c155机"
+  lore:
+    - "&7一台能够再次分解胶泥，转化为高效肥料的机器。"
+
+PF_SF_HSQ:
+  glow: true
+  material: "grass_block"
+  name: "&#10eb15O&#19c917S&#22a719T &#00ffa7超&#0dffb5级&#19ffc2无&#26ffd0敌&#32ffdd霹&#3fffeb雳&#4cfff8炫&#5ffdf0酷&#7afad2雷&#95f6b4霆&#aff397究&#caef79极&#e4ec5b奥&#ffe83d义&#ffdc39阿&#ffd035米&#ffc431洛&#ffb82c索&#ffac28一&#ffa024把&#ff9225十&#ff822b手&#ff7131粘&#ff6137液&#ff513d回&#ff4043收&#ff3049器"
+  lore:
+    - "&7一台能够将一些材料转化为能够生产SF材料的机器。"
+
+##开尔文2
+PF_KEW2:
+  glow: true
+  material_type: skull_hash
+  material: 9389b25ee9f66ef0b789f0b623968e8e4376fe3f9a87ff113cdf5aa3ca3f5165
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff52afS&#ff7dc3.&#ffa9d7H&#ffd4eb.&#ffffffE&#ececec.&#d9d9d9恒&#c6c6c6星&#b3b3b3桌"
+  lore:
+    - "&7使用舰体核心技术：星璇能源流打造机器。"
+
+PF_XTGDGC:
+  glow: true
+  material: "lodestone"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#2293fa信&#3f94fc条&#5c95fe轨&#6d8aff道&#7275ff工&#7660ff厂-&eI"
+  lore:
+    - "&7一台能够分离能源土中物质的大型轨道分离器。"
+
+PF_XBS1:
+  glow: true
+  material: "redstone_block"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#52f5ff“&#5ef6fb小&#6af8f7帮&#76f9f3手&#81fbf0”&#8dfcec型&#99fee8多&#a5ffe4用&#a3f3e8离&#a2e7ec心&#a0dbf0熔&#9fcef3铸&#9dc2f7一&#9cb6fb体&#9aaaff机-&eI"
+  lore:
+    - "&7一台能够从二级辐能原料中离心出次级产物的多用机器。"
+
+PF_SYHFYL:
+  glow: true
+  material: "blast_furnace"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffcaab十&#f9c39e一&#f3bb91号&#edb484便&#e6ad76携&#e0a669反&#da9e5c应&#d4974f炉-&eI"
+  lore:
+    - "&7一台能够冶炼GVS矿系的便携反应炉。"
+
+PF_ZLJSRLF:
+  glow: true
+  material: "tuff_bricks"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff9090重&#f68282力&#ed7575集&#e36767束&#da5959熔&#d14c4c炼&#c83e3e房-&eI"
+  lore:
+    - "&7一台依靠重力系统熔炼合金的机器。"
+
+PF_HJYLHCQ:
+  glow: true
+  material: "netherite_block"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff3d66S&#ff47854&#ff50a32&#ff5ac2T&#ff64e1E&#fa61de红&#f151b9巨&#e84194压&#de306f力&#d5204a合&#cb1025成&#c20000器-&eI"
+  lore:
+    - "&7一台通过创造红巨星温压环境进行熔炼合成的机器。"
+
+PF_ZXGYCXMJ:
+  glow: true
+  material: "chiseled_tuff"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#889ca0重&#aa8083型&#cc6466工&#ee4849业&#ff5242成&#ff8151型&#ffb161母&#ffe070机-&eI"
+  lore:
+    - "&7一台用于生产机器组件的重型工业母机。"
+
+PF_ZZXHJDL:
+  glow: true
+  material: "respawn_anchor"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#f4b0ffT&#ea89c6-&#df628e7&#d53b55专&#ca141c注&#cb0000型&#d80000合&#e50000金&#f20000锻&#ff0000炉"
+  lore:
+    - "&7一台专注于红铁系合金锻造的机器。"
+
+PF_GK:
+  glow: true
+  material: "beacon"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ec71ffT&#ee6fef-&#f06dde7&#f26bce破&#f469be梏&#f667ae三&#f7649d号&#f9628d光&#fb607d蚀&#fd5e6c刻&#ff5c5c机"
+  lore:
+    - "&7一台用于生产芯盘的光刻机器。"
+
+PF_SHYX:
+  glow: true
+  material: "blast_furnace"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff6d6d“&#f75d5d深&#ef4e4e红&#e73e3e远&#df2f2f星&#d71f1f”&#cf1010级&#c70000重&#cf0000型&#d70101S&#df0101T&#e70202C&#ef0202合&#f70303成&#ff0303炉"
+  lore:
+    - "&7一台能够制造能源土的巨型多方块机器。"
+
+PF_ZRCQ:
+  glow: true
+  material: "emerald_block"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#9cff6d“&#8afd6a灼&#77fa66热&#65f863苍&#53f55f穹&#40f35c”&#2ef059级&#1cee55单&#09eb52元&#00eb59化&#01ee6c高&#01f07f活&#01f392性&#02f5a5环&#02f8b8境&#02faca模&#03fddd拟&#03fff0器"
+  lore:
+    - "&7一台能够培育荒宙植系的大型多方块机器。"
+
+PF_SMFX:
+  glow: true
+  material: "crying_obsidian"
+  name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffd84c“&#ffc540四&#ffb235目&#ff9e29伏&#ff8b1d羲&#ff7812”&#ff6506级&#fd6800重&#fa8100核&#f79a00裂&#f4b300变&#f1cd00反&#eee600应&#ebff00堆"
+  lore:
+    - "&7一台能够进行重核裂变生产光盐材料的大型多方块机器。"
+
+

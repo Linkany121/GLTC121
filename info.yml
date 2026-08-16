@@ -3,11 +3,11 @@ name: 'GLTC联合协议'
 depends: []
 pluginDepends: []
 scriptListener: 监听
-version: 4.0.0
+version: 4.0.1
 description: "GLTC联合协议"
 authors:
 - 'Linkany121'
-repo: ''
+repo: 'Linkany121/GLTC121'
 idPattern : 
 loadStartTexts:
 - "==================="

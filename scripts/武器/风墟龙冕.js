@@ -34,29 +34,31 @@ var AIR_SLASH_COOLDOWN_MS       = 500;   // 再装填0.8秒
 var AIR_SLASH_DAMAGE            = 40;    // 伤害
 var AIR_SLASH_SPEED             = 1.1;  // 
 var AIR_SLASH_RANGE             = 16;    // 持续16格
-var AIR_SLASH_HALF_LENGTH       = 2.5;     // 剑气半长（格）
+var AIR_SLASH_HALF_LENGTH_START = 0.5;   // 起始：剑气线半长0.1格
+var AIR_SLASH_HALF_LENGTH_MAX   = 4;   // 最大：剑气线半长2.5格
+var AIR_SLASH_GROW_DISTANCE     = 16;    // 飞行16格时线长增长到最大
 var AIR_SLASH_LEVITATION_TICKS  = 10;    // 1秒飘浮
-var AIR_SLASH_LEVITATION_LEVEL  = 4;     // 飘浮 IV（amplifier=3）
+var AIR_SLASH_LEVITATION_LEVEL  = 5;     // 飘浮 IV（amplifier=3）
 // 普通气斩粒子密度
-var AIR_SLASH_PARTICLE_GAP       = 0.25;  // 剑气线粒子间距（格），越小越密
-var AIR_SLASH_CLOUD_COUNT        = 2;    // 每个点的 CLOUD 粒子数量
-var AIR_SLASH_CLOUD_OFFSET       = 0.04; // CLOUD 粒子散布偏移
-var AIR_SLASH_END_ROD_INTERVAL   = 1;    // 每隔 N 个点生成一个 END_ROD
+var AIR_SLASH_PARTICLE_GAP       = 0.3;  // 剑气线粒子间距（格），越小越密
+var AIR_SLASH_CLOUD_COUNT        = 1;    // 每个点的 CLOUD 粒子数量
+var AIR_SLASH_CLOUD_OFFSET       = 0.08; // CLOUD 粒子散布偏移
+var AIR_SLASH_END_ROD_INTERVAL   = 1.5;    // 每隔 N 个点生成一个 END_ROD
 var AIR_SLASH_END_ROD_COUNT      = 1;    // END_ROD 粒子数量
 
 // === 竖直剑气参数 ===
 var VERTICAL_DAMAGE             = 120;   // 伤害
-var VERTICAL_SPEED              = 1.0;   // 每秒4格 = 0.2格/tick
+var VERTICAL_SPEED              = 0.7;   // 每秒4格 = 0.2格/tick
 var VERTICAL_RANGE              = 24;    // 持续24格
-var VERTICAL_HALF_HEIGHT_START  = 1;     // 起始：上下各延伸1格
-var VERTICAL_HALF_HEIGHT_MAX    = 6;     // 最大：上下各延伸5格
+var VERTICAL_HALF_HEIGHT_START  = 1.5;     // 起始：上下各延伸1格
+var VERTICAL_HALF_HEIGHT_MAX    = 7;     // 最大：上下各延伸5格
 var VERTICAL_GROW_DISTANCE      = 24;    // 飞行20格时高度增长到最大
 var VERTICAL_LEVITATION_TICKS   = 10;    // 1秒飘浮
-var VERTICAL_LEVITATION_LEVEL   = 16;     // 飘浮 IX（amplifier=8）
+var VERTICAL_LEVITATION_LEVEL   = 18;     // 飘浮 IX（amplifier=8）
 var VERTICAL_BLINDNESS_TICKS    = 40;    // 2秒失明
 var VERTICAL_BLINDNESS_LEVEL    = 0;     // 失明 I
 // 竖直剑气粒子密度
-var VERTICAL_PARTICLE_GAP       = 0.1;  // 竖直线粒子间距（格），越小越密
+var VERTICAL_PARTICLE_GAP       = 0.15;  // 竖直线粒子间距（格），越小越密
 var VERTICAL_CLOUD_COUNT        = 2;    // 每个点的 CLOUD 粒子数量
 var VERTICAL_CLOUD_OFFSET       = 0.03; // CLOUD 粒子散布偏移
 var VERTICAL_END_ROD_COUNT      = 1;    // 每个点的 END_ROD 粒子数量
@@ -69,8 +71,8 @@ var SPEED_LEVEL            = 2;     // 速度 II（amplifier=1）
 var WIND_VEIN_DECAY_MS     = 5000;  // 风脉每5秒减少一层
 
 // === 击退参数 ===
-var AIR_SLASH_KNOCKBACK    = 0.5;   // 普通气斩击退力度
-var VERTICAL_KNOCKBACK     = 1.2;   // 竖直剑气击退力度
+var AIR_SLASH_KNOCKBACK    = 0.6;   // 普通气斩击退力度
+var VERTICAL_KNOCKBACK     = 1.4;   // 竖直剑气击退力度
 
 // === 解锁/释放提示消息 ===
 var MSG_UNLOCK = "§x§f§f§f§9§6§f此§x§e§f§f§a§7§3剑§x§d§f§f§a§7§7曾§x§c§f§f§b§7§b守§x§b§f§f§c§7§f万§x§a§f§f§c§8§3仞§x§9§f§f§d§8§7群§x§8§f§f§e§8§b山§x§7§f§f§e§8§f，§x§6§f§f§f§9§3今§x§6§7§f§f§9§f朝§x§5§f§f§f§a§b—§x§5§7§f§f§b§7—§x§4§f§f§f§c§3—§x§4§6§f§f§c§f锋§x§3§e§f§f§d§b芒§x§3§6§f§f§e§7重§x§2§e§f§f§f§3现§x§2§6§f§f§f§f！";
@@ -244,10 +246,15 @@ function releaseAirSlash(player, angleDeg) {
                     return;
                 }
 
-                // 沿剑气线生成白色蒸汽粒子（密度由参数控制，粒子无漂移速度以贴合剑气）
-                var totalSteps = Math.round(AIR_SLASH_HALF_LENGTH * 2 / AIR_SLASH_PARTICLE_GAP);
+                // 线长递增：从半长0.1格增长，飞行AIR_SLASH_GROW_DISTANCE格时达到半长2.5格
+                var grow = Math.min(1.0, state.distance / AIR_SLASH_GROW_DISTANCE);
+                var halfLength = AIR_SLASH_HALF_LENGTH_START +
+                    (AIR_SLASH_HALF_LENGTH_MAX - AIR_SLASH_HALF_LENGTH_START) * grow;
+
+                // 沿剑气线生成白色蒸汽粒子（一条线，线长递增，密度由参数控制）
+                var totalSteps = Math.round(halfLength * 2 / AIR_SLASH_PARTICLE_GAP);
                 for (var pi = 0; pi <= totalSteps; pi++) {
-                    var pLoc = center.clone().add(slashDir.clone().multiply(-AIR_SLASH_HALF_LENGTH + pi * AIR_SLASH_PARTICLE_GAP));
+                    var pLoc = center.clone().add(slashDir.clone().multiply(-halfLength + pi * AIR_SLASH_PARTICLE_GAP));
                     world.spawnParticle(Particle.CLOUD, pLoc, AIR_SLASH_CLOUD_COUNT,
                         AIR_SLASH_CLOUD_OFFSET, AIR_SLASH_CLOUD_OFFSET, AIR_SLASH_CLOUD_OFFSET, 0.0);
                     if (pi % AIR_SLASH_END_ROD_INTERVAL === 0) {
@@ -256,9 +263,9 @@ function releaseAirSlash(player, angleDeg) {
                     }
                 }
 
-                // 实体碰撞检测（不被生物阻挡，但伤害经过的生物）
+                // 实体碰撞检测（线长随当前剑气尺寸变化）
                 var nearby = world.getNearbyEntities(
-                    center, AIR_SLASH_HALF_LENGTH + 0.8, 1.2, 1.2
+                    center, halfLength + 0.8, 1.2, 1.2
                 );
                 var it = nearby.iterator();
                 while (it.hasNext()) {
@@ -271,7 +278,7 @@ function releaseAirSlash(player, angleDeg) {
                     var entLoc = ent.getLocation().add(0, ent.getHeight() / 2, 0);
                     var toEnt = entLoc.toVector().subtract(center.toVector());
                     var projLen = toEnt.dot(slashDir);
-                    if (Math.abs(projLen) > AIR_SLASH_HALF_LENGTH + 0.5) continue;
+                    if (Math.abs(projLen) > halfLength + 0.5) continue;
                     var closest = center.toVector().add(slashDir.clone().multiply(projLen));
                     if (closest.distance(entLoc.toVector()) > 1.2) continue;
 

@@ -7,6 +7,9 @@ A_A:
     material_type: skull_hash
     material: 9d3d250e25bbca3a62be5b3ef02cfcab6dcdc424884c9a7d5cc95c9d0
     name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#49b2ff- &#45ccfa诞&#3bdde6于&#30eed3诸&#26ffbf星&8(第一章)&#26ffbf '
+    lore:
+    - '&#fff5b3&#0da8ff你&#0cb1f9从&#0abaf2萌&#09c3ec芽&#08cde5的&#06d6df星&#05dfd8辰&#03e8d2中&#02f1cc来&#01fac5，&#0cffba好&#24ffab奇&#3bff9b的&#53ff8c双&#6bff7c臂&#83ff6d伸&#9bff5d向&#b2ff4e过&#caff3e去&#e2ff2f。'
+    - '&#fff5b3立足，发展，将新生的世界征服。'
 
 B_A:
   lateInit: false
@@ -16,6 +19,9 @@ B_A:
     material_type: skull_hash
     material: 5f524166f7ce88a537158766a1c511e322a93a5e11dbf30fa6e85e78da861d8
     name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#d67ff3- &#ff62e4再&#ff4bb3造&#ff3383深&#ff1c52渊&8(第二章)&#ff1c52 '
+    lore:
+    - '&#fff5b3&#ed08e4你&#e209e6仍&#d70ae8不&#cd0cea满&#c20dec足&#b70eee，&#ac0ff0你&#a211f2将&#a712ee目&#b413e6光&#c115de投&#cf16d6向&#dc17ce深&#e919c6渊&#f61abe：&#ff1ab1祂&#fd1799正&#fc1580在&#fa1268向&#f90f50你&#f70c38求&#f60a1f救&#f40707。'
+    - '&#fff5b3联络，探求，将人之领的秘密拽出。'
 
 DLC_A:
   lateInit: false
@@ -24,7 +30,10 @@ DLC_A:
   item:
     material_type: skull_hash
     material: 9e52f7960ff3cec2f519a6353648c6e33bc51e131cc80917cf13081decbff24d
-    name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#55ff52- &#49ea37D&#3ed41bL&#32bf00C&7（比例更改 不轮椅版）'
+    name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#55ff52- &#49ea37D&#3ed41bL&#32bf00C&7'
+    lore:
+    - '&#fff5b3额外势力，主旨在于优化其它附属的流程与体验；'
+    - '&#fff5b3如果认为数值过高或过于简单，联系我，我将无条件为你增加制作成本。'
 
 SHOP_A:
   lateInit: false
@@ -34,6 +43,9 @@ SHOP_A:
     material_type: skull_hash
     material: 760bcb45278e7e8ad41d8a6503ffcd4ca293874a03b25a4ff0c9827ba7dfff0a
     name: '&#e017e8G&#cb12f2L&#b70efcT&#9b22ffC&#7c3fff联&#5d5bff合&#4c78ff协&#4b95ff议 &#2cff52- &#24ff1f能&#6df922源&#b6f326流&#ffed29兑&#ffba25换&#ff8621面&#ff531d板'
+    lore:
+    - '&#fff5b3需要制作信用储蓄凭证与拇指终端搭配获取信用点；'
+    - '&#fff5b3信用点可购买大多数原版物品，便于空岛或宅家玩家的前期发展。'
 
 #GLTC物品
 A_A1:

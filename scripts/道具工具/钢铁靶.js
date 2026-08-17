@@ -61,5 +61,5 @@ function onUse(event) {
     );
 
     // 玩家提示
-    player.sendActionBar("\u00a7f[\u94a2\u94c1\u9776] \u00a77\u5df2\u90e8\u7f72\u00a7a\u4e07\u8840\u94c1\u50f5\u5be8");
+    player.sendActionBar("OK");
 }

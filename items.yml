@@ -1,5 +1,4 @@
 
-
 #################################################################
 #正常物品
 #################################################################
@@ -315,6 +314,22 @@ al_q_log12:
   recipe_type: NULL
   glow: true
 
+#log
+al_q_log13:
+  lateInit: false
+  item_group: A_A1
+  item:
+    name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff984.0.1"
+    material: glow_item_frame
+    glow: true
+    lore:
+    - '&b时间：&f2026年8月18日'
+    - '&#fff5b3差点一天更新两次。。'
+    - '&#fff5b3紧急解决了几个影响很大的bug。'
+    - '&#fff5b3添加了物品组的lore。'
+  recipe_type: NULL
+  glow: true
+
 #ATO介绍
 al_q_ato:
   lateInit: false
@@ -497,7 +512,7 @@ GLTC_银行卡:
           amount: 1
         2:
           material_type: slimefun
-          material: AL_B1
+          material: AL_A3
           amount: 1
 
 GG板子:
@@ -3703,7 +3718,7 @@ FKR_深渊召来:
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3右键召唤一只低智能的守卫雕像，一碰就死且对你抱有敌意。'
-  script: 深渊召来
+  script: 道具工具/深渊召来
   recipe_type: ENHANCED_CRAFTING_TABLE
   recipe:
         5:
@@ -3724,7 +3739,7 @@ FKR_炽古花盆:
     - '&#fff5b3当然，位于新生星系的你想要施术得依赖外物，比如这本施术道具。'
     - '&#fff5b3一个非常简单的术式：让地上长出一些火把花。'
     - '&8第二魂技！亲爹缠绕！'
-  script: 炽古花盆
+  script: 道具工具/炽古花盆
   recipe_type: ENHANCED_CRAFTING_TABLE
   recipe:
         2:
@@ -3749,9 +3764,9 @@ FKR_钢铁靶:
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3一块暗藏玄机的铁锭；'
-    - '&#fff5b3右键消耗，并在原地部署一个虚弱100、缓慢100的万血铁傀儡，。'
+    - '&#fff5b3右键消耗，并在原地部署一个虚弱100、缓慢100的万血铁傀儡。'
     - '&#fff5b3一个非常简单的小道具。'
-  script: 钢铁靶
+  script: 道具工具/钢铁靶
   recipe_type: ENHANCED_CRAFTING_TABLE
   recipe:
         2:
@@ -3759,7 +3774,7 @@ FKR_钢铁靶:
           material: TSgj5
           amount: 1
         5:
-          material: iron
+          material: iron_ingot
           amount: 1
         8:
           material_type: slimefun
@@ -4346,6 +4361,46 @@ FKR_风墟龙冕:
           material_type: slimefun
           material: TSxl5
           amount: 8
+
+FKR_无锋破军:
+  lateInit: false
+  item_group: A_G1c
+  item:
+    name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#c9aa92无&#cd8e7e锋&#d1736b破&#d55757军"
+    material: 工具武器/破军
+    material_type: saveditem
+    lore:
+    - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
+    - '&#fff5b3一把尚未开刃的沉重阔剑；'
+    - '&#fff5b3手感沉重，剑体粗糙，十分考验使用者的剑法，'
+    - '&#fff5b3其独特的构造与内置的攻击模组使它成为重甲单位的噩梦。'
+    - '  &#e38e4c此&#e77b42门&#ea6838有&#ee552e吾&#f24223护&#f62f19山&#f91c0f将&#fd0905，&#ff0900万&#ff1c00军&#ff2e00难&#ff4000破&#ff5300戚&#ff6500家&#ff7800关&#ff8a00。'
+    - '&f[&#96bed6序列&f] &f异能武器 第三'
+    - '&f[&#96d6a7参数&f] &f忽视60%的护甲与韧性。'
+    - '&f[&#96d6a7特效&f] &f攻击冷却条满时，正常攻击将造成1秒缓慢3，并在附近生成&c[旌旗]&f。'
+    - '&f[&#96d6a7特效&f] &f当玩家的&4[重锋]&f到达3层时，右键将镇压视野范围30格内所有目标。'
+    - '&f[&#96d6a7特效&f] &f镇压：造成&c500 &f伤害，6秒的失明与无法移动。'
+    - '&f[&#96d6a7特效&f] &f&c[旌旗]&f：在自身范围内12格随机生成，靠近时获得加速与一层&4[重锋]&f。'
+    - '&f[&#96d6a7特效&f] &f&4[重锋]&f：每5秒减少一层，获得时获得能够叠加等级与时长的10秒力量10且重置计时。'
+  script: 武器/破军
+  recipe_type: PF_DZC
+  recipe:
+        1:
+          material_type: slimefun
+          material: FKR_特殊模板
+          amount: 1
+          noConsume: true
+        2:
+          material: netherite_block
+          amount: 32
+        3:
+          material_type: slimefun
+          material: TSxl5
+          amount: 8
+        3:
+          material_type: slimefun
+          material: TSzjg
+          amount: 64
 
 FKR_ASPL:
   lateInit: false
@@ -7227,7 +7282,7 @@ OST_轮椅宣言:
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
     - '&#fff5b3手持并右键以启用轮椅权限。'
-  script: 轮椅宣言
+  script: 道具工具/轮椅宣言
   recipe_type: ENHANCED_CRAFTING_TABLE
   recipe:
         5:

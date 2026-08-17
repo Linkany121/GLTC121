@@ -79,7 +79,7 @@ function onUse(event) {
         count++;
     }
     // 厚重低频施法音：凋灵低沉轰鸣 + 铁砧沉重撞击
-    world.playSound(eye, "entity.wither.ambient", 1.3, 0.6);
+    world.playSound(eye, "entity.wither.ambient", 1.0, 0.9);
     world.playSound(eye, "block.anvil.land", 1.0, 0.7);
     if (count > 0) {
         // 标记成功：凋灵低吼（厚重反馈）

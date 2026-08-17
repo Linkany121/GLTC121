@@ -19,6 +19,17 @@ ATO_捕网:
     - '&8⇨ &7速度:3秒/次'
     - '&8⇨ &e⚡&7 5J/秒'
   #机器自身配方
+  recipe_type: ENHANCED_CRAFTING_TABLE
+  recipe:
+    2:
+      material_type: slimefun
+      material: GG板子
+    1:
+      material_type: slimefun
+      material: AL_a2
+    3:
+      material_type: slimefun
+      material: AL_a2
   capacity: 50
   energyPerCraft: 5
   input: [2,3,4,5,6]
@@ -65,6 +76,17 @@ ATO_地热:
     - '&8⇨ &7速度:3秒/次'
     - '&8⇨ &e⚡&7 5J/秒'
   #机器自身配方
+  recipe_type: ENHANCED_CRAFTING_TABLE
+  recipe:
+    2:
+      material_type: slimefun
+      material: GG板子
+    1:
+      material_type: slimefun
+      material: AL_a1
+    3:
+      material_type: slimefun
+      material: AL_a1
   capacity: 50
   energyPerCraft: 5
   input: [2,3,4,5,6]

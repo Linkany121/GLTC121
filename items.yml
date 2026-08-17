@@ -815,7 +815,7 @@ ntls3:
   item_group: A_nt
   item:
     name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &e独特蓝图"
-    material: minecraft:plenty_pottery_sherd
+    material: plenty_pottery_sherd
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1866,7 +1866,7 @@ TSkajd:
           material: TShel
           amount: 8
         3:
-          material: minecraft:grass
+          material: grass
           amount: 8
         4:
           material_type: slimefun
@@ -1940,7 +1940,7 @@ TSzmkw:
   item:
     glow: true
     name: "&#92b4cfα原生原矿 &#4687e8致密矿物"
-    material: minecraft:bedrock
+    material: bedrock
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3致密且坚硬的富含大量原生矿产的矿石，'
@@ -3178,7 +3178,7 @@ LSyq2:
   item:
     glow: true
     name: "&#ff0a0a“&#f30d11我&#e71118请&#da141f求&#ce1827咏&#c21b2e叹&#b61e35破&#a9223c旧&#9d2543苍&#9d224c穹&#9c1e55下&#9c1b5e的&#9b1767难&#9b1470从&#9a1079困&#9a0d82兽&#99098b”"
-    material: minecraft:crimson_fungus
+    material: crimson_fungus
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3毫无疑问，这是危机，这是怒觉，这是时间的可憎痕迹！'
@@ -3197,7 +3197,7 @@ LSyq3:
   item:
     glow: true
     name: "&#ff004d“&#ff003a燃&#ff0027烧&#ff0013。&#ff0000”"
-    material: minecraft:torchflower
+    material: torchflower
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3不要引起焚火者的注意力，他的生命早已被正义与无奈耗尽。'
@@ -3216,7 +3216,7 @@ LSyq4:
   item:
     glow: true
     name: "&#fb4eff“&#e43bff大&#cd28ff深&#a91aed渊&#7813c8献&#480ca3”"
-    material: minecraft:wither_rose
+    material: wither_rose
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3平淡的远征？不见得。伟大的征服？不尽然。'
@@ -3235,7 +3235,7 @@ LSyq5:
   item:
     glow: true
     name: "&#ccff00“&#d9fc00幼&#e6f900小&#f2f500的&#fff200黄&#ffdc00金&#ffc500国&#ffaf00度&#ff9900”"
-    material: minecraft:lily_of_the_valley
+    material: lily_of_the_valley
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3垩格列的人啊，拆掉那熔炉！脚踩那旗帜！'
@@ -3254,7 +3254,7 @@ LSyq6:
   item:
     glow: true
     name: "&#8c0d39“&#85174d请&#7e2161泣&#772a75颂&#703489我&#804f89们&#8f6a88自&#9f8488己&#ae9f87”"
-    material: minecraft:rose_bush
+    material: rose_bush
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3你凭什么这么做，你凭什么荆棘丛生？'
@@ -3273,7 +3273,7 @@ LSyq7:
   item:
     glow: true
     name: "&#f5f5f5“&#f5f5f5没&#f6f6f6有&#f6f6f6名&#f6f6f6字&#f7f7f7的&#f7f7f7流&#f8f8f8行&#f8f8f8口&#f8f8f8水&#f9f9f9歌&#f9f9f9”"
-    material: minecraft:pitcher_plant
+    material: pitcher_plant
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3你们这些听流行、说唱、国风、古风、日语、英语、韩语...'
@@ -3292,7 +3292,7 @@ LSyq8:
   item:
     glow: true
     name: "&#18ffff“&#12dfff致&#0cbfff伟&#069fff大&#007fff航&#0c77ff路&#186fff、&#2466ff船&#305eff长&#4f57ff与&#6d51ff真&#8b4aff理&#aa43ff的&#be4fff魔&#d15bff女&#e467ff！&#f873ff”"
-    material: minecraft:tube_coral
+    material: tube_coral
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3我受够你了！拿金币来，我要砸死他吔！'
@@ -3311,7 +3311,7 @@ LSyq9:
   item:
     glow: true
     name: "&#848484“&#8a858e第&#8f8797无&#9588a1数&#9b8aaa次&#a08bb3，&#a68cbd被&#ab8ec7提&#b18fd0起&#b68dd2的&#bc8bd4纯&#c189d6白&#c788d9色&#cc86db的&#d184dd荒&#d782df原&#dc80e1”"
-    material: minecraft:pink_petals
+    material: pink_petals
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3第无数次在我的作品中提到这一片温暖祥和的荒地。'
@@ -3330,7 +3330,7 @@ LSyq10:
   item:
     glow: true
     name: "&#5a5ae4“&#5176e1我&#4791de创&#3eaddb造&#34c8d8与&#2be3d5传&#21ffd2颂&#2debca的&#3ad8c2世&#46c4ba界&#52b0b1一&#5f9da9隅&#6b89a1”"
-    material: minecraft:dragon_breath
+    material: dragon_breath
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3朝夜之歌、深红远星、寂夜诟火...'
@@ -3349,7 +3349,7 @@ LScs1:
   item:
     glow: true
     name: "&#ff2ef8伪·&#00ffb3创&#1dff9e世 &#989898似&#8f9090乎&#868789卑&#7d7f81劣&#737679的&#6a6e72沉&#61656a淀"
-    material: minecraft:gunpowder
+    material: gunpowder
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于上帝的暗房，从世界一隅中析出的残渣；'
@@ -3368,7 +3368,7 @@ LScs2:
   item:
     glow: true
     name: "&#ff2ef8伪·&#00ffb3创&#1dff9e世 &#ff0000欢&#f90505欣&#f30909红&#ed0e0e火&#e61212的&#e01616生&#da1b1b机"
-    material: minecraft:redstone
+    material: redstone
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于上帝的暗房，从世界一隅中析出的生机；'
@@ -3387,7 +3387,7 @@ LScs3:
   item:
     glow: true
     name: "&#ff2ef8伪·&#00ffb3创&#1dff9e世 &#ffd900升&#ffb70a华&#ff9515奇&#ff731f伟&#ff5915的&#ff400a烛&#ff2600光"
-    material: minecraft:glowstone_dust
+    material: glowstone_dust
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3超脱于上帝的暗房，从世界一隅中诞生的烛火，'
@@ -3540,7 +3540,7 @@ FKR_武器工具模板:
   item_group: A_G1
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e8ae67武器工具模板"
-    material: minecraft:emerald_block
+    material: emerald_block
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3金属打造的模式分辨模板；'
@@ -3552,7 +3552,7 @@ FKR_武器工具模板:
           material: al_xt缪尔罗素
           amount: 1
         5:
-          material: minecraft:emerald_block
+          material: emerald_block
           amount: 1
 
 FKR_护具模板:
@@ -3560,7 +3560,7 @@ FKR_护具模板:
   item_group: A_G1
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e8ae67护具模板"
-    material: minecraft:diamond_block
+    material: diamond_block
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3金属打造的模式分辨模板；'
@@ -3572,7 +3572,7 @@ FKR_护具模板:
           material: al_xt缪尔罗素
           amount: 1
         5:
-          material: minecraft:diamond_block
+          material: diamond_block
           amount: 1
 
 FKR_特殊模板:
@@ -3580,7 +3580,7 @@ FKR_特殊模板:
   item_group: A_G1
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e8ae67特殊模板"
-    material: minecraft:redstone_block
+    material: redstone_block
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3金属打造的模式分辨模板；'
@@ -3592,7 +3592,7 @@ FKR_特殊模板:
           material: al_xt缪尔罗素
           amount: 1
         5:
-          material: minecraft:redstone_block
+          material: redstone_block
           amount: 1
 
 FKR_发射器装件:
@@ -3600,7 +3600,7 @@ FKR_发射器装件:
   item_group: A_G1
   item:
     name: "&#92b4cfα枪械组件 &#4687e8发射器装件"
-    material: minecraft:bow
+    material: bow
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由金属打造的单元化零件，用于组装枪械；'
@@ -3621,7 +3621,7 @@ FKR_通古斯弹药集成匣:
   item_group: A_G1
   item:
     name: "&#92b4cfα枪械组件 &#4687e8通古斯弹药集成匣"
-    material: minecraft:ender_chest
+    material: ender_chest
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭打造的供弹零件，用于组装枪械；'
@@ -3643,7 +3643,7 @@ FKR_玻璃粘合装载器:
   item_group: A_G1
   item:
     name: "&#af92cfβ枪械组件 &#a746e8玻璃粘合装载器"
-    material: minecraft:target
+    material: target
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由电器材料打造的校准零件，用于组装高序列枪械；'
@@ -3665,7 +3665,7 @@ FKR_星轨信标:
   item_group: A_G1
   item:
     name: "&#ffc894γ枪械组件 &#ff824d星轨信标"
-    material: minecraft:beacon
+    material: beacon
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3从星轨中摘离的信标组件，用于组装高序列枪械；'
@@ -3965,7 +3965,6 @@ FKR_致密苦艾合金铲:
     - '&#fff5b3反光度奇高、色泽惊人，刻有细密的纹路，仿佛是一件工艺品，'
     - '&#fff5b3手持此物工作时，常常感到精力充沛，心神清明，这好像不是错觉？'
     - '&f[&#96bed6等级&f] &f三级'
-  script: 道具工具/饱和1
   recipe_type: PF_DZC
   recipe:
         1:
@@ -3991,7 +3990,6 @@ FKR_致密苦艾合金镐:
     - '&#fff5b3反光度奇高、色泽惊人，刻有细密的纹路，仿佛是一件工艺品，'
     - '&#fff5b3手持此物工作时，常常感到精力充沛，心神清明，这好像不是错觉？'
     - '&f[&#96bed6等级&f] &f三级'
-  script: 道具工具/饱和1
   recipe_type: PF_DZC
   recipe:
         1:
@@ -4050,7 +4048,6 @@ FKR_炽热星涡重斧:
     - '&#fff5b3整体呈现出灰暗的色泽，就算肆意挥舞也能很好的保持重心。'
     - '&#fff5b3如果操作得当，可以利用重力与武器本身的重量产生大量伤害。'
     - '&f[&#96bed6等级&f] &f三级'
-  script: 武器/炽热星涡重斧
   recipe_type: PF_DZC
   recipe:
         1:
@@ -4076,7 +4073,6 @@ FKR_炽热星涡砍刀:
     - '&#fff5b3整体呈现出灰暗的色泽，就算肆意挥舞也能很好的保持重心。'
     - '&#fff5b3就算毫无章法的挥砍，得益于材质与工艺也可以高效的造成杀伤。'
     - '&f[&#96bed6等级&f] &f三级'
-  script: 武器/炽热星涡砍刀
   recipe_type: PF_DZC
   recipe:
         1:
@@ -4588,7 +4584,7 @@ UMPV_被动生物DNA集束片:
           material: lsgd1a
           amount: 1
         5:
-          material: minecraft:diamond_block
+          material: diamond_block
           amount: 1
 
 UMPV_水生生物DNA集束片:
@@ -4609,7 +4605,7 @@ UMPV_水生生物DNA集束片:
           material: lsgd2a
           amount: 1
         5:
-          material: minecraft:diamond_block
+          material: diamond_block
           amount: 1
 
 UMPV_敌意生物DNA集束片:
@@ -4630,7 +4626,7 @@ UMPV_敌意生物DNA集束片:
           material: lsgd3a
           amount: 1
         5:
-          material: minecraft:diamond_block
+          material: diamond_block
           amount: 1
 
 UMPV_富营养的胶泥:

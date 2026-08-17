@@ -2479,11 +2479,11 @@ KEW:
           slot: 12
         4:
           amount: 1
-          material: minecraft:cauldron
+          material: cauldron
           slot: 13
         5:
           amount: 1
-          material: minecraft:heavy_weighted_pressure_plate
+          material: heavy_weighted_pressure_plate
           slot: 14
       output:
         1:
@@ -2542,11 +2542,11 @@ KEW:
           slot: 12
         4:
           amount: 1
-          material: minecraft:cauldron
+          material: cauldron
           slot: 13
         5:
           amount: 1
-          material: minecraft:tripwire_hook
+          material: tripwire_hook
           slot: 14
       output:
         1:
@@ -2605,11 +2605,11 @@ KEW:
           slot: 12
         4:
           amount: 1
-          material: minecraft:cauldron
+          material: cauldron
           slot: 13
         5:
           amount: 1
-          material: minecraft:redstone_torch
+          material: redstone_torch
           slot: 14
       output:
         1:
@@ -3399,7 +3399,6 @@ KEW:
           material: HInet_网络存储磁块转化器
           slot: 16
 
-
 ##恒星桌
 KEW2:
   lateInit: false
@@ -4026,7 +4025,6 @@ KEW2:
             slot: 16
 
 ##
-
 咆哮组合器:
   lateInit: false
   item_group: Z_PX

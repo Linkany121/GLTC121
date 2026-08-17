@@ -27,7 +27,7 @@ skey_深红远星级:
   allowSwitchDisplayLayer: true
   defaultNotice: true
   displayProjectiles: true
-  displayProjectiles: true
+  ticker_type: recipe
   structure:
     - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
       - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
@@ -257,27 +257,57 @@ skey_深红远星级:
   mapping:
     a1:
       material_type: mc
-      material: minecraft:iron_block
+      material: iron_block
     a2:
       material_type: mc
-      material: minecraft:shroomlight
+      material: shroomlight
     a3:
       material_type: mc
-      material: minecraft:red_nether_bricks
+      material: red_nether_bricks
     a4:
       material_type: slimefun
       material: skey_深红远星级
       core: true
     a5:
       material_type: mc
-      material: minecraft:red_stained_glass
+      material: red_stained_glass
     a6:
       material_type: mc
-      material: minecraft:glass
+      material: glass
     a7:
       material_type: mc
-      material: minecraft:polished_blackstone_brick_wall
+      material: polished_blackstone_brick_wall
+  script: 多方块特效/深红远星
+  #机器自身配方
+  recipe_type: PF_KEW2
+  recipe:
+        1: #蓝图
+          amount: 1
+          material_type: slimefun
+          material: ntskey1
+          slot: 10
+        2:
+          amount: 64
+          material_type: slimefun
+          material: tswk4
+          slot: 11
+        3:
+          amount: 64
+          material_type: slimefun
+          material: tsxl5
+          slot: 12
+        4:
+          amount: 64
+          material_type: slimefun
+          material: tsgj5
+          slot: 13
+        5:
+          amount: 1
+          material: heavy_core
+          slot: 14
+  #机器支持配方
   recipes:
+    logitech_stackable: false
     1:
       seconds: 60
       input:
@@ -654,34 +684,6 @@ skey_深红远星级:
           material_type: slimefun
           material: skey_能源土
           amount: 64
-  script: 多方块特效/深红远星
-  #机器自身配方
-  recipe_type: PF_KEW2
-  recipe:
-        1: #蓝图
-          amount: 1
-          material_type: slimefun
-          material: ntskey1
-          slot: 10
-        2:
-          amount: 64
-          material_type: slimefun
-          material: tswk4
-          slot: 11
-        3:
-          amount: 64
-          material_type: slimefun
-          material: tsxl5
-          slot: 12
-        4:
-          amount: 64
-          material_type: slimefun
-          material: tsgj5
-          slot: 13
-        5:
-          amount: 1
-          material: heavy_core
-          slot: 14
 
 skey_灼热苍穹级:
   item_group: B_B0
@@ -694,6 +696,7 @@ skey_灼热苍穹级:
     - '&#fff5b3通过电力快速催化内置的生态模拟器进行极快的植物培育与采集。'
     - '&7在不消耗除电力以外的任何材料的情况下也能运行。'
     - '&f[&e多方块机器&f]&#e1ccbd该方块为大型多方块机器的核心，摆放后将显示实际结构投影。'
+    - '&f[&e多方块机器&f]&#e1ccbd只需要在顶层中心放置一桶水。'
     - '&8⇨ &7速度:60秒/次'
     - '&8⇨ &e⚡&7 1024J/秒'
   recipe_type: PF_KEW2
@@ -711,7 +714,7 @@ skey_灼热苍穹级:
   allowSwitchDisplayLayer: true
   defaultNotice: true
   displayProjectiles: true
-  displayProjectiles: true
+  ticker_type: recipe
   structure:
   - - __ __ __ __ __
     - __ a1 a1 a1 __
@@ -756,288 +759,23 @@ skey_灼热苍穹级:
   mapping:
     a1:
       material_type: mc
-      material: minecraft:polished_diorite
+      material: polished_diorite
     a2:
       material_type: mc
-      material: minecraft:moss_block
+      material: moss_block
     a3:
       material_type: slimefun
       material: skey_灼热苍穹级
       core: true
     a4:
       material_type: mc
-      material: minecraft:glass
+      material: glass
     a5:
       material_type: mc
-      material: minecraft:dark_prismarine
+      material: dark_prismarine
     a6:
       material_type: mc
-      material: minecraft:water
-  recipes:
-    1:
-      seconds: 60
-      input:
-        1: 
-          material_type: slimefun
-          material: tsxl5
-          noConsume: true
-      output:
-        1:
-          material_type: slimefun
-          material: skey_高钙磷根系坨
-          amount: 64
-          chance: 45
-        2:
-          material_type: slimefun
-          material: skey_残青草晶
-          amount: 64
-          chance: 45
-        3:
-          material_type: slimefun
-          material: skey_活花质
-          amount: 64
-          chance: 45
-        4:
-          material_type: slimefun
-          material: skey_长生原木
-          amount: 64
-          chance: 45
-        5:
-          material_type: slimefun
-          material: skey_奥术原木
-          amount: 64
-          chance: 45
-        6:
-          material_type: slimefun
-          material: skey_雷击原木
-          amount: 64
-          chance: 45
-        7:
-          material_type: slimefun
-          material: skey_盛槟花
-          amount: 64
-          chance: 45
-        8:
-          material_type: slimefun
-          material: skey_龙文凯安必忧兰
-          amount: 64
-          chance: 45
-        9:
-          material_type: slimefun
-          material: skey_悦鸧花
-          amount: 64
-          chance: 45
-        10:
-          material_type: slimefun
-          material: skey_古沃吉影酒神
-          amount: 64
-          chance: 45
-        11:
-          material_type: slimefun
-          material: skey_绽晶古树菇
-          amount: 64
-          chance: 45
-        12:
-          material_type: slimefun
-          material: skey_龙蛋果
-          amount: 64
-          chance: 45
-        13:
-          material_type: slimefun
-          material: skey_十九劫天赐樱
-          amount: 64
-          chance: 45
-        14:
-          material_type: slimefun
-          material: skey_叠霄竹
-          amount: 64
-          chance: 45
-        15:
-          material_type: slimefun
-          material: skey_荆棘剑麻
-          amount: 64
-          chance: 45
-        16:
-          material_type: slimefun
-          material: skey_舞火酿歌
-          amount: 32
-          chance: 25
-    2:
-      seconds: 40
-      input:
-        1: 
-          material_type: slimefun
-          material: skey_权限凭证2
-          noConsume: true
-      output:
-        1:
-          material_type: slimefun
-          material: skey_高钙磷根系坨
-          amount: 64
-          chance: 45
-        2:
-          material_type: slimefun
-          material: skey_残青草晶
-          amount: 64
-          chance: 45
-        3:
-          material_type: slimefun
-          material: skey_活花质
-          amount: 64
-          chance: 45
-        4:
-          material_type: slimefun
-          material: skey_长生原木
-          amount: 64
-          chance: 45
-        5:
-          material_type: slimefun
-          material: skey_奥术原木
-          amount: 64
-          chance: 45
-        6:
-          material_type: slimefun
-          material: skey_雷击原木
-          amount: 64
-          chance: 45
-        7:
-          material_type: slimefun
-          material: skey_盛槟花
-          amount: 64
-          chance: 45
-        8:
-          material_type: slimefun
-          material: skey_龙文凯安必忧兰
-          amount: 64
-          chance: 45
-        9:
-          material_type: slimefun
-          material: skey_悦鸧花
-          amount: 64
-          chance: 45
-        10:
-          material_type: slimefun
-          material: skey_古沃吉影酒神
-          amount: 64
-          chance: 45
-        11:
-          material_type: slimefun
-          material: skey_绽晶古树菇
-          amount: 64
-          chance: 45
-        12:
-          material_type: slimefun
-          material: skey_龙蛋果
-          amount: 64
-          chance: 45
-        13:
-          material_type: slimefun
-          material: skey_十九劫天赐樱
-          amount: 64
-          chance: 45
-        14:
-          material_type: slimefun
-          material: skey_叠霄竹
-          amount: 64
-          chance: 45
-        15:
-          material_type: slimefun
-          material: skey_荆棘剑麻
-          amount: 64
-          chance: 45
-        16:
-          material_type: slimefun
-          material: skey_舞火酿歌
-          amount: 32
-          chance: 25
-    3:
-      seconds: 30
-      input:
-        1: 
-          material_type: slimefun
-          material: skey_权限凭证3
-          noConsume: true
-      output:
-        1:
-          material_type: slimefun
-          material: skey_高钙磷根系坨
-          amount: 64
-          chance: 45
-        2:
-          material_type: slimefun
-          material: skey_残青草晶
-          amount: 64
-          chance: 45
-        3:
-          material_type: slimefun
-          material: skey_活花质
-          amount: 64
-          chance: 45
-        4:
-          material_type: slimefun
-          material: skey_长生原木
-          amount: 64
-          chance: 45
-        5:
-          material_type: slimefun
-          material: skey_奥术原木
-          amount: 64
-          chance: 45
-        6:
-          material_type: slimefun
-          material: skey_雷击原木
-          amount: 64
-          chance: 45
-        7:
-          material_type: slimefun
-          material: skey_盛槟花
-          amount: 64
-          chance: 45
-        8:
-          material_type: slimefun
-          material: skey_龙文凯安必忧兰
-          amount: 64
-          chance: 45
-        9:
-          material_type: slimefun
-          material: skey_悦鸧花
-          amount: 64
-          chance: 45
-        10:
-          material_type: slimefun
-          material: skey_古沃吉影酒神
-          amount: 64
-          chance: 45
-        11:
-          material_type: slimefun
-          material: skey_绽晶古树菇
-          amount: 64
-          chance: 45
-        12:
-          material_type: slimefun
-          material: skey_龙蛋果
-          amount: 64
-          chance: 45
-        13:
-          material_type: slimefun
-          material: skey_十九劫天赐樱
-          amount: 64
-          chance: 45
-        14:
-          material_type: slimefun
-          material: skey_叠霄竹
-          amount: 64
-          chance: 45
-        15:
-          material_type: slimefun
-          material: skey_荆棘剑麻
-          amount: 64
-          chance: 45
-        16:
-          material_type: slimefun
-          material: skey_舞火酿歌
-          amount: 32
-          chance: 25
+      material: water
   #机器自身配方
   recipe_type: PF_KEW2
   recipe:
@@ -1065,6 +803,273 @@ skey_灼热苍穹级:
           amount: 1
           material: moss_block
           slot: 14
+  #机器支持配方
+  recipes:
+    logitech_stackable: false
+    1:
+      seconds: 60
+      input:
+        1: 
+          material_type: slimefun
+          material: tsxl5
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_高钙磷根系坨
+          amount: 16
+          chance: 40
+        2:
+          material_type: slimefun
+          material: skey_残青草晶
+          amount: 16
+          chance: 40
+        3:
+          material_type: slimefun
+          material: skey_活花质
+          amount: 16
+          chance: 40
+        4:
+          material_type: slimefun
+          material: skey_长生原木
+          amount: 16
+          chance: 40
+        5:
+          material_type: slimefun
+          material: skey_奥术原木
+          amount: 16
+          chance: 40
+        6:
+          material_type: slimefun
+          material: skey_雷击原木
+          amount: 16
+          chance: 40
+        7:
+          material_type: slimefun
+          material: skey_盛槟花
+          amount: 16
+          chance: 40
+        8:
+          material_type: slimefun
+          material: skey_龙文凯安必忧兰
+          amount: 16
+          chance: 40
+        9:
+          material_type: slimefun
+          material: skey_悦鸧花
+          amount: 16
+          chance: 40
+        10:
+          material_type: slimefun
+          material: skey_古沃吉影酒神
+          amount: 16
+          chance: 40
+        11:
+          material_type: slimefun
+          material: skey_绽晶古树菇
+          amount: 16
+          chance: 40
+        12:
+          material_type: slimefun
+          material: skey_龙蛋果
+          amount: 16
+          chance: 40
+        13:
+          material_type: slimefun
+          material: skey_十九劫天赐樱
+          amount: 16
+          chance: 40
+        14:
+          material_type: slimefun
+          material: skey_叠霄竹
+          amount: 16
+          chance: 40
+        15:
+          material_type: slimefun
+          material: skey_荆棘剑麻
+          amount: 16
+          chance: 40
+        16:
+          material_type: slimefun
+          material: skey_舞火酿歌
+          amount: 8
+          chance: 20
+    2:
+      seconds: 40
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_权限凭证2
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_高钙磷根系坨
+          amount: 32
+          chance: 40
+        2:
+          material_type: slimefun
+          material: skey_残青草晶
+          amount: 32
+          chance: 40
+        3:
+          material_type: slimefun
+          material: skey_活花质
+          amount: 32
+          chance: 40
+        4:
+          material_type: slimefun
+          material: skey_长生原木
+          amount: 32
+          chance: 40
+        5:
+          material_type: slimefun
+          material: skey_奥术原木
+          amount: 32
+          chance: 40
+        6:
+          material_type: slimefun
+          material: skey_雷击原木
+          amount: 32
+          chance: 40
+        7:
+          material_type: slimefun
+          material: skey_盛槟花
+          amount: 32
+          chance: 40
+        8:
+          material_type: slimefun
+          material: skey_龙文凯安必忧兰
+          amount: 32
+          chance: 40
+        9:
+          material_type: slimefun
+          material: skey_悦鸧花
+          amount: 32
+          chance: 40
+        10:
+          material_type: slimefun
+          material: skey_古沃吉影酒神
+          amount: 32
+          chance: 40
+        11:
+          material_type: slimefun
+          material: skey_绽晶古树菇
+          amount: 32
+          chance: 40
+        12:
+          material_type: slimefun
+          material: skey_龙蛋果
+          amount: 32
+          chance: 40
+        13:
+          material_type: slimefun
+          material: skey_十九劫天赐樱
+          amount: 32
+          chance: 40
+        14:
+          material_type: slimefun
+          material: skey_叠霄竹
+          amount: 32
+          chance: 40
+        15:
+          material_type: slimefun
+          material: skey_荆棘剑麻
+          amount: 32
+          chance: 40
+        16:
+          material_type: slimefun
+          material: skey_舞火酿歌
+          amount: 16
+          chance: 20
+    3:
+      seconds: 30
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_权限凭证3
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_高钙磷根系坨
+          amount: 32
+          chance: 60
+        2:
+          material_type: slimefun
+          material: skey_残青草晶
+          amount: 32
+          chance: 60
+        3:
+          material_type: slimefun
+          material: skey_活花质
+          amount: 32
+          chance: 60
+        4:
+          material_type: slimefun
+          material: skey_长生原木
+          amount: 32
+          chance: 60
+        5:
+          material_type: slimefun
+          material: skey_奥术原木
+          amount: 32
+          chance: 60
+        6:
+          material_type: slimefun
+          material: skey_雷击原木
+          amount: 32
+          chance: 60
+        7:
+          material_type: slimefun
+          material: skey_盛槟花
+          amount: 32
+          chance: 60
+        8:
+          material_type: slimefun
+          material: skey_龙文凯安必忧兰
+          amount: 32
+          chance: 60
+        9:
+          material_type: slimefun
+          material: skey_悦鸧花
+          amount: 32
+          chance: 60
+        10:
+          material_type: slimefun
+          material: skey_古沃吉影酒神
+          amount: 32
+          chance: 60
+        11:
+          material_type: slimefun
+          material: skey_绽晶古树菇
+          amount: 32
+          chance: 60
+        12:
+          material_type: slimefun
+          material: skey_龙蛋果
+          amount: 32
+          chance: 60
+        13:
+          material_type: slimefun
+          material: skey_十九劫天赐樱
+          amount: 32
+          chance: 60
+        14:
+          material_type: slimefun
+          material: skey_叠霄竹
+          amount: 32
+          chance: 60
+        15:
+          material_type: slimefun
+          material: skey_荆棘剑麻
+          amount: 32
+          chance: 60
+        16:
+          material_type: slimefun
+          material: skey_舞火酿歌
+          amount: 16
+          chance: 30
 
 skey_四目伏羲级:
   item_group: B_B0
@@ -1094,6 +1099,7 @@ skey_四目伏羲级:
   allowSwitchDisplayLayer: true
   defaultNotice: true
   displayProjectiles: true
+  ticker_type: recipe
   structure:
   - - __ __ __ __ __
     - __ __ __ __ __
@@ -1146,21 +1152,41 @@ skey_四目伏羲级:
   mapping:
     a1:
       material_type: mc
-      material: minecraft:netherite_block
+      material: netherite_block
     a2:
       material_type: mc
-      material: minecraft:red_stained_glass
+      material: red_stained_glass
     a3:
       material_type: mc
-      material: minecraft:deepslate_tiles
+      material: deepslate_tiles
     a4:
         material_type: slimefun
         material: skey_四目伏羲级
         core: true
     a5:
       material_type: mc
-      material: minecraft:sea_lantern
+      material: sea_lantern
+  #机器自身配方
+  recipe_type: PF_KEW2
+  recipe:
+        1: #蓝图
+          amount: 1
+          material_type: slimefun
+          material: ntskey2
+          slot: 10
+        2:
+          amount: 8
+          material_type: slimefun
+          material: skey_框架2
+          slot: 11
+        3:
+          amount: 1
+          material_type: slimefun
+          material: skey_芯盘1
+          slot: 12
+  #机器支持配方
   recipes:
+    logitech_stackable: false
     1:
       seconds: 12
       input:
@@ -1328,25 +1354,3 @@ skey_四目伏羲级:
           material: skey_电动力阱
           amount: 5
           chance: 50
-  #机器自身配方
-  recipe_type: PF_KEW2
-  recipe:
-        1: #蓝图
-          amount: 1
-          material_type: slimefun
-          material: ntskey2
-          slot: 10
-        2:
-          amount: 8
-          material_type: slimefun
-          material: skey_框架2
-          slot: 11
-        3:
-          amount: 1
-          material_type: slimefun
-          material: skey_芯盘1
-          slot: 12
-
-
-
-

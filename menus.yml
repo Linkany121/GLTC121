@@ -1,6 +1,6 @@
 
 FD_A1:
-  title: "发电机通用菜单"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &e临时能量释放器"
   slots:
     31:
       progressbar: true
@@ -94,7 +94,7 @@ FD_A1:
 
 ##临时星图定位器
 tac1:
-  title: "&dTAC &e星图定位器"
+  title: "&dTAC &e星图定位器 &7(临时)"
   slots:
  ##显示槽
     13:
@@ -152,7 +152,7 @@ tac1:
 
 ##星图定位器
 TACdw1:
-  title: "&dTAC &e星图定位器"
+  title: "&dTAC &#e381e3智&#d56fd5能&#c65dc6定&#b84bb8位&#aa39aa器&7-&eI"
   slots:
  ##显示槽
     13:
@@ -210,7 +210,7 @@ TACdw1:
 
 ##星图定位器
 TACdw2:
-  title: "&dTAC &e星图定位器"
+  title: "&dTAC &#e381e3智&#d56fd5能&#c65dc6定&#b84bb8位&#aa39aa器&7-&eII"
   slots:
  ##显示槽
     13:
@@ -268,7 +268,7 @@ TACdw2:
 
 ##临时星图唤醒器
 tac2:
-  title: "&dTAC &e星图唤醒器"
+  title: "&dTAC &e星图唤醒器 &7(临时)"
   slots:
  ##显示槽
     13:
@@ -326,7 +326,7 @@ tac2:
 
 ##星图唤醒器
 TAChx1:
-  title: "&dC/TS &e1"
+  title: "&dTAC &#9c81e3电&#8372d5力&#6b62c6唤&#5253b8醒&#3944aa器&7-&eI"
   slots:
  ##显示槽
     22:
@@ -368,7 +368,7 @@ TAChx1:
 
 ##星图唤醒器
 TAChx2:
-  title: "&dC/TS &e1"
+  title: "&dTAC &#9c81e3电&#8372d5力&#6b62c6唤&#5253b8醒&#3944aa器&7-&eII"
   slots:
  ##显示槽
     22:
@@ -410,7 +410,7 @@ TAChx2:
 
 ##临时编织器
 tac3:
-  title: "&dTAC &e蓝图编织器"
+  title: "&dTAC &e蓝图编织器 &7(临时)"
   slots:
  ##显示槽
     13:
@@ -468,7 +468,7 @@ tac3:
 
 ##星图编织器
 TACbz1:
-  title: "&dC/TS &e1"
+  title: "&dTAC &#81e3d2电&#6fd5c5力&#5dc6b9编&#4bb8ac织&#39aa9f器&7-&eI"
   slots:
  ##显示槽
     22:
@@ -510,7 +510,7 @@ TACbz1:
 
 ##星图编织器
 TACbz2:
-  title: "&dC/TS &e1"
+  title: "&dTAC &#81e3d2电&#6fd5c5力&#5dc6b9编&#4bb8ac织&#39aa9f器&7-&eII"
   slots:
  ##显示槽
     22:
@@ -552,7 +552,7 @@ TACbz2:
 
 ##开尔文桌
 KEW:
-  title: "&dTAC &e开尔文桌"
+  title: "&dTAC &#018dffK&#1a7bff2&#326aff7&#4b58ff3&#6447ff-&#7c35ff开&#9523ff尔&#ad12ff文&#c600ff桌"
   slots:
  ##显示槽
     34:
@@ -609,7 +609,7 @@ KEW:
 
 ##沉淀机1
 ATOcd1:
-  title: "&dTAC &e沉淀机"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &#5c9cf0杂质沉淀仪&7(I)"
   slots:
  ##显示槽
     13:
@@ -667,7 +667,7 @@ ATOcd1:
 
 ##沉淀机2
 ATOcd2:
-  title: "&dTAC &e沉淀机"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &#5c9cf0杂质沉淀仪&7(II)"
   slots:
  ##显示槽
     13:
@@ -725,7 +725,7 @@ ATOcd2:
 
 ##升华1
 ATOsh1:
-  title: "&dTAC &e沉淀机"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &#5c9cf0颗粒升华器&7(I)"
   slots:
  ##显示槽
     13:
@@ -783,7 +783,7 @@ ATOsh1:
 
 ##升华2
 ATOsh2:
-  title: "&dTAC &e沉淀机"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &#5c9cf0颗粒升华器&7(II)"
   slots:
  ##显示槽
     13:
@@ -841,7 +841,7 @@ ATOsh2:
 
 ##融合1
 ATOrh1:
-  title: "&dTAC &e沉淀升华融合"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &b沉淀/升华复合驱动仓&7(III)"
   slots:
  ##显示槽
     13:
@@ -899,7 +899,7 @@ ATOrh1:
 
 ##灌装1
 ATOgzq:
-  title: "&dTAC &e灌装器"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &#5c9cf0简单灌装器&7(I)"
   slots:
  ##显示槽
     13:
@@ -956,7 +956,7 @@ ATOgzq:
       material: black_stained_glass_pane
 
 ATO_捕网:
-  title: "&dEAE &e机器"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &#be9bd3临&#bc96cf时&#b990cb涵&#b78bc8粒&#b485c4子&#b280c0群&#b07bbd捕&#ad75b9捉&#ab70b5网"
   slots:
     13:
       progressbar: true
@@ -1025,7 +1025,7 @@ ATO_捕网:
       material: light_blue_stained_glass_pane
 
 ATO_地热:
-  title: "&dEAE &e机器"
+  title: "&#ff5300A&#ff5b00T&#ff6300O &#ddcf6a地&#dbc672热&#dabe7a熔&#d8b583融&#d6ac8b转&#d5a493换&#d39b9b器"
   slots:
     13:
       progressbar: true
@@ -1093,8 +1093,6 @@ ATO_地热:
       name: "&b输出"
       material: light_blue_stained_glass_pane
 
-
-
 ##################
 #
 # TS机器
@@ -1102,7 +1100,7 @@ ATO_地热:
 ##################
 
 FD_TSBZ:
-  title: "发电机通用菜单"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffbd61引爆式涡轮电机"
   slots:
     31:
       progressbar: true
@@ -1198,7 +1196,7 @@ FD_TSBZ:
       material: black_stained_glass_pane
 
 FD_TSBZ2:
-  title: "发电机通用菜单"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffbd61引爆式涡轮电机&f-&eII"
   slots:
     31:
       progressbar: true
@@ -1294,7 +1292,7 @@ FD_TSBZ2:
       material: black_stained_glass_pane
 
 FD_TSJL:
-  title: "发电机通用菜单"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffbd61精致燃烧发电盒"
   slots:
     31:
       progressbar: true
@@ -1390,7 +1388,7 @@ FD_TSJL:
       material: black_stained_glass_pane
 
 FD_TSJL2:
-  title: "发电机通用菜单"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffbd61精致燃烧发电盒&f-&eII"
   slots:
     31:
       progressbar: true
@@ -1486,7 +1484,7 @@ FD_TSJL2:
       material: black_stained_glass_pane
 
 FD_TSYD:
-  title: "发电机通用菜单"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffbd61粒子内燃发电机"
   slots:
     31:
       progressbar: true
@@ -1582,7 +1580,7 @@ FD_TSYD:
       material: black_stained_glass_pane
 
 FD_TSYD2:
-  title: "发电机通用菜单"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffbd61粒子内燃发电机&f-&eII"
   slots:
     31:
       progressbar: true
@@ -1676,7 +1674,7 @@ FD_TSYD2:
 
 ##钻机1
 TScyzj1:
-  title: "&dC/TS &e矿机"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#bfa8ff浅脉层岩钻机&7-&eI"
   slots:
  ##显示槽
     22:
@@ -1746,7 +1744,7 @@ TScyzj1:
 
 ##钻机2
 TScyzj2:
-  title: "&dC/TS &e矿机"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#bfa8ff深度层岩钻机&7-&eII"
   slots:
  ##显示槽
     22:
@@ -1816,7 +1814,7 @@ TScyzj2:
 
 ##钻机3
 TScyzj3:
-  title: "&dC/TS &e矿机"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#bfa8ff亘古岩层钻机&7-&eIII"
   slots:
  ##显示槽
     22:
@@ -1886,7 +1884,7 @@ TScyzj3:
 
 ##析锻仪1
 TSgxdy1:
-  title: "&dC/TS &e光仪"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffe59e微光析锻仪&7-&eI"
   slots:
  ##显示槽
     22:
@@ -1956,7 +1954,7 @@ TSgxdy1:
 
 ##析锻仪2
 TSgxdy2:
-  title: "&dC/TS &e光仪"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffe59e强光析锻仪&7-&eII"
   slots:
  ##显示槽
     22:
@@ -2026,7 +2024,7 @@ TSgxdy2:
 
 ##析锻仪3
 TSgxdy3:
-  title: "&dC/TS &e光仪"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffe59e光辉析锻仪&7-&eIII"
   slots:
  ##显示槽
     22:
@@ -2096,7 +2094,7 @@ TSgxdy3:
 
 ##压力罐1
 TSylg1:
-  title: "&dC/TS &e压力"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ff6b6b匡喀斯升压馏罐&7-&eI"
   slots:
  ##显示槽
     22:
@@ -2166,7 +2164,7 @@ TSylg1:
 
 ##压力罐2
 TSylg2:
-  title: "&dC/TS &e压力"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ff6b6b匡喀斯升压馏罐&7-&eII"
   slots:
  ##显示槽
     22:
@@ -2236,7 +2234,7 @@ TSylg2:
 
 ##压力罐3
 TSylg3:
-  title: "&dC/TS &e压力"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ff6b6b匡喀斯升压馏罐&7-&eIII"
   slots:
  ##显示槽
     22:
@@ -2306,7 +2304,7 @@ TSylg3:
 
 ##投影1
 TStyj1:
-  title: "&dC/TS &e投影"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#a8ffaa光锥帷幕解压井&7-&eI"
   slots:
  ##显示槽
     22:
@@ -2376,7 +2374,7 @@ TStyj1:
 
 ##钻油1
 TSzspt1:
-  title: "&dC/TS &e油jin"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#aa559e深渊棱镜平台&7-&eI"
   slots:
  ##显示槽
     22:
@@ -2446,7 +2444,7 @@ TSzspt1:
 
 ##钻油2
 TSzspt2:
-  title: "&dC/TS &e油jin"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#aa559e深渊棱镜平台&7-&eII"
   slots:
  ##显示槽
     22:
@@ -2516,7 +2514,7 @@ TSzspt2:
 
 ##热蒸馏1
 TSmsft1:
-  title: "&dC/TS &e热流"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#774cdc沸腾魔素热馏塔&7-&eI"
   slots:
  ##显示槽
     22:
@@ -2586,7 +2584,7 @@ TSmsft1:
 
 ##热蒸馏2
 TSmsft2:
-  title: "&dC/TS &e热流"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#774cdc重型沸腾魔素热馏塔&7-&eII"
   slots:
  ##显示槽
     22:
@@ -2656,7 +2654,7 @@ TSmsft2:
 
 ##热蒸馏3
 TSmsft3:
-  title: "&dC/TS &e热流"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#774cdc巨型沸腾魔素热馏塔&7-&eIII"
   slots:
  ##显示槽
     22:
@@ -2726,7 +2724,7 @@ TSmsft3:
 
 ##深渊压力1
 TSsyyl1:
-  title: "&dC/TS &e深渊"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#bd28e6深渊催化反应炉&7-&eI"
   slots:
  ##显示槽
     42:
@@ -2834,7 +2832,7 @@ TSsyyl1:
 
 ##深渊压力2
 TSsyyl2:
-  title: "&dC/TS &e深渊"
+  title: "&#28c8adS&#24cdac.&#21d2aaT&#1dd7a9.&#19dca7E&#16e1a6.&#12e6a4V&#0feba3.&#0bf0a1E&#07f5a0.&#04fa9e重&#00ff9d构 &#bd28e6深渊催化反应炉&7-&eII"
   slots:
  ##显示槽
     42:
@@ -2942,7 +2940,7 @@ TSsyyl2:
 
 ##灵活1
 TSlhfy1:
-  title: "&dC/TS &e林火"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#3acfb1灵焰粘合器&7-&eI"
   slots:
  ##显示槽
     22:
@@ -3012,13 +3010,13 @@ TSlhfy1:
 
 ##合金炉1
 TShjl1:
-  title: "&dC/TS &e合金1"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffb042旋&#f28e3c室&#e66c35聚&#d94a2f温&#cc2828加&#c02424压&#b42020搅&#a71b1b拌&#9b1717炉&7-&eI"
   slots:
  ##显示槽
     31:
       progressbar: true
       name: "&7..."
-      material: minecraft:red_glazed_terracotta
+      material: red_glazed_terracotta
  #输入输出
     2-4:
       name: "&b输入"
@@ -3088,13 +3086,13 @@ TShjl1:
 
 ##合金炉2
 TShjl2:
-  title: "&dC/TS &e合金1"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffb042旋&#f28e3c室&#e66c35聚&#d94a2f温&#cc2828加&#c02424压&#b42020搅&#a71b1b拌&#9b1717炉&7-&eII"
   slots:
  ##显示槽
     31:
       progressbar: true
       name: "&7..."
-      material: minecraft:red_glazed_terracotta
+      material: red_glazed_terracotta
  #输入输出
     2-4:
       name: "&b输入"
@@ -3164,13 +3162,13 @@ TShjl2:
 
 ##合金炉3
 TShjl3:
-  title: "&dC/TS &e合金1"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffe042漩&#ffce40涡&#ffbc3e聚&#ffab3c变&#ff993a高&#ff8738压&#ff7536反&#ff6334应&#ff5232搅&#ff4030拌&#ff2e2e炉&7-&eIII"
   slots:
  ##显示槽
     31:
       progressbar: true
       name: "&7..."
-      material: minecraft:red_glazed_terracotta
+      material: red_glazed_terracotta
  #输入输出
     2-4:
       name: "&b输入"
@@ -3240,13 +3238,13 @@ TShjl3:
 
 ##模拟器
 TSmlq1:
-  title: "&dC/TS &e模拟"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ff3dcb主&#e434d4序&#ca2ade星&#af21e7风&#9418f1暴&#790ffa反&#7916ed应&#942dca模&#af45a7拟&#ca5c84仓&#e47460-&#ff8b3dI"
   slots:
  ##显示槽
     31:
       progressbar: true
       name: "&7..."
-      material: minecraft:black_glazed_terracotta
+      material: black_glazed_terracotta
  #输入输出
     2-6:
       name: "&b输入"
@@ -3310,13 +3308,13 @@ TSmlq1:
 
 ##模拟器2
 TSmlq2:
-  title: "&dC/TS &e模拟"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ff1ac2主&#ff17a1序&#ff147f星&#ff115e风&#ff0e3c暴&#ff0b1b反&#ff1709应&#ff3007模&#ff4905拟&#ff6204仓&#ff7c02-&#ff9500II"
   slots:
  ##显示槽
     31:
       progressbar: true
       name: "&7..."
-      material: minecraft:black_glazed_terracotta
+      material: black_glazed_terracotta
  #输入输出
     2-6:
       name: "&b输入"
@@ -3380,7 +3378,7 @@ TSmlq2:
 
 ##分解1
 TSfj1:
-  title: "&dC/TS &e分解"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#fffa66盛式分解柜&7-&eI"
   slots:
  ##显示槽
     22:
@@ -3422,7 +3420,7 @@ TSfj1:
 
 ##分解2
 TSfj2:
-  title: "&dC/TS &e分解"
+  title: "&#28c8adS&#24cdac.&#21d2aaT&#1dd7a9.&#19dca7E&#16e1a6.&#12e6a4V&#0feba3.&#0bf0a1E&#07f5a0.&#04fa9e重&#00ff9d构 &#fffa66盛式分解柜&7-&eII"
   slots:
  ##显示槽
     22:
@@ -3464,13 +3462,13 @@ TSfj2:
 
 ##合成
 TShc1:
-  title: "&dC/TS &e合成"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#94edff微型蓝硅车床&7-&eI"
   slots:
  ##显示槽
     49:
       progressbar: true
       name: "&7..."
-      material: minecraft:light_blue_glazed_terracotta
+      material: light_blue_glazed_terracotta
  #输入输出
     0:
       name: "&b输入"
@@ -3546,32 +3544,32 @@ TShc1:
  #其他
     1:
       name: "&e熔铸工序"
-      material: minecraft:flint_and_steel
+      material: flint_and_steel
     10:
       name: "&e淬炼工序"
-      material: minecraft:anvil
+      material: anvil
     19:
       name: "&e锻压工序"
-      material: minecraft:smithing_table
+      material: smithing_table
     7:
       name: "&e焊接工序"
-      material: minecraft:redstone_torch
+      material: redstone_torch
     16:
       name: "&e蚀刻工序"
-      material: minecraft:comparator
+      material: comparator
     25:
       name: "&e组合工序"
-      material: minecraft:crafting_table
+      material: crafting_table
 
 ##合成
 TShc2:
-  title: "&dC/TS &e合成"
+  title: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#94edff微型蓝硅车床&7-&eII"
   slots:
  ##显示槽
     49:
       progressbar: true
       name: "&7..."
-      material: minecraft:light_blue_glazed_terracotta
+      material: light_blue_glazed_terracotta
  #输入输出
     0:
       name: "&b输入"
@@ -3647,32 +3645,32 @@ TShc2:
  #其他
     1:
       name: "&e熔铸工序"
-      material: minecraft:flint_and_steel
+      material: flint_and_steel
     10:
       name: "&e淬炼工序"
-      material: minecraft:anvil
+      material: anvil
     19:
       name: "&e锻压工序"
-      material: minecraft:smithing_table
+      material: smithing_table
     7:
       name: "&e焊接工序"
-      material: minecraft:redstone_torch
+      material: redstone_torch
     16:
       name: "&e蚀刻工序"
-      material: minecraft:comparator
+      material: comparator
     25:
       name: "&e组合工序"
-      material: minecraft:crafting_table
+      material: crafting_table
 
 ##录音机
 LISlyj1:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#16b3ff初级录音机"
   slots:
  ##显示槽
     31:
       progressbar: true
       name: "&7..."
-      material: minecraft:lodestone
+      material: lodestone
  #输入输出
     2:
       name: "&b输入"
@@ -3742,13 +3740,13 @@ LISlyj1:
 
 ##录音机
 LISlyj2:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#16b3ff强化录音机"
   slots:
  ##显示槽
     31:
       progressbar: true
       name: "&7..."
-      material: minecraft:lodestone
+      material: lodestone
  #输入输出
     2:
       name: "&b输入"
@@ -3818,7 +3816,7 @@ LISlyj2:
 
 ##乐盘
 LISyp1:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#fb77fb挽英乐盘"
   slots:
  ##显示槽
     31:
@@ -3912,23 +3910,23 @@ LISyp1:
  #其它
     0:
       name: "&e下方投入：&6和弦"
-      material: minecraft:bamboo_hanging_sign
+      material: bamboo_hanging_sign
     2:
       name: "&e下方投入：&6和弦"
       material: bamboo_hanging_sign
     4:
       name: "&e下方投入：&6鼓点"
-      material: minecraft:jungle_hanging_sign
+      material: jungle_hanging_sign
     6:
       name: "&e下方投入：&6鼓点"
       material: jungle_hanging_sign
     8:
       name: "&e下方投入：&6旋律"
-      material: minecraft:cherry_hanging_sign
+      material: cherry_hanging_sign
 
 ##乐盘
 LISyp2:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#ff2bea迷思乐盘"
   slots:
  ##显示槽
     31:
@@ -4022,54 +4020,54 @@ LISyp2:
  #其它
     0:
       name: "&e下方投入：&6和弦"
-      material: minecraft:bamboo_hanging_sign
+      material: bamboo_hanging_sign
     2:
       name: "&e下方投入：&6和弦"
       material: bamboo_hanging_sign
     4:
       name: "&e下方投入：&6鼓点"
-      material: minecraft:jungle_hanging_sign
+      material: jungle_hanging_sign
     6:
       name: "&e下方投入：&6鼓点"
       material: jungle_hanging_sign
     8:
       name: "&e下方投入：&6旋律"
-      material: minecraft:cherry_hanging_sign
+      material: cherry_hanging_sign
 
 ##暖室
 LISls1:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#f1b1ff歌&#dea3ff德&#cb95ff艾&#b887ff拉&#a092f6暖&#83b6e4室&#65dbd2-&#48ffc0I"
   slots:
  ##显示槽
     10:
       progressbar: true
       name: "&7..."
-      material: minecraft:lantern
+      material: lantern
  #输入输出
     1:
       name: "&b输入"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     9:
       name: "&b上方放置乐曲"
-      material: minecraft:ender_pearl
+      material: ender_pearl
     11:
       name: "&d上方放置模式选择器（铁锭/金锭）"
-      material: minecraft:ender_eye
+      material: ender_eye
     12-17:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     19:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     28:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     37:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     46:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
  #白色
     3-8:
       name: "&a"
@@ -4089,38 +4087,38 @@ LISls1:
 
 ##暖室
 LISls2:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#eb90ff雨&#d480ff果&#be70ff暮&#a75fff洛&#904fff暖&#6c7be9室&#48a7d3-&#24d3bdI&#00ffa7I"
   slots:
  ##显示槽
     10:
       progressbar: true
       name: "&7..."
-      material: minecraft:lantern
+      material: lantern
  #输入输出
     1:
       name: "&b输入"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     9:
       name: "&b上方放置乐曲"
-      material: minecraft:ender_pearl
+      material: ender_pearl
     11:
       name: "&d上方放置模式选择器（铁锭/金锭）"
-      material: minecraft:ender_eye
+      material: ender_eye
     12-17:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     19:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     28:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     37:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     46:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
  #白色
     3-8:
       name: "&a"
@@ -4140,38 +4138,38 @@ LISls2:
 
 ##暖室
 LISls3:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#f872ff谢&#d365ff洛&#af58ff蒙&#8a4cff科&#663fff勒&#4132ff暖&#345be4室&#2784c9-&#1aadafI&#0dd694I&#00ff79I"
   slots:
  ##显示槽
     10:
       progressbar: true
       name: "&7..."
-      material: minecraft:lantern
+      material: lantern
  #输入输出
     1:
       name: "&b输入"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     9:
       name: "&b上方放置乐曲"
-      material: minecraft:ender_pearl
+      material: ender_pearl
     11:
       name: "&d上方放置模式选择器（铁锭/金锭）"
-      material: minecraft:ender_eye
+      material: ender_eye
     12-17:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     19:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     28:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     37:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     46:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
  #白色
     3-8:
       name: "&a"
@@ -4191,38 +4189,38 @@ LISls3:
 
 ##创世
 LIScssp1:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#ff1e8e“&#f121a1上&#e425b4帝&#d628c7的&#c82bd9暗&#bb2fec房&#ad32ff”"
   slots:
  ##显示槽
     16:
       progressbar: true
       name: "&7..."
-      material: minecraft:soul_lantern
+      material: soul_lantern
  #输入输出
     1:
       name: "&b输入"
-      material: minecraft:red_stained_glass_pane
+      material: red_stained_glass_pane
     19:
       name: "&b输入"
-      material: minecraft:red_stained_glass_pane
+      material: red_stained_glass_pane
     3-5:
       name: "&6输出"
-      material: minecraft:purple_stained_glass_pane 
+      material: purple_stained_glass_pane 
     12:
       name: "&6输出"
-      material: minecraft:purple_stained_glass_pane 
+      material: purple_stained_glass_pane 
     41:
       name: "&6输出"
-      material: minecraft:purple_stained_glass_pane 
+      material: purple_stained_glass_pane 
     48-50:
       name: "&6输出"
-      material: minecraft:purple_stained_glass_pane 
+      material: purple_stained_glass_pane 
     7:
       name: "&c上帝之骰"
-      material: minecraft:orange_stained_glass_pane 
+      material: orange_stained_glass_pane 
     25:
       name: "&c上帝之骰"
-      material: minecraft:orange_stained_glass_pane 
+      material: orange_stained_glass_pane 
  #黑色
     0:
       name: "&a"
@@ -4319,23 +4317,23 @@ LIScssp1:
 
 ##暖室
 LISls4:
-  title: "&dLISA &e合成"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#ff00ac伊&#ff006c娜&#ff002b阿&#ff0e00斯&#ff3600暖&#ff5f00室&#bf9108-&#00ff20&lX"
   slots:
  ##显示槽
     10:
       progressbar: true
       name: "&7..."
-      material: minecraft:lantern
+      material: lantern
  #输入输出
     1:
       name: "&b输入"
       material: yellow_stained_glass_pane
     9:
       name: "&b上方放置乐曲"
-      material: minecraft:ender_pearl
+      material: ender_pearl
     11:
       name: "&d上方放置模式选择器（铁锭/金锭）"
-      material: minecraft:ender_eye
+      material: ender_eye
     12-17:
       name: "&6输出"
       material: yellow_stained_glass_pane
@@ -4369,30 +4367,30 @@ LISls4:
       material: enchanted_book
 
 LISzhs1:
-  title: "&d专注暖室 &e-I"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#ff83b7专&#ce95db注&#9da7ff型&#8cd3ff暖&#7affff室&f-&eI"
   slots:
     10:
       progressbar: true
       name: "&7..."
-      material: minecraft:lantern
+      material: lantern
     1:
       name: "&b输入"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     12-17:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     19:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     28:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     37:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     46:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     3-8:
       name: "&a"
       material: white_stained_glass_pane
@@ -4419,30 +4417,30 @@ LISzhs1:
       material: black_stained_glass_pane
 
 LISzhs2:
-  title: "&d专注暖室 &e-II"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#ff83b7专&#ce95db注&#9da7ff型&#8cd3ff暖&#7affff室&f-&eII"
   slots:
     10:
       progressbar: true
       name: "&7..."
-      material: minecraft:lantern
+      material: lantern
     1:
       name: "&b输入"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     12-17:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     19:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     28:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     37:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     46:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     3-8:
       name: "&a"
       material: white_stained_glass_pane
@@ -4469,30 +4467,30 @@ LISzhs2:
       material: black_stained_glass_pane
 
 LISzhs3:
-  title: "&d专注暖室 &e-III"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#ff83b7专&#ce95db注&#9da7ff型&#8cd3ff暖&#7affff室&f-&eIII"
   slots:
     10:
       progressbar: true
       name: "&7..."
-      material: minecraft:lantern
+      material: lantern
     1:
       name: "&b输入"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     12-17:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     19:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     28:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     37:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     46:
       name: "&6输出"
-      material: minecraft:pink_stained_glass_pane
+      material: pink_stained_glass_pane
     3-8:
       name: "&a"
       material: white_stained_glass_pane
@@ -4519,7 +4517,7 @@ LISzhs3:
       material: black_stained_glass_pane
 
 FD_LSCS1:
-  title: "发电机通用菜单"
+  title: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#88e381世&#75ea76纪&#62f16c末&#4eed71的&#39d393残&#24bab6余&#568592消&#aa4349化&#ff0000盒"
   slots:
     31:
       progressbar: true
@@ -4616,7 +4614,7 @@ FD_LSCS1:
 
 ##合成
 EAE_家用单元合成器:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#24c257家&#35c44f用&#47c746单&#58c93e元&#69cb35合&#7bce2d成&#8cd024器"
   slots:
     13:
       progressbar: true
@@ -4685,7 +4683,7 @@ EAE_家用单元合成器:
 
 ##木材加工盒
 EAE_木材加工反应盒:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#32d21b木材加工反应盒&f-&eI"
   slots:
     13:
       progressbar: true
@@ -4754,7 +4752,7 @@ EAE_木材加工反应盒:
 
 ##木材加工盒2
 EAE_木材加工反应盒2:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#32d21b木材加工反应盒&f-&eII"
   slots:
     13:
       progressbar: true
@@ -4823,7 +4821,7 @@ EAE_木材加工反应盒2:
 
 ##石匠一型
 EAE_陈轩石匠一型:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#49A998陈轩石匠一型&f-&eI"
   slots:
     13:
       progressbar: true
@@ -4892,7 +4890,7 @@ EAE_陈轩石匠一型:
 
 ##石匠一型2
 EAE_陈轩石匠一型2:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#49A998陈轩石匠一型&f-&eII"
   slots:
     13:
       progressbar: true
@@ -4961,7 +4959,7 @@ EAE_陈轩石匠一型2:
 
 ##风帆
 EAE_空气滤网风帆:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#2efaffC&#30dff82&#32c3f1空&#34a8ea气&#368de4滤&#3872dd网&#3a56d6风&#3c3bcf帆&f-&eI"
   slots:
     13:
       progressbar: true
@@ -5031,7 +5029,7 @@ EAE_空气滤网风帆:
 
 ##风帆2
 EAE_空气滤网风帆2:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#2efaffC&#30dff82&#32c3f1空&#34a8ea气&#368de4滤&#3872dd网&#3a56d6风&#3c3bcf帆&f-&eII"
   slots:
     13:
       progressbar: true
@@ -5101,7 +5099,7 @@ EAE_空气滤网风帆2:
 
 ##装配站
 EAE_小型工件装配站点:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#b5e83d小&#badb3a型&#bfcd37工&#c4c034件&#cab232装&#cfa52f配&#d4972c站&#d98a29点"
   slots:
     13:
       progressbar: true
@@ -5170,7 +5168,7 @@ EAE_小型工件装配站点:
 
 ##石匠二型
 EAE_陈轩石匠二型:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#915ee7陈&#8776e6轩&#7c8ee5石&#72a6e5匠&#67bee4二&#5dd6e3型&f-&eI"
   slots:
     13:
       progressbar: true
@@ -5239,7 +5237,7 @@ EAE_陈轩石匠二型:
 
 ##石匠二型2
 EAE_陈轩石匠二型2:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#915ee7陈&#8776e6轩&#7c8ee5石&#72a6e5匠&#67bee4二&#5dd6e3型&f-&eII"
   slots:
     13:
       progressbar: true
@@ -5308,7 +5306,7 @@ EAE_陈轩石匠二型2:
 
 ##
 EAE_一体融合器:
-  title: "&dEAE &e机器"
+  title: "&#eac92fE&#df7b21A&#d42d13E &#74bedaC&#7db2ce.&#86a6c3G&#8f9ab7C&#988fab一&#a083a0体&#a97794融&#b26b89合&#bb5f7d器"
   slots:
     13:
       progressbar: true
@@ -5382,7 +5380,7 @@ EAE_一体融合器:
 ##############################
 
 咆哮组合器:
-  title: "咆哮组合器"
+  title: "&#ffffffn&#eadefbu&#d6bcf7l&#c19bf4l&#ac7af0G&#9759ec#&#9646d9 &#a741b7咆&#b83d95哮&#c93974组&#da3452合&#eb3030器"
   slots:
  ##显示槽
     34:
@@ -5439,7 +5437,7 @@ EAE_一体融合器:
       material: blue_stained_glass_pane
 
 OST_咆哮盒:
-  title: "&c咆哮盒"
+  title: "&#10eb15O&#19c917S&#22a719T &#00c654奥&#1faa75史&#3f8e97莱&#5e72b8特&#7d56d9G&#9745d5#&#ac40ac &#c13b83咆&#d63559哮&#eb3030盒"
   slots:
     53:
       progressbar: true
@@ -5460,7 +5458,7 @@ OST_咆哮盒:
       material: white_stained_glass_pane
 
 YSJ_咆哮盒:
-  title: "&c咆哮盒"
+  title: "&#2effb6A&#3ee2beC&#4dc4c5I&#5da7cdL&#6d89d5 &#7c6cdc御&#8c4fe4三&#9a3ed9家&#a73bbcG&#b4379f#&#c13481 &#cd3064咆&#da2d46哮&#e72929盒"
   slots:
     53:
       progressbar: true
@@ -5481,7 +5479,7 @@ YSJ_咆哮盒:
       material: white_stained_glass_pane
 
 EAE_咆哮盒:
-  title: "&c咆哮盒"
+  title: "&#eac92fE&#df7b21A&#d42d13E  &#ffac00伊&#e3933b赭&#c67a75璃&#aa61b0G&#8d48ea#&#a542bb &#bc3c8d咆&#d3365f哮&#eb3030盒"
   slots:
     53:
       progressbar: true
@@ -5506,7 +5504,7 @@ EAE_咆哮盒:
 ################################################################
 
 FKR_锻造锤:
-  title: "&dFKR &e器"
+  title: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ff5300灼&#ff3700尔&#ff1c00格&#ff0000涅&#de0000巨&#be0000恒&#9d0000星&#8a1c1c锻&#783939造&#655555锤"
   slots:
     11:
       progressbar: true
@@ -5634,7 +5632,7 @@ FKR_锻造锤:
       material: black_stained_glass_pane
 
 FKR_零件灌钮组装车床:
-  title: "&dFKR &e机器"
+  title: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ebbd77零&#ecb573件&#eead6e灌&#efa56a钮&#f09c66组&#f19462装&#f38c5d车&#f48459床"
   slots:
     13:
       progressbar: true
@@ -5703,7 +5701,7 @@ FKR_零件灌钮组装车床:
       material: light_blue_stained_glass_pane
 
 FKR_星轨发射器:
-  title: "&dFKR &e机器"
+  title: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#f87fbbR&#ed78c33&#e272cc.&#d76bd4J&#cd65dcE&#c25ee4F&#b758ed行&#ac51f5星&#a057f5级&#945ef4星&#8864f4轨&#7b6bf3遥&#6f71f3测&#6378f2站&#577ef2点"
   slots:
     3:
       name: "&0"
@@ -5843,7 +5841,7 @@ FKR_星轨发射器:
 ################################################################
 
 UMPV_种子分析仪:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#6dff48种&#84ff65子&#9aff81分&#92e6c0析&#89cdff仪"
   slots:
     13:
       progressbar: true
@@ -5912,7 +5910,7 @@ UMPV_种子分析仪:
       material: light_blue_stained_glass_pane
 
 UMPV_密堆培育仓:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#15e111可&#26e520密&#36e92f堆&#47ec3e式&#57f04d生&#68f45c态&#79f86b培&#89fb7a育&#9aff89仓"
   slots:
     13:
       progressbar: true
@@ -5981,7 +5979,7 @@ UMPV_密堆培育仓:
       material: light_blue_stained_glass_pane
 
 UMPV_密堆培育仓2:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#15e111可&#26e520密&#36e92f堆&#47ec3e式&#57f04d生&#68f45c态&#79f86b培&#89fb7a育&#9aff89仓&f-&eII"
   slots:
     13:
       progressbar: true
@@ -6050,7 +6048,7 @@ UMPV_密堆培育仓2:
       material: light_blue_stained_glass_pane
 
 UMPV_富集舱:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#fffb9d强&#e5faa0化&#ccf9a4追&#b2f7a7溯&#98f6ab型&#7ff5ae植&#65f4b2物&#4bf2b5富&#32f1b9集&#18f0bc舱"
   slots:
     13:
       progressbar: true
@@ -6119,7 +6117,7 @@ UMPV_富集舱:
       material: light_blue_stained_glass_pane
 
 UMPV_富集舱2:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#fffb9d强&#e5faa0化&#ccf9a4追&#b2f7a7溯&#98f6ab型&#7ff5ae植&#65f4b2物&#4bf2b5富&#32f1b9集&#18f0bc舱&f-&eII"
   slots:
     13:
       progressbar: true
@@ -6188,7 +6186,7 @@ UMPV_富集舱2:
       material: light_blue_stained_glass_pane
 
 UMPV_集束房:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#ffa99d插&#ffa78f槽&#ffa580式&#ffa372t&#ffa0633&#ff9e55#&#ff9c46D&#ff984bN&#ff9162A&#ff8a79液&#ff8390电&#ff7ca8集&#ff75bf束&#ff6ed6房"
   slots:
     13:
       progressbar: true
@@ -6257,7 +6255,7 @@ UMPV_集束房:
       material: light_blue_stained_glass_pane
 
 UMPV_集束房2:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#ffa99d插&#ffa78f槽&#ffa580式&#ffa372t&#ffa0633&#ff9e55#&#ff9c46D&#ff984bN&#ff9162A&#ff8a79液&#ff8390电&#ff7ca8集&#ff75bf束&#ff6ed6房&f-&eII"
   slots:
     13:
       progressbar: true
@@ -6326,7 +6324,7 @@ UMPV_集束房2:
       material: light_blue_stained_glass_pane
 
 UMPV_集束房3:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#ffa99d插&#ffa78f槽&#ffa580式&#ffa372t&#ffa0633&#ff9e55#&#ff9c46D&#ff984bN&#ff9162A&#ff8a79液&#ff8390电&#ff7ca8集&#ff75bf束&#ff6ed6房&f-&eIII"
   slots:
     13:
       progressbar: true
@@ -6395,7 +6393,7 @@ UMPV_集束房3:
       material: light_blue_stained_glass_pane
 
 UMPV_厨房:
-  title: "机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#4bffdfU&#3dffcc7&#30ffb83&#22ffa5智&#14ff92能&#07ff7f一&#13ff6c体&#39ff5b化&#5fff49烹&#84ff38饪&#aaff26方&#d0ff15案"
   slots:
     40:
       progressbar: true
@@ -6514,7 +6512,7 @@ UMPV_厨房:
       material: shroomlight
 
 UMPV_药草成分萃取台:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#b6ff3f药&#91f53d草&#6cea3b成&#47e039分&#4bc87a萃&#4eafbc取&#5297fd台"
   slots:
     13:
       progressbar: true
@@ -6583,7 +6581,7 @@ UMPV_药草成分萃取台:
       material: light_blue_stained_glass_pane
 
 FD_植械突触分解机:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#acff26植&#99fd26械&#85fb26突&#72fa26触&#5ef825分&#4bf625解&#37f425机"
   slots:
     31:
       progressbar: true
@@ -6676,7 +6674,7 @@ FD_植械突触分解机:
       material: black_stained_glass_pane
 
 FD_植械突触分解机2:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#acff26植&#99fd26械&#85fb26突&#72fa26触&#5ef825分&#4bf625解&#37f425机&f-&eII"
   slots:
     31:
       progressbar: true
@@ -6769,7 +6767,7 @@ FD_植械突触分解机2:
       material: black_stained_glass_pane
 
 UMPV_营养分解机:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#bc6c49营&#d6904b养&#f0b44d分&#dbbb51解&#c5c155机"
   slots:
     13:
       progressbar: true
@@ -6838,7 +6836,7 @@ UMPV_营养分解机:
       material: light_blue_stained_glass_pane
 
 UMPV_营养分解机2:
-  title: "&e机器"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#bc6c49营&#d6904b养&#f0b44d分&#dbbb51解&#c5c155机&f-&eII"
   slots:
     13:
       progressbar: true
@@ -6907,7 +6905,7 @@ UMPV_营养分解机2:
       material: light_blue_stained_glass_pane
 
 FD_发酵电容:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#83bc49养&#8dc04a分&#98c44b发&#a2c84c酵&#adcc4d电&#b5ce4d容&#bccd4c发&#c2cc4a电&#c9cb49机&#cfca47组"
   slots:
     31:
       progressbar: true
@@ -7000,7 +6998,7 @@ FD_发酵电容:
       material: black_stained_glass_pane
 
 FD_发酵电容2:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#83bc49养&#8dc04a分&#98c44b发&#a2c84c酵&#adcc4d电&#b5ce4d容&#bccd4c发&#c2cc4a电&#c9cb49机&#cfca47组&f-&eII"
   slots:
     31:
       progressbar: true
@@ -7093,7 +7091,7 @@ FD_发酵电容2:
       material: black_stained_glass_pane
 
 FD_发酵电容3:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#83bc49养&#8dc04a分&#98c44b发&#a2c84c酵&#adcc4d电&#b5ce4d容&#bccd4c发&#c2cc4a电&#c9cb49机&#cfca47组&f-&eIII"
   slots:
     31:
       progressbar: true
@@ -7186,7 +7184,7 @@ FD_发酵电容3:
       material: black_stained_glass_pane
 
 FD_鼓风机电容:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#cad2c3尘&#c6cabd埃&#c3c2b7鼓&#bfbab1风&#bcb3ab机&#b8aba5发&#b4a39f电&#b19b99电&#ad9393容"
   slots:
     31:
       progressbar: true
@@ -7279,7 +7277,7 @@ FD_鼓风机电容:
       material: black_stained_glass_pane
 
 FD_鼓风机电容2:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#cad2c3尘&#c6cabd埃&#c3c2b7鼓&#bfbab1风&#bcb3ab机&#b8aba5发&#b4a39f电&#b19b99电&#ad9393容&f-&eII"
   slots:
     31:
       progressbar: true
@@ -7372,7 +7370,7 @@ FD_鼓风机电容2:
       material: black_stained_glass_pane
 
 FD_鼓风机电容3:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#cad2c3尘&#c6cabd埃&#c3c2b7鼓&#bfbab1风&#bcb3ab机&#b8aba5发&#b4a39f电&#b19b99电&#ad9393容&f-&eIII"
   slots:
     31:
       progressbar: true
@@ -7465,7 +7463,7 @@ FD_鼓风机电容3:
       material: black_stained_glass_pane
 
 FD_场地电容:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#8150ec强&#757cee电&#6aa8f1磁&#5ed3f3U&#52fff52&#55d8f3场&#58b0f1地&#5b89ef电&#5e61ed容"
   slots:
     31:
       progressbar: true
@@ -7558,7 +7556,7 @@ FD_场地电容:
       material: black_stained_glass_pane
 
 FD_场地电容2:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#8150ec强&#757cee电&#6aa8f1磁&#5ed3f3U&#52fff52&#55d8f3场&#58b0f1地&#5b89ef电&#5e61ed容&f-&eII"
   slots:
     31:
       progressbar: true
@@ -7651,7 +7649,7 @@ FD_场地电容2:
       material: black_stained_glass_pane
 
 FD_场地电容3:
-  title: "发电机通用菜单"
+  title: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &#8150ec强&#757cee电&#6aa8f1磁&#5ed3f3U&#52fff52&#55d8f3场&#58b0f1地&#5b89ef电&#5e61ed容&f-&eIII"
   slots:
     31:
       progressbar: true
@@ -7749,7 +7747,7 @@ FD_场地电容3:
 
 ##开尔文桌
 KEW2:
-  title: "&dTAC &e开尔文桌"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff52afS&#ff7dc3.&#ffa9d7H&#ffd4eb.&#ffffffE&#ececec.&#d9d9d9恒&#c6c6c6星&#b3b3b3桌"
   slots:
  ##显示槽
     34:
@@ -7806,7 +7804,7 @@ KEW2:
       material: blue_stained_glass_pane
 
 skey_信条轨道工厂:
-  title: "jq"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#2293fa信&#3f94fc条&#5c95fe轨&#6d8aff道&#7275ff工&#7660ff厂-&eI"
   slots:
     13:
       name: "&b"
@@ -7895,7 +7893,7 @@ skey_信条轨道工厂:
       material: red_stained_glass_pane
 
 skey_信条轨道工厂2:
-  title: "jq"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#2293fa信&#3f94fc条&#5c95fe轨&#6d8aff道&#7275ff工&#7660ff厂-&eII"
   slots:
     13:
       name: "&b"
@@ -7984,7 +7982,7 @@ skey_信条轨道工厂2:
       material: red_stained_glass_pane
 
 skey_信条轨道工厂3:
-  title: "jq"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#2293fa信&#3f94fc条&#5c95fe轨&#6d8aff道&#7275ff工&#7660ff厂-&eIII"
   slots:
     13:
       name: "&b"
@@ -8073,7 +8071,7 @@ skey_信条轨道工厂3:
       material: red_stained_glass_pane
 
 skey_小帮手1:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#52f5ff“&#5ef6fb小&#6af8f7帮&#76f9f3手&#81fbf0”&#8dfcec型&#99fee8多&#a5ffe4用&#a3f3e8离&#a2e7ec心&#a0dbf0熔&#9fcef3铸&#9dc2f7一&#9cb6fb体&#9aaaff机-&eI"
   slots:
     22:
       progressbar: true
@@ -8136,7 +8134,7 @@ skey_小帮手1:
       material: white_stained_glass_pane
 
 skey_小帮手2:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#52f5ff“&#5ef6fb小&#6af8f7帮&#76f9f3手&#81fbf0”&#8dfcec型&#99fee8多&#a5ffe4用&#a3f3e8离&#a2e7ec心&#a0dbf0熔&#9fcef3铸&#9dc2f7一&#9cb6fb体&#9aaaff机-&eII"
   slots:
     22:
       progressbar: true
@@ -8199,7 +8197,7 @@ skey_小帮手2:
       material: white_stained_glass_pane
 
 skey_小帮手3:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#52f5ff“&#5ef6fb小&#6af8f7帮&#76f9f3手&#81fbf0”&#8dfcec型&#99fee8多&#a5ffe4用&#a3f3e8离&#a2e7ec心&#a0dbf0熔&#9fcef3铸&#9dc2f7一&#9cb6fb体&#9aaaff机-&eIII"
   slots:
     22:
       progressbar: true
@@ -8262,7 +8260,7 @@ skey_小帮手3:
       material: white_stained_glass_pane
 
 skey_十一号反应炉:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffcaab十&#f9c39e一&#f3bb91号&#edb484便&#e6ad76携&#e0a669反&#da9e5c应&#d4974f炉-&eI"
   slots:
     22:
       progressbar: true
@@ -8325,7 +8323,7 @@ skey_十一号反应炉:
       material: white_stained_glass_pane
 
 skey_十一号反应炉2:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffcaab十&#fbc39b一&#f6bb8c号&#f2b47c大&#eeac6c型&#eaa55c反&#e59d4d应&#e1963d炉-&eII"
   slots:
     22:
       progressbar: true
@@ -8388,7 +8386,7 @@ skey_十一号反应炉2:
       material: white_stained_glass_pane
 
 skey_十一号反应炉3:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffcaab十&#fdc298一&#fbba85号&#f9b272重&#f6ab5e型&#f4a34b反&#f29b38应&#f09325炉-&eIII"
   slots:
     22:
       progressbar: true
@@ -8451,7 +8449,7 @@ skey_十一号反应炉3:
       material: white_stained_glass_pane
 
 skey_重力集束熔炼房:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff9090重&#f68282力&#ed7575集&#e36767束&#da5959熔&#d14c4c炼&#c83e3e房-&eI"
   slots:
     22:
       progressbar: true
@@ -8514,7 +8512,7 @@ skey_重力集束熔炼房:
       material: white_stained_glass_pane
 
 skey_重力集束熔炼房2:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff9090重&#f68282力&#ed7575集&#e36767束&#da5959熔&#d14c4c炼&#c83e3e房-&eII"
   slots:
     22:
       progressbar: true
@@ -8577,7 +8575,7 @@ skey_重力集束熔炼房2:
       material: white_stained_glass_pane
 
 skey_重力集束熔炼房3:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff9090重&#f68282力&#ed7575集&#e36767束&#da5959熔&#d14c4c炼&#c83e3e房-&eIII"
   slots:
     22:
       progressbar: true
@@ -8640,7 +8638,7 @@ skey_重力集束熔炼房3:
       material: white_stained_glass_pane
 
 skey_红巨压力合成器:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff3d66S&#ff47854&#ff50a32&#ff5ac2T&#ff64e1E&#fa61de红&#f151b9巨&#e84194压&#de306f力&#d5204a合&#cb1025成&#c20000器-&eI"
   slots:
     22:
       progressbar: true
@@ -8703,7 +8701,7 @@ skey_红巨压力合成器:
       material: white_stained_glass_pane
 
 skey_红巨压力合成器2:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff3d66S&#ff47854&#ff50a32&#ff5ac2T&#ff64e1E&#fa61de红&#f151b9巨&#e84194压&#de306f力&#d5204a合&#cb1025成&#c20000器-&eII"
   slots:
     22:
       progressbar: true
@@ -8766,7 +8764,7 @@ skey_红巨压力合成器2:
       material: white_stained_glass_pane
 
 skey_深红远星级:
-  title: "&5..."
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff6d6d“&#f75d5d深&#ef4e4e红&#e73e3e远&#df2f2f星&#d71f1f”&#cf1010级&#c70000重&#cf0000型&#d70101S&#df0101T&#e70202C&#ef0202合&#f70303成&#ff0303炉"
   slots:
     49:
       progressbar: true
@@ -8848,7 +8846,7 @@ skey_深红远星级:
       material: black_stained_glass_pane
 
 skey_灼热苍穹级:
-  title: "&5..."
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#9cff6d“&#8afd6a灼&#77fa66热&#65f863苍&#53f55f穹&#40f35c”&#2ef059级&#1cee55单&#09eb52元&#00eb59化&#01ee6c高&#01f07f活&#01f392性&#02f5a5环&#02f8b8境&#02faca模&#03fddd拟&#03fff0器"
   slots:
     49:
       progressbar: true
@@ -8930,7 +8928,7 @@ skey_灼热苍穹级:
       material: black_stained_glass_pane
 
 skey_重型工业成型母机:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#889ca0重&#aa8083型&#cc6466工&#ee4849业&#ff5242成&#ff8151型&#ffb161母&#ffe070机-&eI"
   slots:
     22:
       progressbar: true
@@ -8993,7 +8991,7 @@ skey_重型工业成型母机:
       material: white_stained_glass_pane
 
 skey_重型工业成型母机2:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#889ca0重&#aa8083型&#cc6466工&#ee4849业&#ff5242成&#ff8151型&#ffb161母&#ffe070机-&eII"
   slots:
     22:
       progressbar: true
@@ -9056,7 +9054,7 @@ skey_重型工业成型母机2:
       material: white_stained_glass_pane
 
 skey_专注型合金锻炉:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#f4b0ffT&#ea89c6-&#df628e7&#d53b55专&#ca141c注&#cb0000型&#d80000合&#e50000金&#f20000锻&#ff0000炉"
   slots:
     22:
       progressbar: true
@@ -9119,7 +9117,7 @@ skey_专注型合金锻炉:
       material: white_stained_glass_pane
 
 skey_光刻机:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ec71ffT&#ee6fef-&#f06dde7&#f26bce破&#f469be梏&#f667ae三&#f7649d号&#f9628d光&#fb607d蚀&#fd5e6c刻&#ff5c5c机"
   slots:
     22:
       progressbar: true
@@ -9182,7 +9180,7 @@ skey_光刻机:
       material: white_stained_glass_pane
 
 skey_四目伏羲级:
-  title: "&a..."
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffd84c“&#ffc540四&#ffb235目&#ff9e29伏&#ff8b1d羲&#ff7812”&#ff6506级&#fd6800重&#fa8100核&#f79a00裂&#f4b300变&#f1cd00反&#eee600应&#ebff00堆"
   slots:
     49:
       progressbar: true
@@ -9259,7 +9257,7 @@ skey_四目伏羲级:
       material: blue_stained_glass_pane
 
 skey_空白订单打印机:
-  title: "&e机器"
+  title: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#bff3ff空&#d4f7ff白&#eafbff订&#ffffff单&#d7fff0打&#aeffe2印&#86ffd3机"
   slots:
     22:
       progressbar: true
@@ -9334,7 +9332,7 @@ skey_空白订单打印机:
 ################################################################
 
 OST_回收器:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#00ffa7超&#0dffb5级&#19ffc2无&#26ffd0敌&#32ffdd霹&#3fffeb雳&#4cfff8炫&#5ffdf0酷&#7afad2雷&#95f6b4霆&#aff397究&#caef79极&#e4ec5b奥&#ffe83d义&#ffdc39阿&#ffd035米&#ffc431洛&#ffb82c索&#ffac28一&#ffa024把&#ff9225十&#ff822b手&#ff7131粘&#ff6137液&#ff513d回&#ff4043收&#ff3049器"
   slots:
     13:
       progressbar: true
@@ -9403,7 +9401,7 @@ OST_回收器:
       material: light_blue_stained_glass_pane
 
 OST_幼儿启蒙金属合成机:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#e7e4bc幼&#e0ddb5儿&#dad7af启&#d3d0a8蒙&#cccaa1金&#c5c39a属&#bfbc94合&#b8b68d成&#b1af86机"
   slots:
     13:
       progressbar: true
@@ -9472,7 +9470,7 @@ OST_幼儿启蒙金属合成机:
       material: light_blue_stained_glass_pane
 
 OST_幼儿启蒙金属合成机2:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#e7e4bc幼&#e0ddb5儿&#dad7af启&#d3d0a8蒙&#cccaa1金&#c5c39a属&#bfbc94合&#b8b68d成&#b1af86机&f-&eII"
   slots:
     13:
       progressbar: true
@@ -9541,7 +9539,7 @@ OST_幼儿启蒙金属合成机2:
       material: light_blue_stained_glass_pane
 
 OST_儿童玩具零件组装机:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#99c2b9儿&#97beb8童&#94bab7玩&#92b6b6具&#90b2b5零&#8daeb4件&#8baab3组&#88a6b2装&#86a2b1机"
   slots:
     13:
       progressbar: true
@@ -9610,7 +9608,7 @@ OST_儿童玩具零件组装机:
       material: light_blue_stained_glass_pane
 
 OST_古代机器人益趣合成箱:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#d2cea8古&#d2caa1代&#d2c79a机&#d2c393器&#d2c08c人&#d3bc84益&#d3b97d趣&#d3b576合&#d3b26f成&#d3ae68箱"
   slots:
     13:
       progressbar: true
@@ -9679,7 +9677,7 @@ OST_古代机器人益趣合成箱:
       material: light_blue_stained_glass_pane
 
 OST_工程师入门工具生产器:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#d2a8a8工&#d19e9e程&#d09494师&#cf8a8a入&#ce8080门&#cc7575工&#cb6b6b具&#ca6161生&#c95757产&#c84d4d器"
   slots:
     13:
       progressbar: true
@@ -9748,7 +9746,7 @@ OST_工程师入门工具生产器:
       material: light_blue_stained_glass_pane
 
 OST_旧日魔法帽模拟器:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#d2a8cc旧&#cc9bcb日&#c68ecb魔&#c081ca法&#bb74ca帽&#b567c9模&#af5ac9拟&#a94dc8器"
   slots:
     13:
       progressbar: true
@@ -9817,7 +9815,7 @@ OST_旧日魔法帽模拟器:
       material: light_blue_stained_glass_pane
 
 OST_弱辐益智科学套件:
-  title: "&dOST &e机器"
+  title: "&#10eb15O&#19c917S&#22a719T &#a8d2b0弱&#96c99d辐&#84c08a益&#72b777智&#61ad64科&#4fa451学&#3d9b3e套&#2b922b件"
   slots:
     13:
       progressbar: true
@@ -9890,7 +9888,7 @@ OST_弱辐益智科学套件:
 ################################################################
 
 HInet_网络通信零件产素器:
-  title: "&e机器"
+  title: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &#b1fff8网&#b1fbf9络&#b0f8fa通&#b0f4fb信&#aff0fc零&#afecfc件&#aee9fd产&#aee5fe素&#ade1ff器"
   slots:
     13:
       progressbar: true
@@ -9959,7 +9957,7 @@ HInet_网络通信零件产素器:
       material: light_blue_stained_glass_pane
 
 HInet_网络通信零件产素器2:
-  title: "&e机器"
+  title: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &#b1fff8网&#b1fbf9络&#b0f8fa通&#b0f4fb信&#aff0fc零&#afecfc件&#aee9fd产&#aee5fe素&#ade1ff器&f-&eII"
   slots:
     13:
       progressbar: true
@@ -10029,7 +10027,7 @@ HInet_网络通信零件产素器2:
 
 
 HInet_网络入门工具包:
-  title: "&e机器"
+  title: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &#819cff网&#81a5ff络&#81aeff入&#82b7ff门&#82bfff工&#82c8ff具&#82d1ff包"
   slots:
     13:
       progressbar: true
@@ -10098,7 +10096,7 @@ HInet_网络入门工具包:
       material: light_blue_stained_glass_pane
 
 HInet_网络管道批量生产床:
-  title: "&e机器"
+  title: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &#7389ff网&#7785ff络&#7b82ff管&#7f7eff道&#837aff批&#8676ff量&#8a73ff生&#8e6fff产&#926bff床"
   slots:
     13:
       progressbar: true
@@ -10167,7 +10165,7 @@ HInet_网络管道批量生产床:
       material: light_blue_stained_glass_pane
 
 HInet_网络存储磁块转化器:
-  title: "&e机器"
+  title: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &#df9bff网&#e399fa络&#e798f6存&#eb96f1储&#ef94ec磁&#f393e7块&#f791e3转&#fb90de化&#ff8ed9器"
   slots:
     13:
       progressbar: true

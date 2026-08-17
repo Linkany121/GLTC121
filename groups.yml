@@ -151,7 +151,7 @@ A_E1:
   type: sub
   tier: -12
   item:
-    material: minecraft:lime_wool
+    material: lime_wool
     name: '&#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业 &e物品'
   parent: A_A
 
@@ -160,7 +160,7 @@ A_E1a:
   type: sub
   tier: -11
   item:
-    material: minecraft:lime_wool
+    material: lime_wool
     name: '&#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业 &e乐谱'
   parent: A_A
 
@@ -170,7 +170,7 @@ A_E2:
   type: sub
   tier: -10
   item:
-    material: minecraft:lime_concrete
+    material: lime_concrete
     name: '&#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业 &e机器'
   parent: A_A
 
@@ -182,7 +182,7 @@ A_F1:
   type: sub
   tier: -9
   item:
-    material: minecraft:yellow_wool
+    material: yellow_wool
     name: '&#ea9f2f伊&#eaaa33赭&#ebb637璃&#ebc13b离&#eccd40岸&#ecd844工&#ede348业&#ebdb46群&#e7be3d专&#e3a135利&#e0842c管&#dc6724理&#d84a1b工&#d42d13会 &e物品'
   parent: A_A
 
@@ -192,7 +192,7 @@ A_F2:
   type: sub
   tier: -8
   item:
-    material: minecraft:yellow_concrete
+    material: yellow_concrete
     name: '&#ea9f2f伊&#eaaa33赭&#ebb637璃&#ebc13b离&#eccd40岸&#ecd844工&#ede348业&#ebdb46群&#e7be3d专&#e3a135利&#e0842c管&#dc6724理&#d84a1b工&#d42d13会 &e机器'
   parent: A_A
 
@@ -203,7 +203,7 @@ A_G1:
   type: sub
   tier: -7
   item:
-    material: minecraft:red_wool
+    material: red_wool
     name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e物品/道具'
   parent: A_A
 
@@ -212,7 +212,7 @@ A_G1a:
   type: sub
   tier: -6
   item:
-    material: minecraft:red_wool
+    material: red_wool
     name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e工具/武器'
   parent: A_A
 
@@ -221,7 +221,7 @@ A_G1b:
   type: sub
   tier: -5
   item:
-    material: minecraft:red_wool
+    material: red_wool
     name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e护具'
   parent: A_A
 
@@ -230,7 +230,7 @@ A_G1c:
   type: sub
   tier: -4
   item:
-    material: minecraft:red_wool
+    material: red_wool
     name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e枪械/异能武器'
   parent: A_A
 
@@ -239,7 +239,7 @@ A_G2:
   type: sub
   tier: -3
   item:
-    material: minecraft:red_concrete
+    material: red_concrete
     name: '&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊 &e机器'
   parent: A_A
 
@@ -250,7 +250,7 @@ A_H1:
   type: sub
   tier: 0
   item:
-    material: minecraft:pink_wool
+    material: pink_wool
     name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e物品'
   parent: A_A
 
@@ -259,7 +259,7 @@ A_H1b1:
   type: sub
   tier: 2
   item:
-    material: minecraft:pink_wool
+    material: pink_wool
     name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e食材/药材'
   parent: A_A
 
@@ -268,7 +268,7 @@ A_H1b2:
   type: sub
   tier: 3
   item:
-    material: minecraft:pink_wool
+    material: pink_wool
     name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e料理/药物'
   parent: A_A
 
@@ -277,7 +277,7 @@ A_H2:
   type: sub
   tier: 5
   item:
-    material: minecraft:pink_concrete
+    material: pink_concrete
     name: '&#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司 &e机器'
   parent: A_A
 
@@ -290,7 +290,7 @@ B_A0:
   type: sub
   tier: 0
   item:
-    material: minecraft:blue_stained_glass
+    material: blue_stained_glass
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e物品'
   parent: B_A
 
@@ -299,7 +299,7 @@ B_A01:
   type: sub
   tier: 0
   item:
-    material: minecraft:blue_stained_glass
+    material: blue_stained_glass
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e机器框架/芯盘'
   parent: B_A
 
@@ -308,7 +308,7 @@ B_A1:
   type: sub
   tier: 0
   item:
-    material: minecraft:blue_stained_glass
+    material: blue_stained_glass
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e辐能原料'
   parent: B_A
 
@@ -317,7 +317,7 @@ B_A2:
   type: sub
   tier: 0
   item:
-    material: minecraft:blue_stained_glass
+    material: blue_stained_glass
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e荒宙植系'
   parent: B_A
 
@@ -326,7 +326,7 @@ B_B0:
   type: sub
   tier: 0
   item:
-    material: minecraft:blue_shulker_box
+    material: blue_shulker_box
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e核心机器'
   parent: B_A
 
@@ -335,7 +335,7 @@ B_B1:
   type: sub
   tier: 0
   item:
-    material: minecraft:blue_shulker_box
+    material: blue_shulker_box
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e机器'
   parent: B_A
 
@@ -460,7 +460,7 @@ DLC_B1:
   type: sub
   tier: -20
   item:
-    material: minecraft:green_wool
+    material: green_wool
     name: '&#22a719奥&#1fb218史&#1cbe18莱&#19c917特&#16d416中&#13e016古&#10eb15科&#1ce616技&#27e117爱&#33dc18好&#3fd61a者&#4ad11b协&#56cc1c会 &e物品'
   parent: DLC_A
 
@@ -470,7 +470,7 @@ DLC_B2:
   type: sub
   tier: -19
   item:
-    material: minecraft:green_concrete
+    material: green_concrete
     name: '&#22a719奥&#1fb218史&#1cbe18莱&#19c917特&#16d416中&#13e016古&#10eb15科&#1ce616技&#27e117爱&#33dc18好&#3fd61a者&#4ad11b协&#56cc1c会 &e机器'
   parent: DLC_A
 
@@ -480,7 +480,7 @@ DLC_C1:
   type: sub
   tier: -18
   item:
-    material: minecraft:light_blue_wool
+    material: light_blue_wool
     name: '&#a0ff40乎&#9bff55维&#96ff6b米&#90ff80亚&#8bff96运&#86ffab输&#7af2bc网&#6fe5cd络&#63d8dd供&#58cbee应&#4cbeff商 &e物品'
   parent: DLC_A
 
@@ -490,7 +490,7 @@ DLC_C2:
   type: sub
   tier: -17
   item:
-    material: minecraft:light_blue_concrete
+    material: light_blue_concrete
     name: '&#a0ff40乎&#9bff55维&#96ff6b米&#90ff80亚&#8bff96运&#86ffab输&#7af2bc网&#6fe5cd络&#63d8dd供&#58cbee应&#4cbeff商 &e机器'
   parent: DLC_A
 

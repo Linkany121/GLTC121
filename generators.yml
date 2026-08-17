@@ -84,11 +84,11 @@ FD_TSBZ:
           slot: 12
         4:
           amount: 1
-          material: minecraft:cauldron
+          material: cauldron
           slot: 13
         5:
           amount: 1
-          material: minecraft:heavy_weighted_pressure_plate
+          material: heavy_weighted_pressure_plate
           slot: 14
   fuels:
     1:
@@ -210,11 +210,11 @@ FD_TSJL:
           slot: 12
         4:
           amount: 1
-          material: minecraft:cauldron
+          material: cauldron
           slot: 13
         5:
           amount: 1
-          material: minecraft:tripwire_hook
+          material: tripwire_hook
           slot: 14
   fuels:
     1:
@@ -338,11 +338,11 @@ FD_TSYD:
           slot: 12
         4:
           amount: 1
-          material: minecraft:cauldron
+          material: cauldron
           slot: 13
         5:
           amount: 1
-          material: minecraft:redstone_torch
+          material: redstone_torch
           slot: 14
   fuels:
     1:

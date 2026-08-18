@@ -1,513 +1,886 @@
 // ===================================================================
-// 全局缓存
+// 隐兰狂玉唤剑葫 —— 重做脚本
+// 技能系统（依据物品描述）：
+//   剑光(左键)：向前发射一道剑光，命中后召唤白剑从天而降，造成 70 伤害
+//   焰眸(右键)：在前方高空召唤法阵，3秒内每0.5秒发射一道红剑落下，
+//               单次最多 5 道，冷却 6 秒。每把伤害 = 总伤害 / 实际道数
+//   心霆机制  ：每次施展(剑光/焰眸)增加 1 层 [心霆]；到达 10 层后自动进入
+//               持续 10 秒的心霆状态，期间缓慢升空，只能左键施展剑霆
+//   剑霆(心霆状态左键)：发射一簇雷魂剑，对途径敌人造成 100 伤害，
+//               爆炸后再额外造成一次 100 伤害
+// 监听方式：自注册 PlayerInteractEvent，热重载安全注册（参考 风墟龙冕.js）
 // ===================================================================
-// 引入Bukkit调度器，用于延迟/重复任务
+
+// === Java 类型导入 ===
+var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var UUID = Java.type("java.util.UUID");
+var EventPriority = Java.type("org.bukkit.event.EventPriority");
+var Listener = Java.type("org.bukkit.event.Listener");
+var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
+var Player = Java.type("org.bukkit.entity.Player");
+var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
+var Material = Java.type("org.bukkit.Material");
+var Particle = Java.type("org.bukkit.Particle");
+var Color = Java.type("org.bukkit.Color");
+var DustOptions = Java.type("org.bukkit.Particle.DustOptions");
+var PotionEffect = Java.type("org.bukkit.potion.PotionEffect");
+var PotionEffectType = Java.type("org.bukkit.potion.PotionEffectType");
+var Vector = Java.type("org.bukkit.util.Vector");
 var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
-// 获取插件主类实例，用于调度任务时传入插件参数
+var BarColor = Java.type("org.bukkit.boss.BarColor");
+var BarStyle = Java.type("org.bukkit.boss.BarStyle");
+var FluidCollisionMode = Java.type("org.bukkit.FluidCollisionMode");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 
-// 缓存常用Bukkit类，提升性能并方便书写
-var PotionEffectType = org.bukkit.potion.PotionEffectType;
-var PotionEffect = org.bukkit.potion.PotionEffect;
-var Particle = org.bukkit.Particle;
-var Color = org.bukkit.Color;
-var DustOptions = org.bukkit.Particle.DustOptions;
-var Location = org.bukkit.Location;
-var Vector = org.bukkit.util.Vector;
-var FluidCollisionMode = org.bukkit.FluidCollisionMode;
+var ITEM_ID = "FKR_隐兰狂玉唤剑葫";
 
-/**
- * 根据名称获取药水效果类型
- * @param {string} name - 药水效果名称（如 "LEVITATION"）
- * @returns {PotionEffectType} 对应的药水效果类型对象
- */
-function getPotionType(name) {
-    return PotionEffectType.getByName(name);
+// === 药水效果类型 ===
+var TYPE_LEVITATION = PotionEffectType.getByName("LEVITATION");
+var TYPE_SLOW_FALLING = PotionEffectType.getByName("SLOW_FALLING");
+
+// === 粒子颜色常量 ===
+var WHITE_DUST     = new DustOptions(Color.fromRGB(255, 255, 255), 1.4);   // 白剑
+var RED_DUST       = new DustOptions(Color.fromRGB(255, 60, 60), 1.5);      // 红剑
+var RED_DUST_BIG   = new DustOptions(Color.fromRGB(255, 40, 40), 2.2);      // 法阵/红爆
+var THUNDER_DUST   = new DustOptions(Color.fromRGB(130, 90, 255), 1.6);     // 雷魂剑
+var THUNDER_DUST2  = new DustOptions(Color.fromRGB(255, 220, 90), 1.4);     // 雷魂剑(亮芯)
+
+// 彩色粒子发射。
+// 重要背景：经过对同目录 破军.js 的实测验证，"Particle.DUST 字面量 + DustOptions data"
+// 这一写法在 GraalJS 同步线程下完全可以正常工作（见 破军.js 第253、336行等大量同款用法，
+// 甚至 data 位置直接写三元表达式都正常）。之前报的 "missing required data class
+// org.bukkit.Color" 并非 DUST 带 data 本身的问题，而是由于把 Particle 放到变量里交给
+// spawnParticle 的通用重载（或走 ParticleBuilder）时，GraalJS 泛型重载解析出错所致。
+// 因此这里统一改用与 破军.js 完全一致的写法：字面量 Particle.DUST + DustOptions data，
+// 由 GraalJS 静态绑定到正确的带 data 重载，彻底还原真实颜色且不再报 Color 错。
+function spawnDust(world, loc, count, dx, dy, dz, speed, dust) {
+    try {
+        world.spawnParticle(Particle.DUST, loc, count, dx, dy, dz, speed, dust);
+    } catch (e) {}
 }
-// 预先获取需要用到的药水效果类型
-var TYPE_LEVITATION    = getPotionType("LEVITATION");   // 飘浮
-var TYPE_SLOW_FALLING  = getPotionType("SLOW_FALLING"); // 缓降
 
-// 预定义粒子效果参数：蓝色粉尘（用于爆炸特效）
-var BLUE_DUST_OPT = new DustOptions(Color.fromRGB(0, 0, 255), 2.5);
-// 预定义粒子效果参数：浅蓝色粉尘（用于爆炸特效）
-var LIGHT_BLUE_DUST_OPT = new DustOptions(Color.fromRGB(0, 128, 255), 1.8);
-
-// 音效名称常量，避免魔法字符串
-var SOUND_EXPLODE = "entity.generic.explode";
-var SOUND_ARROW_HIT = "entity.arrow.hit";
+// === 音效常量 ===
+var SOUND_EXPLODE   = "entity.generic.explode";
 var SOUND_ANVIL_LAND = "block.anvil.land";
-var SOUND_SWEEP = "entity.player.attack.sweep";
-var SOUND_THUNDER = "entity.lightning_bolt.thunder";
-var SOUND_BEACON = "block.beacon.power_select";
+var SOUND_THUNDER   = "entity.lightning_bolt.thunder";
+var SOUND_SWEEP     = "entity.player.attack.sweep";
+var SOUND_BEACON    = "block.beacon.power_select";
+var SOUND_ANVIL_PLACE = "block.anvil.place";   // 铁砧放置（白剑命中）
+var SOUND_STEAM     = "block.fire.extinguish"; // 蒸汽
+var SOUND_WITHER_SHOOT = "entity.wither.shoot"; // 气斩发射声
+var SOUND_DING      = "block.note_block.pling";
+var SOUND_RESPAWN_ANCHOR_EXPLODE = "block.respawn_anchor.explode"; // 重生锚破碎（剑霆命中）
 
 // ===================================================================
-// 参数配置
+// 心霆机制参数
 // ===================================================================
-var DAMAGE = 90;                // 所有攻击造成的伤害值（AOE）
-var BLAST_RADIUS = 5;           // 爆炸伤害半径（方块）
-
-// 第一剑：箭矢（射线）参数
-var SWORD_ARROW_COUNT = 6;      // 箭矢总数（1根主箭 + 5根散射）
-var SWORD_ARROW_RANGE = 40;     // 箭矢最大射程（方块）
-var SWORD_ARROW_SPEED = 2.0;    // 箭矢速度（未在射线版本中使用，保留兼容）
-var SWORD_SCATTER_MIN = 0.5;    // 散射最小偏移距离
-var SWORD_SCATTER_MAX = 2.0;    // 散射最大偏移距离
-var BLOCK_HIT_DELAY = 40;       // 命中方块后爆炸延迟（tick，20tick=1秒）
-
-// 第二剑：火球参数
-var FIREBALL_COUNT = 9;          // 发射火球数量
-var FIREBALL_INTERVAL = 4;      // 每个火球之间的发射间隔（tick）
-var FIREBALL_ANGLE = 45;        // 火球最大散射角度（度，圆锥半角）
-var FIREBALL_VELOCITY = 2.0;    // 火球飞行速度
-var FIREBALL_LAUNCH_Y = 1;      // 火球发射点相对于玩家眼睛高度的Y偏移
-
-// 第三剑：状态效果参数
-var LEVITATION_DURATION = 100;   // 飘浮效果持续时间（tick）
-var LEVITATION_LEVEL = 0;       // 飘浮效果等级（0级=1级效果）
-var SLOW_FALLING_DURATION = 200; // 缓降效果持续时间（tick）
-var SLOW_FALLING_LEVEL = 2;     // 缓降效果等级
-
-// 落雷参数
-var LIGHTNING_ROUNDS = 4;        // 落雷轮次
-var LIGHTNING_INTERVAL = 50;     // 每轮落雷之间的间隔（tick）
-var LIGHTNING_PER_ROUND = 30;    // 每轮生成的落雷数量
-var LIGHTNING_RANGE_MIN = 31;    // 落雷距离玩家的最小水平半径
-var LIGHTNING_RANGE_MAX = 32;    // 落雷距离玩家的最大水平半径
-
-// 星弹（射线）参数
-var STAR_INTERVAL = 10;          // 星弹发射间隔（tick）
-var STAR_DURATION = 200;        // 星弹技能总持续时间（tick）
-var STAR_RANGE = 50;             // 星弹射线最大检测距离
-var STAR_SPEED = 3.0;           // 星弹速度（未在射线版本中使用，保留兼容）
-
-// 冷却参数
-var COOLDOWN_MS = 3000;          // 技能整体冷却时间（毫秒）
+var XINTING_MAX         = 9;    // 心霆最大层数
+var XINTING_DECAY_TICKS = 80;    // 每 3 秒减少一层心霆（倒计时不被获得重置）
+var XINTING_STATE_TICKS = 200;   // 心霆状态持续 10 秒
+var XINTING_LEVITATION_LEVEL = 1; // 心霆状态飘浮等级(amplifier=1 => 飘浮II)
+var XINTING_SLOW_FALL_TICKS  = 300; // 心霆状态缓降持续 15 秒
+var XINTING_SLOW_FALL_LEVEL  = 0;  // 心霆状态缓降等级(amplifier=0 => 缓降I)
 
 // ===================================================================
-// 全局状态（存储玩家数据）
+// 通用伤害半径（所有造成伤害时均为直径 4 = 半径 2）
 // ===================================================================
-// 记录玩家点击次数，用于判定第几剑（0-2循环）
-var clickMap = new java.util.HashMap();
-// 记录玩家上次使用技能的时间戳（毫秒），用于冷却判定
-var lastUseMap = new java.util.HashMap();
-// 存储第三剑对应的定时任务对象，以便中途取消（如再次点击第三剑时）
-var thirdSwordTasks = new java.util.HashMap();
+var AOE_RADIUS          = 3;     // 范围伤害半径（直径 4）
 
 // ===================================================================
-// 爆炸效果（通用）
+// 剑光参数（左键）
 // ===================================================================
-/**
- * 在指定位置生成基础爆炸粒子效果并播放音效
- * @param {Location} loc - 爆炸位置
- * @param {World} world - 所在世界
- */
-function createExplosionParticles(loc, world) {
-    world.spawnParticle(Particle.CLOUD, loc, 150, 4, 4, 4, 0.05);
-    world.spawnParticle(Particle.END_ROD, loc, 100, 3, 3, 3, 0.08);
-    world.spawnParticle(Particle.POOF, loc, 80, 2.5, 2.5, 2.5, 0.05);
-    world.playSound(loc, SOUND_ARROW_HIT, 1.5, 1.0);
-    world.playSound(loc, SOUND_ANVIL_LAND, 0.7, 1.4);
-    world.playSound(loc, SOUND_SWEEP, 0.8, 1.2);
+var JIANGUANG_DAMAGE      = 70;   // 白剑落地伤害
+var JIANGUANG_RANGE       = 32;   // 剑光最大射程
+var JIANGUANG_SWORD_DROP_HEIGHT = 8; // 白剑召唤高度(米)
+var JIANGUANG_SWORD_DROP_TICK   = 8; // 白剑落地时长(tick)
+var JIANGUANG_CD_MS       = 400;  // 剑光点击再装填
+
+// ===================================================================
+// 焰眸参数（右键）
+// ===================================================================
+var YANMOU_COOLDOWN_MS    = 6000; // 焰眸冷却 6 秒
+var YANMOU_INTERVAL_TICK  = 10;   // 每 0.5 秒发射一道红剑
+var YANMOU_DURATION_TICK  = 60;   // 法阵持续 3 秒
+var YANMOU_TOTAL_DAMAGE   = 500;  // 焰眸每轮红剑总伤害（按道数平分）
+var YANMOU_FORWARD        = 15;   // 无目标时法阵位于玩家前方距离（15格）
+var YANMOU_HEIGHT_ABOVE   = 15;   // 法阵中心在目标/最高地面之上 y+15 格
+var YANMOU_RADIUS         = 7.5;  // 法阵半径（直径 15）
+var YANMOU_SWORD_DROP_TICK = 10;  // 红剑落地时长(tick)
+var YANMOU_CAST_TICK      = 15;   // 红球飞行 / 法阵展开 各 0.5 秒(10tick)
+
+// ===================================================================
+// 雷魂剑参数（心霆状态左键）
+// ===================================================================
+var JIANTING_DAMAGE     = 100;   // 召唤闪电/命中伤害
+var JIANTING_RANGE      = 32;    // 剑霆最远距离（米）
+
+// ===================================================================
+// 文字提示（全部可配置，支持 § 颜色码与 {n} 占位符）
+// ===================================================================
+// 心霆 BossBar
+var MSG_XINTING_BAR_STACK  = "§c[心霆] §f{stacks}/{max}";   // 层数模式
+var MSG_XINTING_BAR_STATE  = "§c[此身既化剑，心跳响雷鼓！] §f{secs}秒"; // 状态模式倒计时
+// 心霆触发标题
+var MSG_XINTING_TITLE      = "§c[此身既化剑，心跳响雷鼓！]";
+var MSG_XINTING_SUBTITLE   = "§7无尽雷霆斥己身！";
+// 心霆 ActionBar
+var MSG_XINTING_STACK_GAINED = "§c[心霆] §f{stacks}/{max}"; // 获得层数
+var MSG_XINTING_ACTIVATED  = "§c此身既化剑，心跳响雷鼓！";
+var MSG_XINTING_ENDED      = "§b万敌既死，奔雷还空。";
+var MSG_XINTING_RIGHT_BLOCKED = "§7无尽雷霆斥己身！";
+// 焰眸冷却
+var MSG_FLAME_EYE_COOLDOWN = "§c焰眸冷却中... {secs}秒";
+// 占位符替换工具：MSG_XINTING_BAR_STACK 等中的 {xxx} 用对应值替换
+function fmtMsg(tpl, args) {
+    return String(tpl).replace(/\{(\w+)\}/g, function(m, k) { return (k in args) ? args[k] : m; });
 }
 
-/**
- * 以某点为中心执行范围伤害，并触发基础爆炸特效。
- * 可选在爆炸特效后追加额外的自定义粒子/音效。
- * @param {World} world - 世界
- * @param {Location} hitPoint - 爆炸中心点
- * @param {Player} player - 技能使用者（不会被误伤）
- * @param {Function} [extraParticleFunc] - 额外特效回调，接收 (world, loc)
- */
-function dealAOE(world, hitPoint, player, extraParticleFunc) {
-    // 获取半径内的所有实体
-    var targets = world.getNearbyEntities(hitPoint, BLAST_RADIUS, BLAST_RADIUS, BLAST_RADIUS);
+// ===================================================================
+// 状态映射
+// ===================================================================
+var xinTingStacksMap   = new java.util.HashMap(); // UUID -> 心霆层数
+var xinTingBarMap      = new java.util.HashMap(); // UUID -> BossBar
+var xinTingStateMap    = new java.util.HashMap(); // UUID -> 心霆状态剩余tick
+var xinTingDecayTickMap = new java.util.HashMap(); // UUID -> 当前衰减周期已过tick(用于倒计时显示)
+var yanmouCdMap      = new java.util.HashMap(); // UUID -> 上次焰眸时间(ms)
+var leftClickCdMap   = new java.util.HashMap(); // UUID -> 上次左键时间(ms)
+
+// ===================================================================
+// 辅助：检查玩家是否手持唤剑葫
+// ===================================================================
+function isHoldingItem(player) {
+    var item = player.getInventory().getItemInMainHand();
+    if (!item || item.getType() === Material.AIR) return false;
+    var sfItem = SlimefunItem.getByItem(item);
+    return sfItem != null && sfItem.getId() === ITEM_ID;
+}
+
+// ===================================================================
+// 辅助：对指定半径内的所有活体实体造成纯伤害（不含玩家自身）
+//   返回是否至少命中了一个生物
+// ===================================================================
+function aoeDamageParam(world, hitPoint, player, radius, dmg) {
+    var targets = world.getNearbyEntities(hitPoint, radius, radius, radius);
     var it = targets.iterator();
+    var hitAny = false;
     while (it.hasNext()) {
         var ent = it.next();
-        // 只对活体实体（非玩家自身）造成伤害
-        if (ent instanceof org.bukkit.entity.LivingEntity && ent != player) {
-            ent.setNoDamageTicks(0); // 清除无敌帧，确保持续伤害有效
-            ent.damage(DAMAGE, player);
+        if (ent instanceof LivingEntity && ent != player) {
+            ent.setNoDamageTicks(0);
+            ent.damage(dmg, player);
+            hitAny = true;
         }
     }
-    // 显示基础爆炸粒子
-    createExplosionParticles(hitPoint, world);
-    // 如果传入了额外的特效函数，则执行
-    if (extraParticleFunc) extraParticleFunc(world, hitPoint);
-}
-
-/**
- * 星弹爆炸时额外添加的粒子与音效（蓝色灵魂火焰风格）
- */
-function starExplosionExtra(world, loc) {
-    world.spawnParticle(Particle.DUST, loc, 300, 4, 4, 4, 0, BLUE_DUST_OPT);
-    world.spawnParticle(Particle.DUST, loc, 180, 3, 3, 3, 0, LIGHT_BLUE_DUST_OPT);
-    world.spawnParticle(Particle.SOUL_FIRE_FLAME, loc, 80, 2.5, 2.5, 2.5, 0.05);
-    world.playSound(loc, SOUND_EXPLODE, 1.8, 0.8);
-    world.playSound(loc, SOUND_BEACON, 1.0, 1.5);
-    world.playSound(loc, SOUND_THUNDER, 0.8, 0.7);
+    return hitAny;
 }
 
 // ===================================================================
-// 第一剑：6根箭矢（使用rayTrace射线检测，带密集END_ROD粒子轨迹）
+// 辅助：垂直下坠的粒子剑（剑尖朝下、握柄朝上），用指定颜色绘制
+//   loc = 剑尖位置；s = 尺寸倍数
 // ===================================================================
-/**
- * 发射一根箭矢（实际上是射线检测），命中实体立即爆炸，命中方块延迟爆炸。
- * @param {World} world - 世界
- * @param {Location} start - 射线起点（通常为玩家眼睛位置或散射偏移后的位置）
- * @param {Vector} dir - 射线方向（已归一化）
- * @param {Player} player - 使用技能的玩家
- * @param {boolean} isMain - 是否为主箭矢（仅主箭矢发送提示消息）
- */
-function fireSwordArrow(world, start, dir, player, isMain) {
-    // 进行一次rayTrace，检测方块和活体实体（忽略自身）
-    // 参数：世界, 起点, 方向, 最大距离, 流体碰撞模式, 忽略未阻挡的流体, 射线精度, 实体过滤器
-    var rayHit = world.rayTrace(
-        start, dir, SWORD_ARROW_RANGE,
-        FluidCollisionMode.NEVER, false, 0.5,
-        function(ent) {
-            return ent instanceof org.bukkit.entity.LivingEntity && ent !== player;
+function drawFallingSword(world, loc, dustOpt, s) {
+    var bladeLen  = 1.2 * s;
+    var guardHalf = 0.35 * s;
+    var handleLen = 0.4 * s;
+    var step = 0.15;
+    for (var y = 0; y <= bladeLen; y += step) {
+        spawnDust(world, loc.clone().add(0, y, 0), 1, 0, 0, 0, 0, dustOpt);
+    }
+    for (var x = -guardHalf; x <= guardHalf; x += step) {
+        spawnDust(world, loc.clone().add(x, bladeLen, 0), 1, 0, 0, 0, 0, dustOpt);
+    }
+    for (var y2 = bladeLen + 0.1; y2 <= bladeLen + handleLen; y2 += step) {
+        spawnDust(world, loc.clone().add(0, y2, 0), 1, 0, 0, 0, 0, dustOpt);
+    }
+}
+
+// ===================================================================
+// 辅助：火焰红剑（焰眸专用）——火焰 + 红色粒子组成的剑，垂直下落
+//   loc = 剑尖位置；s = 尺寸倍数
+// ===================================================================
+function drawFlameSword(world, loc, s) {
+    var bladeLen  = 1.2 * s;
+    var guardHalf = 0.35 * s;
+    var handleLen = 0.4 * s;
+    var step = 0.15;
+    for (var y = 0; y <= bladeLen; y += step) {
+        world.spawnParticle(Particle.FLAME, loc.clone().add(0, y, 0), 1, 0, 0, 0, 0);
+        spawnDust(world, loc.clone().add(0, y, 0), 1, 0, 0, 0, 0, RED_DUST);
+    }
+    for (var x = -guardHalf; x <= guardHalf; x += step) {
+        world.spawnParticle(Particle.FLAME, loc.clone().add(x, bladeLen, 0), 1, 0, 0, 0, 0);
+        spawnDust(world, loc.clone().add(x, bladeLen, 0), 1, 0, 0, 0, 0, RED_DUST);
+    }
+    for (var y2 = bladeLen + 0.1; y2 <= bladeLen + handleLen; y2 += step) {
+        world.spawnParticle(Particle.FLAME, loc.clone().add(0, y2, 0), 1, 0, 0, 0, 0);
+        spawnDust(world, loc.clone().add(0, y2, 0), 1, 0, 0, 0, 0, RED_DUST);
+    }
+}
+
+// ===================================================================
+// 辅助：焰眸红剑下落（火焰剑），落地后造成范围伤害
+// ===================================================================
+function summonFlameSwordDrop(world, targetLoc, player, height, dropTicks, radius, dmg) {
+    var startLoc = targetLoc.clone().add(0, height, 0);
+    var pos = startLoc.clone();
+    var perTick = height / dropTicks;
+    var tickCount = 0;
+    var landed = false;
+    var taskRef = null;
+    var DownTask = Java.extend(BukkitRunnable, {
+        run: function() {
+            if (landed) return;
+            drawFlameSword(world, pos, 1.0);
+            tickCount++;
+            pos.subtract(0, perTick, 0);
+            if (tickCount >= dropTicks) {
+                landed = true;
+                try { taskRef.cancel(); } catch(e) {}
+                var hitAny = aoeDamageParam(world, targetLoc, player, radius, dmg);
+                // 命中爆炸（火焰 + 红色粒子 + 声音）
+                world.spawnParticle(Particle.FLAME, targetLoc, 20, 1.5, 1.5, 1.5, 0.03);
+                spawnDust(world, targetLoc, 40, 1.5, 1.5, 1.5, 0, RED_DUST_BIG);
+                world.playSound(targetLoc, SOUND_EXPLODE, 1.2, 0.9);
+            }
         }
+    });
+    taskRef = new DownTask().runTaskTimer(plugin, 0, 1);
+}
+
+// ===================================================================
+// 辅助：在指定位置召唤一把粒子剑垂直下落，落地后对 radius 造成 dmg 伤害
+// ===================================================================
+function summonSwordDrop(world, targetLoc, player, dustOpt, height, dropTicks, radius, dmg, impactFunc) {
+    var startLoc = targetLoc.clone().add(0, height, 0);
+    var pos = startLoc.clone();
+    var perTick = height / dropTicks;
+    var tickCount = 0;
+    var landed = false;
+    var taskRef = null;
+    var DownTask = Java.extend(BukkitRunnable, {
+        run: function() {
+            if (landed) return;
+            drawFallingSword(world, pos, dustOpt, 1.0);
+            tickCount++;
+            pos.subtract(0, perTick, 0);
+            if (tickCount >= dropTicks) {
+                landed = true;
+                try { taskRef.cancel(); } catch(e) {}
+                var hitAny = aoeDamageParam(world, targetLoc, player, radius, dmg);
+                if (impactFunc) impactFunc(world, targetLoc, player, hitAny);
+            }
+        }
+    });
+    taskRef = new DownTask().runTaskTimer(plugin, 0, 1);
+}
+
+// ===================================================================
+// 心霆 BossBar 显示
+// ===================================================================
+// 创建/激活心霆 BossBar（层数模式，倒计时进度由刷新任务持续更新）
+function updateXinTingBar(uuid, player, stacks) {
+    try {
+        var bar = xinTingBarMap.get(uuid);
+        if (bar == null) {
+            bar = Bukkit.createBossBar(
+                fmtMsg(MSG_XINTING_BAR_STACK, {stacks: stacks, max: XINTING_MAX}),
+                BarColor.RED, BarStyle.SOLID
+            );
+            xinTingBarMap.put(uuid, bar);
+        }
+        bar.addPlayer(player);
+        bar.setTitle(fmtMsg(MSG_XINTING_BAR_STACK, {stacks: stacks, max: XINTING_MAX}));
+        bar.setColor(BarColor.RED);
+        bar.setProgress(1.0);
+        bar.setVisible(true);
+    } catch (e) {
+        plugin.getLogger().warning("[隐兰狂玉唤剑葫] 心霆BossBar异常: " + e);
+    }
+}
+
+// 每 tick 刷新心霆 BossBar：层数模式下显示倒计时进度，状态模式下显示状态持续倒计时
+function startXinTingBarTicker() {
+    if (plugin.xinTingBarTickerRegistered) return;
+    plugin.xinTingBarTickerRegistered = true;
+    var Ticker = Java.extend(BukkitRunnable, {
+        run: function() {
+            try {
+                var uuids = new java.util.HashSet(xinTingBarMap.keySet());
+                var it = uuids.iterator();
+                while (it.hasNext()) {
+                    var uuid = it.next();
+                    var bar = xinTingBarMap.get(uuid);
+                    if (bar == null) continue;
+                    var player = Bukkit.getPlayer(UUID.fromString(uuid));
+                    if (player == null || !player.isOnline()) { removeXinTingBar(uuid); continue; }
+
+                    var left = xinTingStateMap.containsKey(uuid) ? xinTingStateMap.get(uuid) : 0;
+                    if (left > 0) {
+                        // 状态模式：显示状态持续倒计时
+                        var secs = Math.max(1, Math.ceil(left / 20));
+                        bar.setColor(BarColor.PURPLE);
+                        bar.setTitle(fmtMsg(MSG_XINTING_BAR_STATE, {secs: secs}));
+                        bar.setProgress(Math.max(0.05, Math.min(1.0, left / XINTING_STATE_TICKS)));
+                        bar.setVisible(true);
+                        bar.addPlayer(player);
+                    } else {
+                        // 层数模式：显示层数 + 衰减倒计时进度
+                        var stacks = xinTingStacksMap.containsKey(uuid) ? xinTingStacksMap.get(uuid) : 0;
+                        if (stacks <= 0) { removeXinTingBar(uuid); continue; }
+                        var decayTick = xinTingDecayTickMap.containsKey(uuid) ? xinTingDecayTickMap.get(uuid) : 0;
+                        // 倒计时：从 1 递减到接近 0，衰减触发时归 1
+                        var prog = 1.0 - (decayTick / XINTING_DECAY_TICKS);
+                        bar.setColor(BarColor.RED);
+                        bar.setTitle(fmtMsg(MSG_XINTING_BAR_STACK, {stacks: stacks, max: XINTING_MAX}));
+                        bar.setProgress(Math.max(0.05, Math.min(1.0, prog)));
+                        bar.setVisible(true);
+                        bar.addPlayer(player);
+                        // 递增衰减周期进度
+                        xinTingDecayTickMap.put(uuid, decayTick + 1);
+                    }
+                }
+            } catch (e) {}
+        }
+    });
+    new Ticker().runTaskTimer(plugin, 0, 1);
+}
+function removeXinTingBar(uuid) {
+    try {
+        var bar = xinTingBarMap.remove(uuid);
+        if (bar != null) { bar.removeAll(); bar.setVisible(false); }
+    } catch (e) {}
+}
+
+// ===================================================================
+// 心霆层数增加 / 心霆状态触发
+// ===================================================================
+function addXinTingStack(player) {
+    var uuid = player.getUniqueId().toString();
+    var stacks = xinTingStacksMap.containsKey(uuid) ? xinTingStacksMap.get(uuid) : 0;
+    stacks++;
+    if (stacks >= XINTING_MAX) {
+        xinTingStacksMap.put(uuid, 0);
+        triggerXinTingState(player);
+    } else {
+        xinTingStacksMap.put(uuid, stacks);
+        updateXinTingBar(uuid, player, stacks);
+        player.sendActionBar(fmtMsg(MSG_XINTING_STACK_GAINED, {stacks: stacks, max: XINTING_MAX}));
+    }
+}
+
+// ===================================================================
+// 心霆层数递减：每 3 秒减少一层，直到归零（获得层数不会重置倒计时）
+// ===================================================================
+function startXinTingDecay() {
+    if (plugin.xinTingDecayTaskRegistered) return;
+    plugin.xinTingDecayTaskRegistered = true;
+    var DecayTask = Java.extend(BukkitRunnable, {
+        run: function() {
+            try {
+                var it = xinTingStacksMap.entrySet().iterator();
+                while (it.hasNext()) {
+                    var entry = it.next();
+                    var uuid = entry.getKey();
+                    var stacks = entry.getValue();
+                    if (stacks <= 0) continue;
+                    stacks--;
+                    if (stacks <= 0) {
+                        entry.setValue(0);
+                        xinTingDecayTickMap.remove(uuid);
+                        removeXinTingBar(uuid);
+                    } else {
+                        entry.setValue(stacks);
+                        xinTingDecayTickMap.put(uuid, 0); // 衰减一次，倒计时进度归 1
+                        var player = Bukkit.getPlayer(UUID.fromString(uuid));
+                        if (player != null && player.isOnline()) {
+                            updateXinTingBar(uuid, player, stacks);
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+    });
+    new DecayTask().runTaskTimer(plugin, XINTING_DECAY_TICKS, XINTING_DECAY_TICKS);
+}
+
+function triggerXinTingState(player) {
+    var uuid = player.getUniqueId().toString();
+    var world = player.getWorld();
+    // 缓慢升空：飘浮 10 秒
+    player.addPotionEffect(new PotionEffect(TYPE_LEVITATION, XINTING_STATE_TICKS, XINTING_LEVITATION_LEVEL, true, false, false));
+    // 缓降：持续 15 秒（覆盖心霆状态时间，结束后仍缓降缓冲落地）
+    player.addPotionEffect(new PotionEffect(TYPE_SLOW_FALLING, XINTING_SLOW_FALL_TICKS, XINTING_SLOW_FALL_LEVEL, true, false, false));
+    xinTingStateMap.put(uuid, XINTING_STATE_TICKS);
+    // 冷却掉层数，切换为状态 Bar（显示状态持续倒计时）
+    xinTingStacksMap.put(uuid, 0);
+    xinTingDecayTickMap.remove(uuid);
+    // 创建/复用状态 BossBar（紫色），倒计时由刷新任务持续更新
+    var stateBar = xinTingBarMap.get(uuid);
+    if (stateBar == null) {
+        stateBar = Bukkit.createBossBar(
+            fmtMsg(MSG_XINTING_BAR_STATE, {secs: 10}),
+            BarColor.PURPLE, BarStyle.SOLID
+        );
+        xinTingBarMap.put(uuid, stateBar);
+    }
+    stateBar.addPlayer(player);
+    stateBar.setColor(BarColor.PURPLE);
+    stateBar.setTitle(fmtMsg(MSG_XINTING_BAR_STATE, {secs: 10}));
+    stateBar.setProgress(1.0);
+    stateBar.setVisible(true);
+    player.sendTitle(
+        MSG_XINTING_TITLE,
+        MSG_XINTING_SUBTITLE,
+        10, 70, 20
     );
+    player.sendActionBar(MSG_XINTING_ACTIVATED);
+    world.playSound(player.getLocation(), SOUND_BEACON, 1.0, 1.2);
+    world.playSound(player.getLocation(), SOUND_THUNDER, 1.0, 1.0);
+    // 心霆状态全局粒子扩散
+    spawnDust(world, player.getLocation().add(0, 1, 0), 200, 2, 2, 2, 0, THUNDER_DUST);
+    world.spawnParticle(Particle.ELECTRIC_SPARK, player.getLocation().add(0, 1, 0), 60, 2, 2, 2, 0.05);
 
-    var endDist = SWORD_ARROW_RANGE;  // 射线有效飞行距离
-    var hitEntity = null;
-    var hitBlock = false;
+    // 10 秒倒计时，结束移除心霆状态
+    var left = XINTING_STATE_TICKS;
+    var taskRef = null;
+    var StateTask = Java.extend(BukkitRunnable, {
+        run: function() {
+            if (!player.isValid()) {
+                xinTingStateMap.remove(uuid);
+                try { taskRef.cancel(); } catch(e) {}
+                return;
+            }
+            left--;
+            xinTingStateMap.put(uuid, left); // 同步给刷新任务用于状态倒计时显示
+            if (left <= 0) {
+                xinTingStateMap.remove(uuid);
+                player.sendActionBar(MSG_XINTING_ENDED);
+                try { taskRef.cancel(); } catch(e) {}
+            } else {
+                // 缓慢升空期间周期性粒子
+                if (left % 20 === 0) {
+                    world.spawnParticle(Particle.ELECTRIC_SPARK, player.getLocation().add(0, 1, 0), 20, 1.2, 1.2, 1.2, 0.03);
+                }
+            }
+        }
+    });
+    taskRef = new StateTask().runTaskTimer(plugin, 0, 1);
+}
 
+function isXinTingState(player) {
+    var uuid = player.getUniqueId().toString();
+    return xinTingStateMap.containsKey(uuid) && xinTingStateMap.get(uuid) > 0;
+}
+
+// ===================================================================
+// 剑光（左键）：发射剑光，命中生物/方块/到达最大射程时，
+//   均在最终位置召唤白剑从天而降；爆炸命中生物后为玩家播放声音
+// ===================================================================
+function castSwordLight(player) {
+    var world = player.getWorld();
+    var eye = player.getEyeLocation();
+    var dir = eye.getDirection().normalize();
+    // 释放时玩家自身：小型蒸汽粒子爆发 + 风墟龙冕小气斩的发射声音
+    var selfLoc = player.getLocation().add(0, 1.2, 0);
+    world.spawnParticle(Particle.CLOUD, selfLoc, 30, 0.6, 0.6, 0.6, 0.06);
+    spawnDust(world, selfLoc, 12, 0.5, 0.5, 0.5, 0, WHITE_DUST);
+    world.playSound(selfLoc, SOUND_STEAM, 1.0, 1.6);
+    world.playSound(selfLoc, SOUND_SWEEP, 0.6, 1.8);
+    world.playSound(selfLoc, SOUND_WITHER_SHOOT, 0.8, 1.2);
+    // 剑光射线检测（命中生物或方块）
+    var rayHit = world.rayTrace(
+        eye, dir, JIANGUANG_RANGE,
+        FluidCollisionMode.NEVER, false, 0.5,
+        function(ent) { return ent instanceof LivingEntity && ent != player; }
+    );
+    var endDist = JIANGUANG_RANGE;
+    var hitLoc = null;
     if (rayHit != null) {
         var hitPos = rayHit.getHitPosition();
-        // 计算起点到命中点的实际距离
-        endDist = start.toVector().distance(hitPos);
-        hitEntity = rayHit.getHitEntity();
-        // 如果击中位置没有实体，则判定为方块
-        if (hitEntity == null) hitBlock = true;
+        endDist = eye.toVector().distance(hitPos);
+        hitLoc = new (Java.type("org.bukkit.Location"))(world, hitPos.getX(), hitPos.getY(), hitPos.getZ());
+        var hitEntity = rayHit.getHitEntity();
+        if (hitEntity != null) hitLoc = hitEntity.getLocation();
     }
-
-    // 沿射线路径生成密集的白色END_ROD粒子，模拟箭矢轨迹
-    var tracerLoc = start.clone();
-    var stepVec = dir.clone().multiply(0.4);  // 粒子间距0.4格
+    // 剑光轨迹粒子（白色）
+    var tracer = eye.clone();
+    var stepVec = dir.clone().multiply(0.4);
     var steps = Math.floor(endDist / 0.4);
     for (var i = 0; i < steps; i++) {
-        world.spawnParticle(Particle.END_ROD, tracerLoc, 3, 0.05, 0.05, 0.05, 0.02);
-        tracerLoc.add(stepVec);
+        spawnDust(world, tracer, 1, 0.02, 0.02, 0.02, 0, WHITE_DUST);
+        world.spawnParticle(Particle.END_ROD, tracer, 1, 0.05, 0.05, 0.05, 0);
+        tracer.add(stepVec);
     }
-
-    // 命中处理
-    if (hitEntity != null) {
-        // 命中生物：在生物位置立即引发AOE爆炸
-        dealAOE(world, hitEntity.getLocation(), player, null);
-        if (isMain) player.sendMessage("§x§f§b§f§f§6§1§l剑光，来！");
-    } else if (hitBlock) {
-        // 命中方块：在命中位置延迟BLOCK_HIT_DELAY tick后爆炸
-        var hitPos = rayHit.getHitPosition();
-        var hitLoc = new Location(world, hitPos.getX(), hitPos.getY(), hitPos.getZ());
-        var DelayTask = Java.extend(BukkitRunnable, {
-            run: function() {
-                dealAOE(world, hitLoc, player, null);
-                if (isMain) player.sendMessage("§x§f§b§f§f§6§1§l剑光，来！");
+    // 命中点（生物/方块/最大射程均在此召唤白剑）
+    var target = hitLoc != null ? hitLoc : eye.clone().add(dir.clone().multiply(JIANGUANG_RANGE));
+    // 命中点给目标地面坐标（白剑落到最上方固体上）
+    target.setY(world.getHighestBlockYAt(target.getBlockX(), target.getBlockZ()) - 0.5);
+    world.spawnParticle(Particle.END_ROD, target, 30, 1, 1, 1, 0.05);
+    world.playSound(player.getLocation(), SOUND_ANVIL_LAND, 1.0, 1.2);
+    summonSwordDrop(
+        world, target, player,
+        WHITE_DUST, JIANGUANG_SWORD_DROP_HEIGHT, JIANGUANG_SWORD_DROP_TICK,
+        AOE_RADIUS, JIANGUANG_DAMAGE,
+        function(w, loc, p, hitAny) {
+            w.spawnParticle(Particle.CLOUD, loc, 20, 1.0, 1.0, 1.0, 0.04);
+            spawnDust(w, loc, 25, 1.2, 1.2, 1.2, 0, WHITE_DUST);
+            // 铁砧落地声：无论命中方块还是敌人，都在玩家耳边清晰播放
+            w.playSound(loc, SOUND_ANVIL_LAND, 1.0, 1.1);
+            p.getWorld().playSound(p.getLocation(), SOUND_ANVIL_LAND, 1.0, 1.05);
+            // 命中生物时叠加横扫打击声（不再用"叮"声）
+            if (hitAny) {
+                p.getWorld().playSound(p.getLocation(), SOUND_SWEEP, 1.0, 1.2);
             }
-        });
-        new DelayTask().runTaskLater(plugin, BLOCK_HIT_DELAY);
-    } else {
-        // 未命中任何目标（超出距离），主箭矢仍发送提示
-        if (isMain) player.sendMessage("§x§f§b§f§f§6§1§l剑光，来！");
-    }
-}
-
-// ===================================================================
-// 第二剑：火球（实体投射物，带碰撞监听）
-// ===================================================================
-// 用于存储火球ID与相关数据的映射（玩家、是否主火球、提示消息）
-var projectileMap = new java.util.HashMap();
-
-// 注册火球碰撞事件监听器
-var pm = org.bukkit.Bukkit.getPluginManager();
-var ListenerClass = Java.extend(org.bukkit.event.Listener, {});
-var listener = new ListenerClass();
-
-pm.registerEvent(
-    org.bukkit.event.entity.ProjectileHitEvent.class, // 监听投射物碰撞事件
-    listener,
-    org.bukkit.event.EventPriority.NORMAL,
-    function(l, event) {
-        var proj = event.getEntity();
-        var id = proj.getEntityId();
-        // 只处理我们生成的火球（检查ID是否在map中）
-        if (!projectileMap.containsKey(id)) return;
-        var data = projectileMap.remove(id);
-        proj.remove(); // 立即移除火球实体
-        // 确定爆炸位置：优先使用被击中的实体位置，否则使用火球自身位置
-        var hitLoc = event.getHitEntity() ? event.getHitEntity().getLocation() : proj.getLocation();
-        dealAOE(proj.getWorld(), hitLoc, data.player, null);
-        if (data.isMain) data.player.sendMessage(data.msg);
-    },
-    plugin
-);
-
-/**
- * 生成一个自定义火球（无重力、无爆炸、静音），并注册自毁定时器。
- * @param {Player} player - 发射者
- * @param {Location} launchLoc - 发射位置
- * @param {Vector} direction - 初始速度方向（已归一化）
- * @param {boolean} isMain - 是否为主火球（决定是否发送消息）
- */
-function spawnFireball(player, launchLoc, direction, isMain) {
-    var world = player.getWorld();
-    // 生成火球实体
-    var fireball = world.spawn(launchLoc, org.bukkit.entity.Fireball.class);
-    fireball.setShooter(player);
-    fireball.setVelocity(direction.clone().multiply(FIREBALL_VELOCITY));
-    fireball.setGravity(false);      // 无重力，直线飞行
-    fireball.setYield(0);            // 禁用原版爆炸威力
-    fireball.setIsIncendiary(false); // 不产生火焰
-    fireball.setSilent(true);        // 静音，避免原版音效
-
-    // 记录火球数据，用于碰撞监听
-    var id = fireball.getEntityId();
-    projectileMap.put(id, {
-        player: player,
-        isMain: isMain,
-        msg: isMain ? "§x§f§b§f§f§6§1§l剑火，燃！" : null
-    });
-
-    // 设定自毁定时器：30tick后如果仍未碰撞，强制爆炸并移除
-    var DetonateTask = Java.extend(BukkitRunnable, {
-        run: function() {
-            if (projectileMap.containsKey(id)) {
-                projectileMap.remove(id);
-                if (fireball.isValid()) {
-                    var loc = fireball.getLocation();
-                    dealAOE(world, loc, player, null);
-                    fireball.remove();
-                }
-            }
-        }
-    });
-    new DetonateTask().runTaskLater(plugin, 30);
-}
-
-// ===================================================================
-// 第三剑：星弹（使用rayTrace射线检测，碰到生物或方块立刻爆炸）
-// ===================================================================
-/**
- * 发射一枚星弹（射线），沿途生成灵魂火焰粒子，命中实体或方块后立即触发星爆。
- * @param {World} world - 世界
- * @param {Location} start - 射线起点（玩家眼睛位置）
- * @param {Vector} dir - 射线方向（已归一化）
- * @param {Player} player - 使用技能的玩家
- */
-function fireStar(world, start, dir, player) {
-    // 射线检测，同第一剑逻辑
-    var rayHit = world.rayTrace(
-        start, dir, STAR_RANGE,
-        FluidCollisionMode.NEVER, false, 0.5,
-        function(ent) {
-            return ent instanceof org.bukkit.entity.LivingEntity && ent !== player;
         }
     );
+    // 心霆层数 +1
+    addXinTingStack(player);
+}
 
-    var endDist = STAR_RANGE;
-    var hitLoc = null;
+// ===================================================================
+// 焰眸（右键）：大型圆形红色法阵（直径15，大环+3内环），
+//   持续索敌法阵范围内敌人，在敌人上方召唤向下落的火焰红剑
+// ===================================================================
+function castFlameEye(player) {
+    var uuid = player.getUniqueId().toString();
+    var now = Date.now();
+    // 冷却检查
+    if (yanmouCdMap.containsKey(uuid) && (now - yanmouCdMap.get(uuid)) < YANMOU_COOLDOWN_MS) {
+        var remain = Math.ceil((YANMOU_COOLDOWN_MS - (now - yanmouCdMap.get(uuid))) / 1000);
+        player.sendActionBar(fmtMsg(MSG_FLAME_EYE_COOLDOWN, {secs: remain}));
+        return;
+    }
+    yanmouCdMap.put(uuid, now);
 
-    if (rayHit != null) {
-        var hitPos = rayHit.getHitPosition();
-        endDist = start.toVector().distance(hitPos);
-        // 默认命中位置
-        hitLoc = new Location(world, hitPos.getX(), hitPos.getY(), hitPos.getZ());
+    var world = player.getWorld();
+    var eye = player.getEyeLocation();
 
-        // 如果命中实体，将爆炸位置调整为实体所在位置
-        var hitEntity = rayHit.getHitEntity();
-        if (hitEntity != null) {
-            hitLoc = hitEntity.getLocation();
+    // ===== 确定法阵中心 =====
+    // 视野内敌人：玩家前方 20 米范围、水平方向朝前的活体敌人
+    var farthest = null, farthestDist = 0;
+    var forwardXZ = eye.getDirection().clone(); forwardXZ.setY(0);
+    if (forwardXZ.lengthSquared() < 0.001) forwardXZ = new Vector(1, 0, 0);
+    forwardXZ.normalize();
+    var nearby = world.getNearbyEntities(eye, 20, 20, 20);
+    var nbIt = nearby.iterator();
+    while (nbIt.hasNext()) {
+        var ent = nbIt.next();
+        if (!(ent instanceof LivingEntity) || ent == player || ent.isDead()) continue;
+        var eLoc = ent.getLocation();
+        var rel = eLoc.toVector().subtract(eye.toVector());
+        var relXZ = rel.clone(); relXZ.setY(0);
+        // 必须位于玩家视野前方
+        if (relXZ.dot(forwardXZ) <= 0) continue;
+        var dist = rel.length();
+        // 20 米内、取离玩家最远者
+        if (dist <= 20 && dist > farthestDist) {
+            farthestDist = dist;
+            farthest = ent;
         }
     }
 
-    // 生成星弹飞行粒子轨迹：灵魂火焰 + 末地烛粒子
-    var tracerLoc = start.clone();
-    var stepVec = dir.clone().multiply(0.5);
-    var steps = Math.floor(endDist / 0.5);
-    for (var i = 0; i < steps; i++) {
-        world.spawnParticle(Particle.SOUL_FIRE_FLAME, tracerLoc, 3, 0.15, 0.15, 0.15, 0.01);
-        world.spawnParticle(Particle.END_ROD, tracerLoc, 1, 0.1, 0.1, 0.1, 0);
-        tracerLoc.add(stepVec);
+    var circleCenter;
+    if (farthest != null) {
+        // 视野内有敌人：选择 20 米内离玩家最远的敌人，其上方 15 米为法阵中心
+        var fLoc = farthest.getLocation();
+        var fgY = world.getHighestBlockYAt(fLoc.getBlockX(), fLoc.getBlockZ());
+        circleCenter = new (Java.type("org.bukkit.Location"))(world, fLoc.getX(), fgY + 0.5 + YANMOU_HEIGHT_ABOVE, fLoc.getZ());
+    } else {
+        // 视野内没有敌人：向前 15 米、向上 15 米为法阵中心
+        var centerX = eye.getX() + forwardXZ.getX() * YANMOU_FORWARD;
+        var centerZ = eye.getZ() + forwardXZ.getZ() * YANMOU_FORWARD;
+        var ngY = world.getHighestBlockYAt(Math.floor(centerX), Math.floor(centerZ));
+        circleCenter = new (Java.type("org.bukkit.Location"))(world, centerX, ngY + 0.5 + YANMOU_HEIGHT_ABOVE, centerZ);
+    }
+    var radius = YANMOU_RADIUS; // 7.5 = 直径15
+
+    // 阶段标记：0=红球飞行，1=法阵展开，2=持续索敌
+    var phase = 0;
+    var phaseTick = 0;
+    var tick = 0;
+    var taskRef = null;
+
+    // 绘制法阵：大环 + 3 个内环（水平圆形，粒子密集），r 为当前半径
+    function drawRunes(r) {
+        var n = 90; // 大环粒子数（更密集）
+        // 大环（双层，+/- 小幅高度形成立体厚度）
+        for (var i = 0; i < n; i++) {
+            var a = (i / n) * 2 * Math.PI;
+            var pl = circleCenter.clone().add(Math.cos(a) * r, 0, Math.sin(a) * r);
+            spawnDust(world, pl, 1, 0, 0, 0, 0, RED_DUST_BIG);
+            world.spawnParticle(Particle.FLAME, pl, 1, 0, 0, 0, 0);
+            // 第二层略高，增加密度与立体感
+            var plUp = pl.clone().add(0, 0.6, 0);
+            spawnDust(world, plUp, 1, 0, 0, 0, 0, RED_DUST_BIG);
+            world.spawnParticle(Particle.FLAME, plUp, 1, 0, 0, 0, 0);
+        }
+        // 3 个内环（半径依次递减，粒子更密集）
+        var innerRadii = [r * 0.66, r * 0.4, r * 0.16];
+        for (var rr = 0; rr < innerRadii.length; rr++) {
+            var nr = 60 - rr * 12;
+            for (var j = 0; j < nr; j++) {
+                var a2 = (j / nr) * 2 * Math.PI;
+                var pl2 = circleCenter.clone().add(Math.cos(a2) * innerRadii[rr], 0, Math.sin(a2) * innerRadii[rr]);
+                spawnDust(world, pl2, 1, 0, 0, 0, 0, RED_DUST);
+                world.spawnParticle(Particle.FLAME, pl2, 1, 0, 0, 0, 0);
+            }
+        }
+        // 中心密集火焰
+        world.spawnParticle(Particle.FLAME, circleCenter, 20, 1.2, 0.4, 1.2, 0.03);
+        spawnDust(world, circleCenter, 30, 1.2, 0.4, 1.2, 0, RED_DUST);
     }
 
-    // 如果命中任何目标，触发星爆（包含额外特效）
-    if (hitLoc != null) {
-        dealAOE(world, hitLoc, player, starExplosionExtra);
+    // 绘制红色球状粒子（沿玩家->法阵中心路径的当前位置）
+    function drawRedOrb(loc) {
+        for (var i = 0; i < 14; i++) {
+            var theta = Math.random() * 2 * Math.PI;
+            var phi = Math.acos(2 * Math.random() - 1);
+            var or = 0.8;
+            var ox = loc.getX() + or * Math.sin(phi) * Math.cos(theta);
+            var oy = loc.getY() + or * Math.cos(phi);
+            var oz = loc.getZ() + or * Math.sin(phi) * Math.sin(theta);
+            spawnDust(world, new (Java.type("org.bukkit.Location"))(world, ox, oy, oz), 1, 0, 0, 0, 0, RED_DUST);
+        }
+        world.spawnParticle(Particle.FLAME, loc, 3, 0.5, 0.5, 0.5, 0);
+    }
+
+    // 法阵任务：红球飞行(0.5s) -> 法阵展开(0.5s) -> 持续索敌
+    var EyeTask = Java.extend(BukkitRunnable, {
+        run: function() {
+            if (!player.isValid()) { try { taskRef.cancel(); } catch(e) {} return; }
+
+            if (phase === 0) {
+                // 阶段0：红色球状粒子从玩家自身位置飞向法阵中心（0.5秒=10tick）
+                var start = player.getLocation().clone().add(0, 1.5, 0);
+                var end = circleCenter.clone();
+                var t = phaseTick / YANMOU_CAST_TICK;
+                if (t > 1) t = 1;
+                var ballPos = start.clone().add(end.clone().subtract(start).multiply(t));
+                drawRedOrb(ballPos);
+                phaseTick++;
+                if (phaseTick >= YANMOU_CAST_TICK) { phase = 1; phaseTick = 0; }
+                return;
+            }
+
+            if (phase === 1) {
+                // 阶段1：法阵从中心快速展开到完整半径（0.5秒=10tick）
+                var curR = radius * (phaseTick / YANMOU_CAST_TICK);
+                if (curR > 0.5) drawRunes(curR);
+                phaseTick++;
+                if (phaseTick >= YANMOU_CAST_TICK) { phase = 2; phaseTick = 0; }
+                return;
+            }
+
+            // 阶段2：持续绘制法阵 + 索敌召唤红剑
+            if (tick >= YANMOU_DURATION_TICK) {
+                try { taskRef.cancel(); } catch(e) {}
+                return;
+            }
+            drawRunes(radius);
+
+            // 每 0.5 秒一轮：根据本轮红剑数量平分 500 伤害
+            if (tick % YANMOU_INTERVAL_TICK === 0) {
+                // 索敌：法阵水平投影内所有活体敌人（最多 5 道）
+                var dropLocs = [];
+                var searchY = circleCenter.getY() - YANMOU_HEIGHT_ABOVE; // 法阵投影地面高度
+                var searchCenter = circleCenter.clone(); searchCenter.setY(searchY + YANMOU_HEIGHT_ABOVE / 2);
+                var searchRadius = Math.max(radius, YANMOU_HEIGHT_ABOVE + radius);
+                var targets = world.getNearbyEntities(searchCenter, radius, searchRadius, radius);
+                var it = targets.iterator();
+                while (it.hasNext()) {
+                    var ent = it.next();
+                    if (ent instanceof LivingEntity && ent != player && !ent.isDead()) {
+                        var eLoc = ent.getLocation();
+                        var dx = eLoc.getX() - circleCenter.getX();
+                        var dz = eLoc.getZ() - circleCenter.getZ();
+                        if (dx * dx + dz * dz > radius * radius) continue;
+                        dropLocs.push(eLoc.clone());
+                    }
+                }
+                if (dropLocs.length === 0) {
+                    // 本轮无法阵范围内敌人：随机生成 5 道红剑
+                    for (var rs = 0; rs < 5; rs++) {
+                        var ra = Math.random() * 2 * Math.PI;
+                        var rr = Math.sqrt(Math.random()) * radius * 0.9;
+                        var rx = circleCenter.getX() + Math.cos(ra) * rr;
+                        var rz = circleCenter.getZ() + Math.sin(ra) * rr;
+                        var rl = new (Java.type("org.bukkit.Location"))(
+                            world, rx,
+                            world.getHighestBlockYAt(Math.floor(rx), Math.floor(rz)) - 0.5,
+                            rz
+                        );
+                        dropLocs.push(rl);
+                    }
+                }
+                // 最多 5 道，这一轮每把伤害 = 总伤害 / 本轮红剑数量
+                if (dropLocs.length > 5) dropLocs.length = 5;
+                var roundDamage = YANMOU_TOTAL_DAMAGE / dropLocs.length;
+                for (var dl = 0; dl < dropLocs.length; dl++) {
+                    var fallTarget = dropLocs[dl];
+                    fallTarget.setY(world.getHighestBlockYAt(fallTarget.getBlockX(), fallTarget.getBlockZ()) - 0.5);
+                    var dropHeight = circleCenter.getY() - fallTarget.getY();
+                    if (dropHeight < 3) dropHeight = 3;
+                    // 下落时长与高度成正比（约每格 1.5 tick，慢速坠落更明显）
+                    var dropTicks = Math.max(YANMOU_SWORD_DROP_TICK, Math.floor(dropHeight * 1.5));
+                    summonFlameSwordDrop(
+                        world, fallTarget, player,
+                        dropHeight, dropTicks,
+                        AOE_RADIUS, roundDamage
+                    );
+                }
+            }
+            tick++;
+        }
+    });
+    taskRef = new EyeTask().runTaskTimer(plugin, 0, 1);
+    world.playSound(player.getLocation(), SOUND_BEACON, 1.0, 0.8);
+    world.playSound(circleCenter, SOUND_BEACON, 1.2, 0.6);
+
+    // 焰眸施展也累计心霆（在成功释放后 +1）
+    addXinTingStack(player);
+}
+
+// ===================================================================
+// 剑霆（心霆状态左键）：在视线看向的方向召唤数道雷霆与大型紫色粒子爆发，
+//   命中目标/方块/最远 40 米处触发，命中处造成范围伤害并有粒子与声音
+// ===================================================================
+function castSwordThunder(player) {
+    var world = player.getWorld();
+    var eye = player.getEyeLocation();
+    var dir = eye.getDirection().normalize();
+
+    // 心霆状态释放：玩家脚下大型紫色粒子爆发 + 剑光发射声（蒸汽/扫击/气斩）
+    var footLoc = player.getLocation().add(0, 0.3, 0);
+    spawnDust(world, footLoc, 140, 2.4, 1.0, 2.4, 0, THUNDER_DUST);
+    spawnDust(world, footLoc, 80, 2.0, 0.8, 2.0, 0, THUNDER_DUST2);
+    world.spawnParticle(Particle.ELECTRIC_SPARK, footLoc, 60, 2.2, 1.0, 2.2, 0.05);
+    world.spawnParticle(Particle.CLOUD, footLoc, 40, 1.4, 0.6, 1.4, 0.08);
+    world.playSound(footLoc, SOUND_STEAM, 1.0, 1.6);
+    world.playSound(footLoc, SOUND_SWEEP, 0.6, 1.8);
+    world.playSound(footLoc, SOUND_WITHER_SHOOT, 0.8, 1.2);
+
+    // 视线射线检测（命中目标或方块，最远 JIANTING_RANGE = 40 米）
+    var rayHit = world.rayTrace(
+        eye, dir, JIANTING_RANGE,
+        FluidCollisionMode.NEVER, false, 0.5,
+        function(ent) { return ent instanceof LivingEntity && ent != player; }
+    );
+    var endLoc = null;
+    if (rayHit != null) {
+        var hitPos = rayHit.getHitPosition();
+        endLoc = new (Java.type("org.bukkit.Location"))(world, hitPos.getX(), hitPos.getY(), hitPos.getZ());
+        var hitEntity = rayHit.getHitEntity();
+        if (hitEntity != null) endLoc = hitEntity.getLocation();
+    } else {
+        // 最远距离
+        endLoc = eye.clone().add(dir.clone().multiply(JIANTING_RANGE));
+    }
+    endLoc.setY(world.getHighestBlockYAt(endLoc.getBlockX(), endLoc.getBlockZ()) - 0.5);
+
+    // 数道雷霆：在命中点及周围随机召唤多道闪电
+    var thunderCount = 6;
+    for (var t = 0; t < thunderCount; t++) {
+        var strikeLoc = endLoc.clone().add(
+            (Math.random() - 0.5) * 3,
+            (Math.random() - 0.5) * 1.5,
+            (Math.random() - 0.5) * 3
+        );
+        world.strikeLightningEffect(strikeLoc);
+    }
+
+    // 大型紫色粒子爆发（FLASH 需要 Color 作为 data，否则报 missing required data class Color）
+    world.spawnParticle(Particle.FLASH, endLoc, 1, 0, 0, 0, 0, Color.fromRGB(255, 255, 255));
+    spawnDust(world, endLoc, 250, 4, 2, 4, 0.02, THUNDER_DUST);
+    spawnDust(world, endLoc, 120, 3, 1.5, 3, 0.02, THUNDER_DUST2);
+    world.spawnParticle(Particle.ELECTRIC_SPARK, endLoc, 150, 4, 2, 4, 0.06);
+    world.spawnParticle(Particle.SOUL_FIRE_FLAME, endLoc, 80, 3, 1.5, 3, 0.04);
+    // 命中的范围伤害
+    var hitAny = aoeDamageParam(world, endLoc, player, AOE_RADIUS, JIANTING_DAMAGE);
+
+    // 声音
+    world.playSound(endLoc, SOUND_THUNDER, 1.5, 0.7);
+    world.playSound(endLoc, SOUND_EXPLODE, 1.6, 0.8);
+    world.playSound(endLoc, SOUND_RESPAWN_ANCHOR_EXPLODE, 1.6, 0.8); // 命中处重生锚破碎声
+    if (hitAny) {
+        world.playSound(player.getLocation(), SOUND_THUNDER, 1.0, 0.9);
     }
 }
 
 // ===================================================================
-// 主入口函数：右键物品时触发三段剑技
+// 事件监听器注册（左键/右键检测，热重载安全）
 // ===================================================================
-/**
- * 处理玩家使用物品事件，实现“隐兰狂玉唤剑葫”的三段技能。
- * 每次右键根据点击计数依次释放第一剑（箭矢）、第二剑（火球）、第三剑（落雷+星弹），
- * 完成后计数归零，循环使用。同时进行冷却判定。
- * @param {PlayerInteractEvent} event - 交互事件对象
- */
-function onUse(event) {
-    var player = event.getPlayer();
-    var item = player.getInventory().getItemInMainHand();
-    if (!item || item.getType() === org.bukkit.Material.AIR) return;
-
-    // 确保是自定义Slimefun物品 "FKR_隐兰狂玉唤剑葫"
-    var sfItem = SlimefunItem.getByItem(item);
-    if (!sfItem || sfItem.getId() !== "FKR_隐兰狂玉唤剑葫") return;
-
-    var uuid = player.getUniqueId().toString();
-    var now = Date.now();
-    var lastUse = lastUseMap.get(uuid);
-    var clickCount = clickMap.containsKey(uuid) ? clickMap.get(uuid) : 0;
-
-    // 冷却检查
-    if (lastUse != null && (now - lastUse) < COOLDOWN_MS) {
-        var remaining = Math.ceil((COOLDOWN_MS - (now - lastUse)) / 1000);
-        player.sendActionBar("§c冷却中..." + remaining + "秒");
-        return;
-    }
-    // 更新最后使用时间
-    lastUseMap.put(uuid, now);
-
-    // --- 第一剑：散射箭矢 ---
-    if (clickCount === 0) {
-        player.sendMessage("§x§5§a§d§a§c§d第§x§5§a§c§7§d§1一§x§5§a§b§4§d§6剑§x§5§a§a§1§d§a出§x§5§a§8§e§d§e—§x§5§a§7§b§e§3—§x§5§9§6§8§e§7—§x§5§9§5§5§e§b—§x§5§9§4§2§f§0俱§x§5§9§2§f§f§4怀§x§5§9§1§c§f§8逸§x§5§9§0§9§f§d兴§x§5§5§0§7§f§f壮§x§4§d§1§5§f§f思§x§4§6§2§3§f§f飞§x§3§e§3§0§f§f，§x§3§6§3§e§f§f欲§x§2§e§4§c§f§f上§x§2§7§5§a§f§f青§x§1§f§6§8§f§f天§x§1§7§7§6§f§f揽§x§0§f§8§3§f§f明§x§0§8§9§1§f§f月§x§0§0§9§f§f§f！");
-
-        var world = player.getWorld();
-        var eyeLoc = player.getEyeLocation();
-        var baseDir = eyeLoc.getDirection().normalize();
-
-        // 构建局部坐标系：前方向（baseDir）、右方向、上方向
-        var worldUp = new Vector(0, 1, 0);
-        var right = baseDir.clone().crossProduct(worldUp).normalize();
-        // 防止方向向量恰好竖直导致右向量为零
-        if (right.lengthSquared() < 0.001) right = new Vector(1, 0, 0);
-        var up = right.clone().crossProduct(baseDir).normalize();
-
-        // 主箭矢：沿玩家视线正前方
-        fireSwordArrow(world, eyeLoc, baseDir, player, true);
-
-        // 5根散射箭矢：在主箭方向周围随机偏移
-        for (var i = 0; i < SWORD_ARROW_COUNT - 1; i++) {
-            var angle = Math.random() * 2 * Math.PI;
-            var dist = SWORD_SCATTER_MIN + Math.random() * (SWORD_SCATTER_MAX - SWORD_SCATTER_MIN);
-            // 在垂直于视线的平面上生成随机偏移向量
-            var offset = right.clone().multiply(dist * Math.cos(angle))
-                         .add(up.clone().multiply(dist * Math.sin(angle)));
-            var spawnLoc = eyeLoc.clone().add(offset);
-            // 散射方向：主方向加上小偏移，使箭矢略微向外扩散
-            var scatterDir = baseDir.clone().add(offset.clone().multiply(0.1)).normalize();
-            fireSwordArrow(world, spawnLoc, scatterDir, player, false);
+var huanjianhuListener = new (Java.extend(Listener, {}))();
+var RunnableImpl = Java.extend(Java.type('java.lang.Runnable'));
+var initListener = new RunnableImpl({
+    run: function() {
+        // 热重载时先注销旧监听器
+        if (plugin.huanjianhuListenerRegistered === true && plugin.huanjianhuListener != null) {
+            try { PlayerInteractEvent.getHandlerList().unregister(plugin.huanjianhuListener); } catch (e) {}
         }
+        plugin.huanjianhuListener = huanjianhuListener;
+        plugin.huanjianhuListenerRegistered = true;
 
-    // --- 第二剑：散射火球 ---
-    } else if (clickCount === 1) {
-        player.sendMessage("§x§5§a§d§a§c§d第§x§6§8§d§b§c§d二§x§7§7§d§c§c§d剑§x§8§5§d§d§c§e落§x§9§3§d§d§c§e—§x§a§2§d§e§c§e—§x§b§0§d§f§c§e—§x§b§e§e§0§c§e君§x§c§d§e§1§c§e去§x§d§b§e§2§c§f沧§x§e§9§e§3§c§f江§x§f§8§e§4§c§f望§x§f§f§d§e§c§7澄§x§f§f§d§1§b§7碧§x§f§f§c§4§a§7，§x§f§f§b§8§9§7鲸§x§f§f§a§b§8§7鲵§x§f§f§9§e§7§7唐§x§f§f§9§1§6§8突§x§f§f§8§5§5§8留§x§f§f§7§8§4§8馀§x§f§f§6§b§3§8迹§x§f§f§5§f§2§8§x§f§f§5§2§1§8！");
-        var world = player.getWorld();
-        // 发射点位于玩家眼睛位置上方FIREBALL_LAUNCH_Y格
-        var launchLoc = player.getEyeLocation().clone().add(0, FIREBALL_LAUNCH_Y, 0);
-        var dir = player.getEyeLocation().getDirection().clone();
-        var maxAngleRad = (FIREBALL_ANGLE / 2) * Math.PI / 180; // 半角弧度
+        // PlayerInteractEvent：左键 -> 剑光/剑霆（右键由 onUse 处理焰眸）
+        Bukkit.getPluginManager().registerEvent(
+            PlayerInteractEvent,
+            huanjianhuListener,
+            EventPriority.NORMAL,
+            function (l, event) {
+                try {
+                    var player = event.getPlayer();
+                    if (!isHoldingItem(player)) return;
+                    var actionName = event.getAction().name();
+                    var hand = event.getHand();
+                    if (hand == null || hand.name() !== "HAND") return;
 
-        // 构建局部坐标系
-        var worldUp = new Vector(0, 1, 0);
-        var right = dir.clone().crossProduct(worldUp).normalize();
-        if (right.lengthSquared() < 0.001) right = new Vector(1, 0, 0);
-        var up = right.clone().crossProduct(dir).normalize();
+                    // 只处理左键
+                    if (actionName !== "LEFT_CLICK_AIR" && actionName !== "LEFT_CLICK_BLOCK") return;
 
-        // 依次延时发射火球
-        for (var i = 0; i < FIREBALL_COUNT; i++) {
-            var delay = i * FIREBALL_INTERVAL;
-            // 在圆锥范围内随机生成火球方向
-            var angle = Math.random() * maxAngleRad;          // 偏移角度
-            var theta = Math.random() * 2 * Math.PI;          // 旋转角
-            var offset = right.clone().multiply(Math.cos(theta) * Math.tan(angle))
-                                  .add(up.clone().multiply(Math.sin(theta) * Math.tan(angle)));
-            var fbDir = dir.clone().add(offset).normalize();
-            var isMain = (i === 0); // 仅第一个火球发送提示
-            // 使用闭包捕获当前延迟和方向
-            (function(delay, fbDir, isMain) {
-                var FireTask = Java.extend(BukkitRunnable, {
-                    run: function() { spawnFireball(player, launchLoc, fbDir, isMain); }
-                });
-                new FireTask().runTaskLater(plugin, delay);
-            })(delay, fbDir, isMain);
-        }
-
-    // --- 第三剑：落雷 + 星弹连射 ---
-    } else if (clickCount === 2) {
-        // 如果之前有第三剑任务未结束，先取消
-        var oldTasks = thirdSwordTasks.get(uuid);
-        if (oldTasks) {
-            try { oldTasks.lightning.cancel(); } catch(e) {}
-            try { oldTasks.star.cancel(); } catch(e) {}
-            try { oldTasks.stop.cancel(); } catch(e) {}
-        }
-
-        player.sendMessage("§x§5§a§d§a§c§d第§x§5§1§e§0§d§2三§x§4§8§e§5§d§7剑§x§3§f§e§b§d§c，§x§3§6§f§0§e§1成§x§2§d§f§6§e§6—§x§2§5§f§c§e§b—§x§6§b§f§f§f§4列§x§6§9§e§e§f§6缺§x§6§7§d§d§f§7霹§x§6§5§c§d§f§9雳§x§6§3§b§c§f§b，§x§6§1§a§b§f§c丘§x§5§f§9§a§f§e峦§x§6§0§8§d§f§f崩§x§6§4§8§3§f§f摧§x§6§8§7§9§f§f.§x§6§c§6§f§f§f.§x§7§0§6§5§f§f.§x§7§4§5§b§f§f素§x§7§8§5§1§f§f手§x§8§d§5§5§f§7把§x§a§2§5§9§e§f芙§x§b§6§5§d§e§7蓉§x§c§b§6§1§d§f，§x§e§0§6§5§d§7虚§x§f§5§6§9§c§f步§x§f§f§7§6§c§2蹑§x§f§f§8§d§b§0太§x§f§f§a§4§9§e清§x§f§f§b§b§8§b？§x§f§f§d§1§7§9缓§x§f§f§e§8§6§7步§x§f§f§f§f§5§5凌§x§f§f§f§6§5§5虚§x§f§f§e§d§5§5御§x§f§f§e§4§5§5风§x§f§f§d§b§5§6雷§x§f§f§d§2§5§6，§x§f§f§c§9§5§6凌§x§f§f§b§9§5§3空§x§f§f§a§3§4§e飞§x§f§f§8§d§4§9戟§x§f§f§7§7§4§4逐§x§f§f§6§1§3§f风§x§f§f§4§b§3§a云§x§f§f§3§5§3§5！");
-        player.sendMessage("§x§f§b§f§f§6§1§l剑霆，彻万川！");
-
-        // 给予玩家漂浮和缓降效果，模拟凌空状态
-        player.addPotionEffect(new PotionEffect(TYPE_LEVITATION, LEVITATION_DURATION, LEVITATION_LEVEL, false));
-        player.addPotionEffect(new PotionEffect(TYPE_SLOW_FALLING, SLOW_FALLING_DURATION, SLOW_FALLING_LEVEL, false));
-
-        var world = player.getWorld();
-
-        // --- 落雷任务 ---
-        var counter = 0;
-        var lightningTaskRef = null;
-        var LightningTask = Java.extend(BukkitRunnable, {
-            run: function() {
-                if (counter >= LIGHTNING_ROUNDS) {
-                    if (lightningTaskRef != null) {
-                        try { lightningTaskRef.cancel(); } catch(e) {}
+                    var now = Date.now();
+                    var uuid = player.getUniqueId().toString();
+                    // 左键再装填（防连点重复触发）
+                    if (leftClickCdMap.containsKey(uuid) && (now - leftClickCdMap.get(uuid)) < JIANGUANG_CD_MS) return;
+                    leftClickCdMap.put(uuid, now);
+                    if (isXinTingState(player)) {
+                        castSwordThunder(player); // 心霆状态下左键施展剑霆
+                    } else {
+                        castSwordLight(player);    // 普通左键施展剑光
                     }
-                    return;
+                } catch (e) {
+                    plugin.getLogger().warning("[隐兰狂玉唤剑葫] 交互异常: " + e);
+                    try {
+                        var sw = new (Java.type("java.io.StringWriter"))();
+                        var pw = new (Java.type("java.io.PrintWriter"))(sw);
+                        if (e.printStackTrace) { e.printStackTrace(pw); }
+                        else if (e.getCause && e.getCause().printStackTrace) { e.getCause().printStackTrace(pw); }
+                        else { sw.write(String(e)); }
+                        plugin.getLogger().warning("[隐兰狂玉唤剑葫] stacktrace:\n" + sw.toString());
+                    } catch (e2) {}
                 }
-                // 在玩家周围随机位置生成多道闪电效果（无实体伤害，纯视觉效果）
-                for (var l = 0; l < LIGHTNING_PER_ROUND; l++) {
-                    var angle = Math.random() * 2 * Math.PI;
-                    var dist = LIGHTNING_RANGE_MIN + Math.random() * (LIGHTNING_RANGE_MAX - LIGHTNING_RANGE_MIN);
-                    var x = player.getLocation().getX() + Math.cos(angle) * dist;
-                    var z = player.getLocation().getZ() + Math.sin(angle) * dist;
-                    var y = world.getHighestBlockYAt(Math.floor(x), Math.floor(z));
-                    var loc = new Location(world, x, y, z);
-                    world.strikeLightningEffect(loc); // 仅视觉效果，不造成伤害/火
-                    world.playSound(loc, SOUND_THUNDER, 0.8, 0.7);
-                }
-                counter++;
-            }
-        });
-        lightningTaskRef = new LightningTask().runTaskTimer(plugin, 0, LIGHTNING_INTERVAL);
-
-        // --- 星弹连射任务 ---
-        var StarTask = Java.extend(BukkitRunnable, {
-            run: function() {
-                var eyeLoc = player.getEyeLocation();
-                var dir = eyeLoc.getDirection().normalize();
-                fireStar(world, eyeLoc, dir, player);
-            }
-        });
-        var starBukkitTask = new StarTask().runTaskTimer(plugin, 0, STAR_INTERVAL);
-
-        // --- 定时停止星弹任务 ---
-        var StopStar = Java.extend(BukkitRunnable, {
-            run: function() {
-                try { starBukkitTask.cancel(); } catch(e) {}
-            }
-        });
-        var stopTaskRef = new StopStar().runTaskLater(plugin, STAR_DURATION);
-
-        // 保存任务引用，以便再次触发第三剑时能够取消旧任务
-        thirdSwordTasks.put(uuid, {
-            lightning: lightningTaskRef,
-            star: starBukkitTask,
-            stop: stopTaskRef
-        });
+            },
+            plugin
+        );
     }
+});
+Bukkit.getScheduler().runTask(plugin, initListener);
+Bukkit.getScheduler().runTask(plugin, new RunnableImpl({ run: startXinTingDecay }));
+Bukkit.getScheduler().runTask(plugin, new RunnableImpl({ run: startXinTingBarTicker }));
 
-    // 更新点击计数（0 -> 1 -> 2 -> 0 循环）
-    clickMap.put(uuid, (clickCount + 1) % 3);
+// ===================================================================
+// 右键入口（onUse）：施展焰眸
+// ===================================================================
+function onUse(event) {
+    try {
+        var player = event.getPlayer();
+        if (!isHoldingItem(player)) return;
+        // 心霆状态期间只能左键施展剑霆，右键无效
+        if (isXinTingState(player)) {
+            player.sendActionBar(MSG_XINTING_RIGHT_BLOCKED);
+            return;
+        }
+        castFlameEye(player);
+    } catch (e) {
+        plugin.getLogger().warning("[隐兰狂玉唤剑葫] onUse异常: " + e);
+    }
 }

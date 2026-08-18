@@ -4538,7 +4538,7 @@ FKR_伏地:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 8
+          amount: 12
 
 FKR_风墟龙冕:
   lateInit: false
@@ -4574,7 +4574,7 @@ FKR_风墟龙冕:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 8
+          amount: 12
 
 FKR_无锋破军:
   lateInit: false
@@ -4607,15 +4607,15 @@ FKR_无锋破军:
           noConsume: true
         2:
           material: netherite_block
-          amount: 32
+          amount: 48
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 8
+          amount: 12
         3:
           material_type: slimefun
           material: TSzjg
-          amount: 64
+          amount: 48
 
 FKR_ASPL:
   lateInit: false
@@ -4647,11 +4647,11 @@ FKR_ASPL:
         2:
           material_type: slimefun
           material: UMPV_浮沉盐海的阖眸
-          amount: 4
+          amount: 5
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 8
+          amount: 12
 
 FKR_隐兰狂玉唤剑葫:
   lateInit: false
@@ -4666,12 +4666,15 @@ FKR_隐兰狂玉唤剑葫:
     - '&#fff5b3使用使用大量耗材打造的贵金属制异能武器；'
     - '&#fff5b3本体为一种仪式用器，但依然锋锐无比，难以磨损，'
     - '&#fff5b3如果挥舞方式得当，或能唤出一丝最初打造者希望为其赋予的神韵？'
-    - '&#fff5b3虽然在群星时代，个人武力已经十分无力，但文明与传承仍然是虚无主义的良药。'
-    - '&f持剑，只道：&#31c7e7兰&#34c0e8香&#37bae8隐&#39b3e9幽&#3cade9谷&#3fa6ea，&#42a0ea玉&#4599eb骨&#4893eb自&#4a8ceb疏&#4d86ec狂&#507fed，&#5378ed葫&#5672ee中&#586bee剑&#5b65ef鸣&#5e5eef.&#6158f0.&#6451f0.&#674bf1一&#6944f1念&#6c3ef2出&#6f37f2！'
+    - '&#fff5b3群星时代，个人武力的孱弱也无法阻止文明与传承的跌宕。'
+    - '  &#31c7e7兰&#34c0e8香&#37bae8隐&#39b3e9幽&#3cade9谷&#3fa6ea，&#42a0ea玉&#4599eb骨&#4893eb自&#4a8ceb疏&#4d86ec狂&#507fed，&#5378ed葫&#5672ee中&#586bee剑&#5b65ef鸣&#5e5eef.&#6158f0.&#6451f0.&#674bf1一&#6944f1念&#6c3ef2出&#6f37f2！'
     - '&f[&#96bed6序列&f] &f异能武器 第五'
-    - '&f[&#96d6a7特效&f] &f五秒一次，轮流释放光/火/霆三剑。'
-    - '&f光剑将唤起六道剑光向前发射造成&c 90 &f伤害。 | 火剑将在头顶召唤焰眸，发射九枚火球造成&c 90 &f伤害。'
-    - '&f霆剑释放后进入心霆状态，缓慢升空，生成30米劫场且每秒发射两簇雷魂造成 &c90&f 伤害，持续10秒。'
+    - '&f[&#96d6a7特效&f] &f满冷却左键施展剑光，右键施展焰眸，每次施展增加1层&e[心霆]&f。'
+    - '&f[&#96d6a7特效&f] &f剑光：向前发射一道剑光，命中后召唤白剑从天而降造成&c70 &f伤害。'
+    - '&f[&#96d6a7特效&f] &f焰眸：在前方高空召唤法阵，法阵在3秒内每0.5秒对敌人位置发射一道红剑落下造成&c500 &f伤害，单次最多5道，冷却6秒。'
+    - '&f红剑的伤害根据红剑的数量变化，一道时每把造成&c500 &f伤害，五道时每把造成&c100 &f伤害。'
+    - '&f[&e心霆&f] &f到达9层后，自动进入持续10秒的心霆状态，缓慢升空，期间内只能左键施展剑霆。'
+    - '&f[&#96d6a7特效&f] &f剑霆：发射一簇剧烈的雷魂剑，对目光所视目标落雷造成&c100 &f伤害。'
   script: 武器/隐兰狂玉唤剑葫
   recipe_type: PF_DZC
   recipe:
@@ -4683,15 +4686,15 @@ FKR_隐兰狂玉唤剑葫:
         2:
           material_type: slimefun
           material: TSgj5
-          amount: 6
+          amount: 16
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 6
+          amount: 16
         4:
           material_type: slimefun
           material: lscs3
-          amount: 9
+          amount: 24
 
 
 #################################################################

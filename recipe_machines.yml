@@ -22062,7 +22062,7 @@ FKR_锻造锤:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 8
+          amount: 12
 
       output:
         1:
@@ -22084,11 +22084,36 @@ FKR_锻造锤:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 8
+          amount: 12
       output:
         1:
           material_type: slimefun
           material: FKR_风墟龙冕
+          amount: 1
+    wfj:
+      seconds: 3
+      input:
+        1:
+          material_type: slimefun
+          material: FKR_特殊模板
+          amount: 1
+          noConsume: true
+        2:
+          material_type: slimefun
+          material: netherite_block
+          amount: 48
+        3:
+          material_type: slimefun
+          material: TSxl5
+          amount: 12
+        4:
+          material_type: slimefun
+          material: TSzjg
+          amount: 48
+      output:
+        1:
+          material_type: slimefun
+          material: FKR_无锋破军
           amount: 1
     hjh:
       seconds: 3
@@ -22101,15 +22126,15 @@ FKR_锻造锤:
         2:
           material_type: slimefun
           material: TSgj5
-          amount: 6
+          amount: 16
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 6
+          amount: 16
         4:
           material_type: slimefun
           material: lscs3
-          amount: 9
+          amount: 24
       output:
         1:
           material_type: slimefun
@@ -22126,11 +22151,11 @@ FKR_锻造锤:
         2:
           material_type: slimefun
           material: UMPV_浮沉盐海的阖眸
-          amount: 4
+          amount: 5
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 8
+          amount: 12
       output:
         1:
           material_type: slimefun

@@ -10,6 +10,7 @@ al_q_a1:
   item:
     name: "&#e0e5ff额&#d0dbf7外&#c1d2ee信&#b1c8e6息 &b作者的话"
     material: paper
+    modelId: 1210001
     glow: true
     lore:
     - '&#fff5b3附属的不同功能的机器与物品间的分类以势力分类，'
@@ -32,6 +33,7 @@ al_q_a2:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会"
     material: BOOK
+    modelId: 1210002
     glow: true
     lore:
     - '&b星座&9：&b银河系全域'
@@ -54,6 +56,7 @@ al_q_a3:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#6993ff关&#4a9aff于&#2aa2ff设&#0ba9ff定"
     material: BOOK
+    modelId: 1210003
     glow: true
     lore:
     - '&#7cf4ec唯一作者：'
@@ -79,6 +82,7 @@ al_q_log1:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee71&#4fc8e1.&#49c1db0&#42bad5.&#3bb4cf0&#35adc9更&#2ea6c3新&#28a0bd日&#2199b7志"
     material: map
+    modelId: 1210004
     glow: true
     lore:
     - '&b时间：&f2026 5 20'
@@ -105,6 +109,7 @@ al_q_log2:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee71&#4fc8e1.&#49c1db0&#42bad5.&#3bb4cf1&#35adc9更&#2ea6c3新&#28a0bd日&#2199b7志"
     material: map
+    modelId: 1210005
     glow: true
     lore:
     - '&b时间：&f2026 5 24'
@@ -127,6 +132,7 @@ al_q_log3:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee71&#4fc8e1.&#49c1db1&#42bad5.&#3bb4cf0&#35adc9更&#2ea6c3新&#28a0bd日&#2199b7志"
     material: map
+    modelId: 1210006
     glow: true
     lore:
     - '&b时间：&f2026 5 28'
@@ -148,6 +154,7 @@ al_q_log4:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee72.1.0更新日志"
     material: map
+    modelId: 1210007
     glow: true
     lore:
     - '&b时间：&f2026 6 2'
@@ -167,6 +174,7 @@ al_q_log5:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff982.2.0"
     material: map
+    modelId: 1210008
     glow: true
     lore:
     - '&b时间：&f2026年6月12日'
@@ -190,6 +198,7 @@ al_q_log6:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff982.3.0"
     material: map
+    modelId: 1210009
     glow: true
     lore:
     - '&b时间：&f2026年6月18日'
@@ -209,6 +218,7 @@ al_q_log7:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff983.1.0"
     material: map
+    modelId: 1210010
     glow: true
     lore:
     - '&b时间：&f2026年6月23日'
@@ -225,6 +235,7 @@ al_q_log8:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff983.1.1"
     material: map
+    modelId: 1210011
     glow: true
     lore:
     - '&b时间：&f2026年6月29日'
@@ -243,6 +254,7 @@ al_q_log9:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff983.2.0"
     material: map
+    modelId: 1210012
     glow: true
     lore:
     - '&b时间：&f2026年7月10日'
@@ -264,6 +276,7 @@ al_q_log10:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff983.2.2"
     material: map
+    modelId: 1210013
     glow: true
     lore:
     - '&b时间：&f2026年7月15日'
@@ -279,6 +292,7 @@ al_q_log11:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff983.2.3"
     material: map
+    modelId: 1210014
     glow: true
     lore:
     - '&b时间：&f2026年7月17日'
@@ -296,6 +310,7 @@ al_q_log12:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff984.0.0"
     material: glow_item_frame
+    modelId: 1210015
     glow: true
     lore:
     - '&b时间：&f2026年8月17日'
@@ -321,6 +336,7 @@ al_q_log13:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#7ad3edG&#78c6edL&#75b9ecT&#73acecC&#70a0ec更&#6e93ec新&#6b86eb日&#6979eb志 &#f9ff984.0.1"
     material: glow_item_frame
+    modelId: 1210016
     glow: true
     lore:
     - '&b时间：&f2026年8月18日'
@@ -337,6 +353,7 @@ al_q_ato:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#ff5300A&#ff5600T&#ff5900O&#ff5d00公&#ff6000开&#ff6300技&#ff6600术&#ff6900管&#ff6d00理&#ff7000协&#ff7300会"
     material: BOOK
+    modelId: 1210017
     glow: true
     lore:
     - '&b星座&9：&b银河系全域'
@@ -352,6 +369,7 @@ al_q_ts:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#cc00ff星&#c400ff渊&#bc00ff造&#b400ff物&#ab00ff™&#a300ff银&#9b00ff河&#9300ff遗&#a200f9产&#b200f2技&#c100ec术&#d100e5管&#e000df控&#f000d8公&#ff00d2司"
     material: BOOK
+    modelId: 1210018
     glow: true
     lore:
     - '&b星座&9：&b银河系全域'
@@ -370,6 +388,7 @@ AL_A1:
   item:
     name: "&b基本地层物质"
     material: cobblestone_wall
+    modelId: 1210019
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -387,6 +406,7 @@ AL_A2:
   item:
     name: "&b基本金属物质"
     material: diorite_wall
+    modelId: 1210020
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -404,6 +424,7 @@ AL_A3:
   item:
     name: "&b基本有机物质"
     material: prismarine_wall
+    modelId: 1210021
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -421,6 +442,7 @@ AL_A4:
   item:
     name: "&#0085f2简单晶体单元"
     material: cyan_candle
+    modelId: 1210022
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -438,6 +460,7 @@ AL_A5:
   item:
     name: "&#0085f2简单编织单元"
     material: white_candle
+    modelId: 1210023
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -455,6 +478,7 @@ AL_A6:
   item:
     name: "&#0085f2简单能量单元"
     material: red_candle
+    modelId: 1210024
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -473,6 +497,7 @@ AL_B1:
     name: "&#ea2eff基础涵粒子容器"
     material_type: skull_hash
     material: 27d54417b8f5041e488ea56fe5bcca6c3be7de2dd8448780d9e05afcba749c45
+    modelId: 1210025
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -496,6 +521,7 @@ GLTC_银行卡:
   item:
     name: "&#e8ff8c能&#c1faa9源&#99f6c6流&#72f1e2信&#4aecff用&#4bceff储&#4cb0ff蓄&#4c92ff凭&#4d74ff证"
     material: recovery_compass
+    modelId: 1210026
     glow: true
     lore:
     - '&b归属&9：&#ff25f1G&#d22af5L&#a52ff9T&#7834fdC&#584cff联&#4576ff合&#319fff协&#1ec9ff议'
@@ -521,6 +547,7 @@ GG板子:
   item:
     name: "&bGG板子"
     material: comparator
+    modelId: 1210027
     glow: true
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
@@ -537,6 +564,7 @@ al_xt1:
   item:
     name: "&d未明星图"
     material: BC_xt1
+    modelId: 1210028
     material_type: saveditem
     glow: true
     lore:
@@ -557,6 +585,7 @@ al_xt2:
   item:
     name: "&7陨落星图"
     material: BC_xt2
+    modelId: 1210029
     material_type: saveditem
     glow: true
     lore:
@@ -577,6 +606,7 @@ al_xt3:
   item:
     name: "&#ff4000怒晖星图"
     material: BC_xt3
+    modelId: 1210030
     material_type: saveditem
     glow: true
     lore:
@@ -597,6 +627,7 @@ al_xt4:
   item:
     name: "&#99ff00风眼星图"
     material: BC_xt4
+    modelId: 1210031
     material_type: saveditem
     glow: true
     lore:
@@ -617,6 +648,7 @@ al_xt5:
   item:
     name: "&a四想星图"
     material: BC_xt5
+    modelId: 1210032
     material_type: saveditem
     glow: true
     lore:
@@ -637,6 +669,7 @@ al_xt缪尔罗素:
   item:
     name: "&#ba0000炼&#d10000诏&#e80000拳&#ff0000星图"
     material: BC_星图_缪尔罗素
+    modelId: 1210033
     material_type: saveditem
     glow: true
     lore:
@@ -657,6 +690,7 @@ al_xt奥史莱特:
   item:
     name: "&2由蕨星图"
     material: BC_星图_奥史莱特
+    modelId: 1210034
     material_type: saveditem
     glow: true
     lore:
@@ -677,6 +711,7 @@ al_xt魔药联合:
   item:
     name: "&#f73cdf涟音星图"
     material: BC_星图_魔药联合
+    modelId: 1210035
     material_type: saveditem
     glow: true
     lore:
@@ -697,6 +732,7 @@ al_xt乎维米亚:
   item:
     name: "&#7efff4琴&#76d8fa廊&#6db0ff星图"
     material: BC_星图_乎维米亚
+    modelId: 1210036
     material_type: saveditem
     glow: true
     lore:
@@ -716,6 +752,7 @@ al_xt远征舰:
   item:
     name: "&#ff59da风&#fd81e6海&#fca8f3深&#fad0ff渊&#e2acff星&#ca89ff图"
     material: BC_星图_远征舰
+    modelId: 1210037
     material_type: saveditem
     glow: true
     lore:
@@ -741,6 +778,7 @@ ntts1:
   item:
     name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &e常规蓝图"
     material: paper
+    modelId: 1210038
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -759,6 +797,7 @@ ntts2:
   item:
     name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &e机密蓝图"
     material: map
+    modelId: 1210039
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -777,6 +816,7 @@ ntts3:
   item:
     name: "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &e独特蓝图"
     material: burn_pottery_sherd
+    modelId: 1210040
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -795,6 +835,7 @@ ntls1:
   item:
     name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &e常规蓝图"
     material: paper
+    modelId: 1210041
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -813,6 +854,7 @@ ntls2:
   item:
     name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &e机密蓝图"
     material: map
+    modelId: 1210042
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -831,6 +873,7 @@ ntls3:
   item:
     name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &e独特蓝图"
     material: plenty_pottery_sherd
+    modelId: 1210043
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -849,6 +892,7 @@ nteae1:
   item:
     name: "&#eac92fE&#df7b21A&#d42d13E &e常规蓝图"
     material: paper
+    modelId: 1210044
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -867,6 +911,7 @@ nteae2:
   item:
     name: "&#eac92fE&#df7b21A&#d42d13E &e机密蓝图"
     material: map
+    modelId: 1210045
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -885,6 +930,7 @@ nteae3:
   item:
     name: "&#eac92fE&#df7b21A&#d42d13E &e独特蓝图"
     material: miner_pottery_sherd
+    modelId: 1210046
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -903,6 +949,7 @@ ntfkr1:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &e常规蓝图"
     material: paper
+    modelId: 1210047
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -921,6 +968,7 @@ ntfkr2:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &e机密蓝图"
     material: map
+    modelId: 1210048
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -939,6 +987,7 @@ ntfkr3:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &e独特蓝图"
     material: scrape_pottery_sherd
+    modelId: 1210049
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -957,6 +1006,7 @@ ntumpv1:
   item:
     name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &e常规蓝图"
     material: paper
+    modelId: 1210050
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -975,6 +1025,7 @@ ntumpv2:
   item:
     name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &e机密蓝图"
     material: map
+    modelId: 1210051
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -993,6 +1044,7 @@ ntumpv3:
   item:
     name: "&#ff40faU&#f34ffcM&#e65dfdP&#da6cffV &e独特蓝图"
     material: brewer_pottery_sherd
+    modelId: 1210052
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1011,6 +1063,7 @@ ntost1:
   item:
     name: "&#10eb15O&#19c917S&#22a719T &e常规蓝图"
     material: paper
+    modelId: 1210053
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1029,6 +1082,7 @@ ntost2:
   item:
     name: "&#10eb15O&#19c917S&#22a719T &e机密蓝图"
     material: map
+    modelId: 1210054
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1047,6 +1101,7 @@ ntost3:
   item:
     name: "&#10eb15O&#19c917S&#22a719T &e独特蓝图"
     material: heart_pottery_sherd
+    modelId: 1210055
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1065,6 +1120,7 @@ nthinet1:
   item:
     name: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &e常规蓝图"
     material: paper
+    modelId: 1210056
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1083,6 +1139,7 @@ nthinet2:
   item:
     name: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &e机密蓝图"
     material: map
+    modelId: 1210057
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1101,6 +1158,7 @@ nthinet3:
   item:
     name: "&#a0ff40H&#93ff76I&#86ffabn&#69dfd5e&#4cbefft &e独特蓝图"
     material: arms_up_pottery_sherd
+    modelId: 1210058
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1119,6 +1177,7 @@ ntskey1:
   item:
     name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &e常规蓝图"
     material: paper
+    modelId: 1210059
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1137,6 +1196,7 @@ ntskey2:
   item:
     name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &e机密蓝图"
     material: map
+    modelId: 1210060
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1155,6 +1215,7 @@ ntskey3:
   item:
     name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &e独特蓝图"
     material: explorer_pottery_sherd
+    modelId: 1210061
     glow: true
     lore:
     - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
@@ -1177,6 +1238,7 @@ al_q_tsb:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#00ff9f白&#2dff7d铃&#5aff5b山&#87ff39矿&#b4ff17业&#c3fa12&&#96e949霆&#69d980石&#3cc8b6国&#0fb8ed立&#01a3ff军&#048cff重&#0675ff工&#085eff业&#0a47ff群"
     material: BOOK
+    modelId: 1210062
     glow: true
     lore:
     - '&b星座&9：&c怒晖座'
@@ -1197,6 +1259,7 @@ TSyjt:
     name: "&b熔岩储罐"
     material_type: skull_hash
     material: 891183efb941c57c6a37f61c94e25b44b67a804452e02a0d2996deda6d20d7c6
+    modelId: 1210063
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
     - '&#fff5b3一桶十分普通的岩浆，大概。'
@@ -1214,6 +1277,7 @@ TSjst:
     name: "&b净水储罐"
     material_type: skull_hash
     material: 54421782fa9e041ca8cce6aac3a0b337ecc1b971b168ecbeef68b8813ee396db
+    modelId: 1210064
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
     - '&#fff5b3一桶十分普通的净水，大概。'
@@ -1231,6 +1295,7 @@ TSllg:
     name: "&b再充能能量单元"
     material_type: skull_hash
     material: 7ade76f5d591632d9324ab99d747251ca3747e04caf41d0370f850f9ec87a13d
+    modelId: 1210065
     lore:
     - '&b归属&9： &#ff5300A&#ff5b00T&#ff6300O&#ff6b00协&#ff7300会'
     - '&#fff5b3再加工过的能量单元，能更少的造成加工中时产生的化学影响。'
@@ -1246,6 +1311,7 @@ TStl:
   item:
     name: "&#92b4cfα原矿 &#4687e8银泰拉矿"
     material: deepslate_iron_ore
+    modelId: 1210066
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3银色的富金属矿石，'
@@ -1264,6 +1330,7 @@ TSsy:
   item:
     name: "&#92b4cfα原矿 &#4687e8水源质层岩"
     material: deepslate_diamond_ore
+    modelId: 1210067
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3半透明的凝固晶体矿石，'
@@ -1282,6 +1349,7 @@ TSg:
   item:
     name: "&#92b4cfα原矿 &#4687e8锆居石"
     material: deepslate_copper_ore
+    modelId: 1210068
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3颜色复杂的变质稀土矿物，'
@@ -1300,6 +1368,7 @@ TShh:
   item:
     name: "&#af92cfβ原矿 &#a746e8花海磺英"
     material: nether_gold_ore
+    modelId: 1210069
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3绚丽多彩的奇特火成岩矿物，'
@@ -1318,6 +1387,7 @@ TSyy:
   item:
     name: "&#af92cfβ原矿 &#a746e8忧郁物质"
     material: crying_obsidian
+    modelId: 1210070
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3颜色深邃的逆气态结晶物质，'
@@ -1336,6 +1406,7 @@ TStj:
   item:
     name: "&#ffc894γ原矿 &#ff824d“天界魔素”"
     material: flowering_azalea_leaves
+    modelId: 1210071
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3类似植物生长而形成特殊结构的有机金属矿，'
@@ -1354,6 +1425,7 @@ TSbd:
   item:
     name: "&#92b4cfα金属 &#4687e8铋锭"
     material: iron_ingot
+    modelId: 1210072
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3高密度的银白光泽金属，'
@@ -1372,6 +1444,7 @@ TStls:
   item:
     name: "&#92b4cfα矿产 &#4687e8蓝泰拉石"
     material: lapis_lazuli
+    modelId: 1210073
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3玛瑙质地的蓝色宝石，'
@@ -1390,6 +1463,7 @@ TSnd:
   item:
     name: "&#92b4cfα金属 &#4687e8烙锭"
     material: gold_ingot
+    modelId: 1210074
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3多种元素组成的轻合金，'
@@ -1408,6 +1482,7 @@ TSjj:
   item:
     name: "&#92b4cfα矿产 &#4687e8水源结晶"
     material: diamond
+    modelId: 1210075
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3纯净透明的弧形宝石，'
@@ -1426,6 +1501,7 @@ TSgd:
   item:
     name: "&#92b4cfα金属 &#4687e8锆锭"
     material: copper_ingot
+    modelId: 1210076
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3橙红色细腻质地的金属，'
@@ -1444,6 +1520,7 @@ TSxt:
   item:
     name: "&#92b4cfα矿产 &#4687e8变质稀土淀粉"
     material: raw_copper
+    modelId: 1210077
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3颜色丰富的变质金属矿物，'
@@ -1462,6 +1539,7 @@ TSdbg:
   item:
     name: "&#af92cfβ金属 &#a746e8钴蛋白锭"
     material: iron_ingot
+    modelId: 1210078
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3通体银白、泛有隐约深蓝光泽的金属，'
@@ -1480,6 +1558,7 @@ TSbtl:
   item:
     name: "&#af92cfβ矿产 &#a746e8变态磷"
     material: fire_charge
+    modelId: 1210079
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一坨深色的凝固固态颗粒，'
@@ -1498,6 +1577,7 @@ TSjld:
   item:
     name: "&#af92cfβ金属 &#a746e8氢晶镎锭"
     material: nether_brick
+    modelId: 1210080
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3颜色深邃到有些恶心，反光性极差的变种金属，'
@@ -1516,6 +1596,7 @@ TSym:
   item:
     name: "&#af92cfβ矿产 &#a746e8“燕麦冰淇淋”"
     material: phantom_membrane
+    modelId: 1210081
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3黏糊糊、软糯糯的泛紫白色凝胶状物质，'
@@ -1534,6 +1615,7 @@ TSpjd:
   item:
     name: "&#ffc894γ金属 &#ff824d榆芒珀金锭"
     material: gold_ingot
+    modelId: 1210082
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3有着金属与木质结合质地的浅色金属，'
@@ -1552,6 +1634,7 @@ TSch:
   item:
     name: "&#ffc894γ矿产 &#ff824d炽花旋索"
     material: torchflower
+    modelId: 1210083
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3比热容极高的有机纤维质，'
@@ -1570,6 +1653,7 @@ TSld:
   item:
     name: "&#92b4cfα精炼质 &#4687e8缄默镧锭"
     material: gold_nugget
+    modelId: 1210084
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3具有对声波的独特性质；'
@@ -1588,6 +1672,7 @@ TSyd:
   item:
     name: "&#92b4cfα精炼质 &#4687e8噪点镱锭"
     material: gold_nugget
+    modelId: 1210085
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3具有对电子的独特性质；'
@@ -1606,6 +1691,7 @@ TSdd:
   item:
     name: "&#92b4cfα精炼质 &#4687e8锚定铥锭"
     material: gold_nugget
+    modelId: 1210086
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3具有对动量的独特性质；'
@@ -1624,6 +1710,7 @@ TSskd:
   item:
     name: "&#af92cfβ精炼质 &#a746e8斯卡蒂钙锭"
     material: netherite_scrap
+    modelId: 1210087
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3轻且透气，颜色较浅的金属，'
@@ -1642,6 +1729,7 @@ TSlks:
   item:
     name: "&#af92cfβ精炼质 &#a746e8熔融倪克斯胶"
     material: honeycomb
+    modelId: 1210088
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3具有粘稠外壳的深紫红色熔融化合物，'
@@ -1660,6 +1748,7 @@ TSymy:
   item:
     name: "&#af92cfβ精炼质 &#a746e8“燕麦”源质"
     material: chorus_fruit
+    modelId: 1210089
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3深紫色且散发浓郁燕麦味的未知成分混合物，'
@@ -1678,6 +1767,7 @@ TSdjl:
   item:
     name: "&#ffc894γ精炼质 &#ff824d巨角鹿王锭"
     material: prismarine_shard
+    modelId: 1210090
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一种具有独特纹路的多色合金，'
@@ -1696,6 +1786,7 @@ TSgwhs:
   item:
     name: "&#ffc894γ精炼质 &#ff824d高温厥化石"
     material: prismarine_crystals
+    modelId: 1210091
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3可用于燃料用途的颗粒状物质，'
@@ -1714,6 +1805,7 @@ TSthyy:
   item:
     name: "&#ffc894γ精炼质 &#ff824d氮化云英"
     material: raw_gold
+    modelId: 1210092
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一种特殊处理过的结晶化植物纤维纸团，'
@@ -1733,6 +1825,7 @@ TShel:
     glow: true
     name: "&#ffd1b8γ合金 &#ff906b煌锇镧锭"
     material: gold_ingot
+    modelId: 1210093
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3颜色绚烂，色泽艳丽的沉重合金'
@@ -1764,6 +1857,7 @@ TSmbh:
     glow: true
     name: "&#ffd1b8γ合金 &#fffa6b棉铂华锭"
     material: iron_ingot
+    modelId: 1210094
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3柔软且凹凸不平的可塑性金属，抚摸它就像抚摸布料，'
@@ -1795,6 +1889,7 @@ TSgls:
     glow: true
     name: "&#ffd1b8γ合金 &#7aff83戈灵铯锭"
     material: copper_ingot
+    modelId: 1210095
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3会呼吸的橙红色合金，随着时间变化密度缓缓起伏，'
@@ -1825,6 +1920,7 @@ TSzzrz:
   item:
     name: "&#92b4cfα副产物 &#4687e8浮点熔渣"
     material: wither_skeleton_skull
+    modelId: 1210096
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一坨又黑又臭的金属，'
@@ -1839,6 +1935,7 @@ TStgs:
     glow: true
     name: "&#ffd1b8γ²合金 &#ff5252通古斯锭"
     material: netherite_ingot
+    modelId: 1210097
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3粗糙、黯淡、令人难以忘怀的危险合金，'
@@ -1866,6 +1963,7 @@ TSkajd:
     glow: true
     name: "&#ffc494δ&#ffa2ac合&#ff80c3金 &#ff66b8致&#ff83a3密&#ffa18d苦&#ffbe78艾&#ffdc62金&#fff94d锭"
     material: gold_ingot
+    modelId: 1210098
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3闪烁着亮眼的红黄光泽，你可以闻到其上散发着浓郁的苦艾香味，'
@@ -1896,6 +1994,7 @@ TSxwhd:
     glow: true
     name: "&#ffc494δ&#ffa2ac合&#ff80c3金 &#ff531a炽&#ff5343热&#ff536c星&#ff5296涡&#ff52bf合&#ff52e8锭"
     material: nether_brick
+    modelId: 1210099
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3炽热、炙热、灼热的高密度高硬度合金，延展性却意外的高，'
@@ -1927,6 +2026,7 @@ TSzjg:
     glow: true
     name: "&#ffc494δ²&#ffa2ac合&#ff80c3金 &#a724ff终&#8241ff界&#5d5dff寒&#387aff子&#4ea6e4素&#64d3c8钢&#7affad锭"
     material: netherite_ingot
+    modelId: 1210100
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#e175c4深&#da6fc6紫&#d369c8、&#cc63ca深&#c55ccc蓝&#bd56cd、&#b650cf极&#ab50d0光&#9d54d1之&#8f57d1色&#805ad1轮&#725dd1流&#6461d2旋&#5c6ad2转&#5d7ed3闪&#5f93d3烁&#61a7d4于&#63bcd5其&#64d0d5上&#66e5d6，'
@@ -1956,6 +2056,7 @@ TSzmkw:
     glow: true
     name: "&#92b4cfα原生原矿 &#4687e8致密矿物"
     material: bedrock
+    modelId: 1210101
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3致密且坚硬的富含大量原生矿产的矿石，'
@@ -1980,6 +2081,7 @@ al_q_tsc:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#00ff9f白&#2dff7d铃&#5aff5b山&#87ff39矿&#b4ff17业&#c3fa12&&#96e949霆&#69d980石&#3cc8b6国&#0fb8ed立&#01a3ff军&#048cff重&#0675ff工&#085eff业&#0a47ff群"
     material: BOOK
+    modelId: 1210102
     glow: true
     lore:
     - '&b星座&9：&c怒晖座'
@@ -2000,6 +2102,7 @@ TS2tj1:
     glow: true
     name: "&#92b4cfα棱镜 &#4687e8纯净水晶透镜"
     material: tide_armor_trim_smithing_template
+    modelId: 1210103
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3使用金刚石打造的棱镜，'
@@ -2022,6 +2125,7 @@ TS2tj2:
     glow: true
     name: "&#af92cfβ棱镜 &#a746e8通古斯粒子束折射片"
     material: rib_armor_trim_smithing_template
+    modelId: 1210104
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3使用通古斯合金打造的棱镜，'
@@ -2046,6 +2150,7 @@ TS2tj3:
     glow: true
     name: "&#ffc894γ棱镜 &#ff824d寒子素脉冲束缚器"
     material: silence_armor_trim_smithing_template
+    modelId: 1210105
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3使用寒子素钢打造的透镜，'
@@ -2070,6 +2175,7 @@ TS2yk:
     glow: true
     name: "&#d5b3ffα悖论能源 &#aa57c1悖论侵蚀油块"
     material: sculk_catalyst
+    modelId: 1210106
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3含有大量杂质的悖论侵蚀原矿，'
@@ -2090,6 +2196,7 @@ TS2yy:
     glow: true
     name: "&#d5b3ffα悖论能源 &#aa57c1深渊污染重油"
     material: sculk
+    modelId: 1210107
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3相对纯净的悖论原油，亟待分馏，'
@@ -2110,6 +2217,7 @@ TS2jjwz:
     glow: true
     name: "&#d5b3ffα悖论能源 &#aa57c1粒/分子交界态物质"
     material: polished_blackstone_button
+    modelId: 1210108
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3不能产生任何物理、化学甚至是粒子反应。'
@@ -2131,6 +2239,7 @@ TS2jbyg:
     name: "&#b980ffβ悖论能源 &#bf57db深渊物质油罐"
     material_type: skull_hash
     material: 299788687c316e18cfdfd758ef6f12a1971b8646932a6ccc2b9867e7c7707b6b
+    modelId: 1210109
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一罐温暖的悖论燃料，散发着迷乱的紫色，'
@@ -2149,6 +2258,7 @@ TS2gfzlm:
   item:
     name: "&#b980ffβ悖论能源 &#bf57db深渊高分子凝胶黏膜"
     material: dried_kelp
+    modelId: 1210110
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一张黏糊糊的黑色物体，能吸收光线，'
@@ -2168,6 +2278,7 @@ TS2rglz:
     glow: true
     name: "&#b980ffβ悖论能源 &#bf57db瑞吉儿·加德纳粒子素"
     material: sculk_vein
+    modelId: 1210111
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一种不够稳定的粒子，容易向分子法则跌落，'
@@ -2188,6 +2299,7 @@ TS2pbgj:
     glow: true
     name: "&#b980ffβ悖论能源 &#bf57db漂泊遗物构件"
     material: warped_hyphae
+    modelId: 1210112
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一个深受污染的机械构件，'
@@ -2207,6 +2319,7 @@ TS2gfztl:
     glow: true
     name: "&#cf42d1γ悖论能源 &#971dc3至暗高分子涂料"
     material: dried_kelp
+    modelId: 1210113
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一张粘稠细滑的高分子涂料，'
@@ -2229,6 +2342,7 @@ TS2sky:
     glow: true
     name: "&#cf42d1γ悖论能源 &#971dc3交界态粒子源蚀刻悬液"
     material: soul_lantern
+    modelId: 1210114
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3一小瓶浑浊的荧光液体，'
@@ -2256,6 +2370,7 @@ TSas:
     name: "&#a8ffaaη投影资源 &#ffb3ee炽寒原油桶"
     material_type: skull_hash
     material: 752a4b1b2cc554072a019f92424814ab4ce2fcba5fd65ec9669c6aea8cb
+    modelId: 1210115
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3源于阿比盖尔座的炽寒谷地投影，'
@@ -2275,6 +2390,7 @@ TSlx:
     name: "&#a8ffaaη投影资源 &#2cba96低活纯态龙息"
     material_type: skull_hash
     material: f7aaf2ee64bdb211014c7ecc7006faa23448d78f4bb902e8a1325e1c9d7f11e
+    modelId: 1210116
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3源于加莉菲儿座的天体湖泊投影，'
@@ -2294,6 +2410,7 @@ TSzc:
     name: "&#a8ffaaη投影资源 &#df7272血月椎刺"
     material_type: skull_hash
     material: 10128e9db4b544e147ec68f94d85f9db810994aeb943b038dd491ea2ea9a4696
+    modelId: 1210117
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3源于薇丝妲座的涡流山脉投影，'
@@ -2316,6 +2433,7 @@ TSwk1:
     glow: true
     name: "&#dad895α外壳 &#b8ffed轻烙板"
     material: mud_bricks
+    modelId: 1210118
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3基础的轻型金属外壳材料，'
@@ -2334,6 +2452,7 @@ TSwk2:
     glow: true
     name: "&#fbd593β外壳 &#99f3ff闪光金属板"
     material: polished_blackstone_bricks
+    modelId: 1210119
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3更耐用的金属外壳材料，'
@@ -2352,6 +2471,7 @@ TSwk3:
     glow: true
     name: "&#ffa97aγ外壳 &#70c8ff遗物煌流合金板"
     material: end_stone_bricks
+    modelId: 1210120
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3利用古代技术打底的外壳材料，'
@@ -2374,6 +2494,7 @@ TSwk4:
     glow: true
     name: "&#ff8e52δ外壳 &#5c9aff致密苦艾合金板"
     material: prismarine_bricks
+    modelId: 1210121
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3青蓝色的致密外壳材料，'
@@ -2396,6 +2517,7 @@ TSgj1:
     glow: true
     name: "&#dad895α组件 &#b8ffed铋制构件"
     material: mud_brick_wall
+    modelId: 1210122
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3基础的机器结构组件，'
@@ -2414,6 +2536,7 @@ TSgj2:
     glow: true
     name: "&#fbd593β组件 &#99f3ff电磁倪克斯构件"
     material: polished_deepslate_wall
+    modelId: 1210123
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3强化的机械结构组件，'
@@ -2436,6 +2559,7 @@ TSgj3:
     glow: true
     name: "&#ffa97aγ组件 &#70c8ff戈灵铯数控构件"
     material: end_stone_brick_wall
+    modelId: 1210124
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3利用戈灵铯合金的机械结构组件，'
@@ -2458,6 +2582,7 @@ TSgj4:
     glow: true
     name: "&#ff8e52δ组件 &#5c9aff精密旋热合金构件"
     material: prismarine_wall
+    modelId: 1210125
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3能够承受和造成极端高温的机械结构组件，'
@@ -2480,6 +2605,7 @@ TSgj5:
     glow: true
     name: "&#ff4d4dφ组件 &#ff4dd8终&#f359e1末&#e765ea洪&#dc70f3流&#d07cfcC&#b694f52&#95b1e6T&#74ced7C&#53ebc8序&#4cfeb8列&#79fba6校&#a5f994准&#d2f682核&#fff370心"
     material: red_nether_brick_wall
+    modelId: 1210126
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3让人移不开视线的暗红色机械结构组件，'
@@ -2503,6 +2629,7 @@ TSxl1:
     name: "&#dad895α线路 &#b8ffed基量晶锆模块"
     material_type: skull_hash
     material: 9db96fa3063b7905abc09b4c90389eadfa1be1bdea06b0ec4ae8d0d05e9bfdb1
+    modelId: 1210127
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3基础的能源元件，'
@@ -2526,6 +2653,7 @@ TSxl2:
     name: "&#fbd593β线路 &#99f3ff复合氢合子模块"
     material_type: skull_hash
     material: b014112c37d151012857d9f2a5332898731a01473b4f4bc6909d23cf264dbeeb
+    modelId: 1210128
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3优化的能源元件，'
@@ -2548,6 +2676,7 @@ TSxl3:
     name: "&#ffa97aγ线路 &#70c8ff高分子电敏化石模块"
     material_type: skull_hash
     material: b311e842249745113333878fd5a8d8eb2280bcbab7689e473f1669623a11c997
+    modelId: 1210129
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3涂有高分子半导涂层的能源元件，'
@@ -2571,6 +2700,7 @@ TSxl4:
     name: "&#ff8e52δ线路 &#5c9aff棉铂华-GCG高分子模块"
     material_type: skull_hash
     material: 93b9a7ae7c4a12d9edc91852f421c184d5a59792c012ccac113f133c6ea465c3
+    modelId: 1210130
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3可控性极强的蓝色能源元件，'
@@ -2594,6 +2724,7 @@ TSxl5:
     name: "&#ff4d4dφ线路 &#ff0000通&#ff2e2e古&#ff5d5d斯&#ff8b8bG&#ffb9b93&#ffe8e84&#f0f0f0中&#d3d3d3央&#b5b5b5电&#979797炬&#7a7a7a核&#5c5c5c心"
     material_type: skull_hash
     material: cd072812bbe25da2bbdd4b03f7f05ed263c2971d1318ae71700194b1eb8cc6b2
+    modelId: 1210131
     lore:
     - '&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工'
     - '&#fff5b3得知原料后令人恐惧的能源元件，'
@@ -2622,6 +2753,7 @@ LSwz:
     name: "&b待确定的配方"
     material_type: skull_hash
     material: 2370ca47b6173ab58e6a8018486e2f8baa8397ab614ae2e696849196baa7c
+    modelId: 1210132
     lore:
     - '&#fff5b3大部分动植物素材能转化为频率，但有些频率只能由特定素材调出...'
 
@@ -2632,6 +2764,7 @@ ls_LCA:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业"
     material: BOOK
+    modelId: 1210133
     glow: true
     lore:
     - '&b星座&9：&a四想座'
@@ -2654,6 +2787,7 @@ ls_LCA2:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#ffffff莉&#e7fff0尔&#cfffe2幸&#b8ffd3丝&#a0ffc4有&#88ffb6机&#70ffa7声&#59ff98学&#41ff8a工&#29ff7b业"
     material: BOOK
+    modelId: 1210134
     glow: true
     lore:
     - '&b星座&9：&a四想座'
@@ -2679,6 +2813,7 @@ LShx1:
     name: "&#8fff66α-活泼的和弦"
     material_type: skull_hash
     material: b28f1c0c5092e12d33770df45c5845a9610886039b34abe93a16c5e942dfc8e4
+    modelId: 1210135
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于活泼植物的和弦，'
@@ -2700,6 +2835,7 @@ LShx1a:
     name: "&#2eff31β-天蓝舞动的和弦"
     material_type: skull_hash
     material: f89f75e0b00378a583dbba728dcdc6e9346f31dd601d448f3d60615c7465cc3e
+    modelId: 1210136
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊活泼植物的和弦，'
@@ -2721,6 +2857,7 @@ LShx2:
     name: "&#8fff66α-繁荣的和弦"
     material_type: skull_hash
     material: 92cb6e51c461e7359526bea5e06209cddde7c6469a819f3405cf0a038c159502
+    modelId: 1210137
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于繁荣植物的和弦，'
@@ -2742,6 +2879,7 @@ LShx2a:
     name: "&#2eff31β-填充大地的和弦"
     material_type: skull_hash
     material: d10964f3c479ad7d9afaf68a42cab7c107d2d884f575cae2f070ec6f935b3be
+    modelId: 1210138
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊繁荣植物的和弦，'
@@ -2763,6 +2901,7 @@ LShx3:
     name: "&#8fff66α-坚韧的和弦"
     material_type: skull_hash
     material: 4b1cce22de19ed6727abc5e6c2d57864c871a44c956bbe2eb3960269b686b8b3
+    modelId: 1210139
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于坚韧植物的和弦，'
@@ -2784,6 +2923,7 @@ LShx3a:
     name: "&#2eff31β-支撑苍穹的和弦"
     material_type: skull_hash
     material: 9dce62f70ac046b881113c6cf862987727774e265885501c9a245b180db08c0d
+    modelId: 1210140
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊坚韧植物的和弦，'
@@ -2805,6 +2945,7 @@ LShx4:
     name: "&#8fff66α-沉沦的和弦"
     material_type: skull_hash
     material: aac15f6fcf2ce963ef4ca71f1a8685adb97eb769e1d11194cbbd2e964a88978c
+    modelId: 1210141
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于沉沦植物的和弦，'
@@ -2826,6 +2967,7 @@ LShx4a:
     name: "&#2eff31β-臣服终结的和弦"
     material_type: skull_hash
     material: ff993d3a43d40597b474485976160d0cf52ac64d157307d3b1c941db224d0ac6
+    modelId: 1210142
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊沉沦植物的和弦，'
@@ -2847,6 +2989,7 @@ LShx5:
     name: "&#8fff66α-潮湿的和弦"
     material_type: skull_hash
     material: 36161daa3589ec9c8187459ac36fd4dd2646c040678d3bfacb72a2210c6c801c
+    modelId: 1210143
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于水生植物的和弦，'
@@ -2868,6 +3011,7 @@ LShx5a:
     name: "&#2eff31β-生于盐海的和弦"
     material_type: skull_hash
     material: 957cfa9c75ba584645ee2af6d9867d767ddea4667cdfc72dc1061dd1975ca7d0
+    modelId: 1210144
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊水生植物的和弦，'
@@ -2888,6 +3032,7 @@ LSyq7a:
     glow: true
     name: "&#f5f5f5“&#f5f5f5没&#f6f6f6有&#f6f6f6名&#f6f6f6字&#f7f7f7的&#f7f7f7流&#f8f8f8行&#f8f8f8口&#f8f8f8水&#f9f9f9歌&#f9f9f9”"
     material: pitcher_plant
+    modelId: 1210145
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3你们这些听流行、说唱、国风、古风、日语、英语、韩语..'
@@ -2903,6 +3048,7 @@ LSgd1:
     name: "&#ffc85eα-友善的鼓点"
     material_type: skull_hash
     material: cd41ea5986e0eebcdea25c466b552c752925fcea26f5ec24c86828e76aab69a7
+    modelId: 1210146
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于友善生物的鼓点，'
@@ -2924,6 +3070,7 @@ LSgd1a:
     name: "&#ff9211β-柔韧强劲的鼓点"
     material_type: skull_hash
     material: 93af4b73349e723b8654b75f905bd38995ccbb1a434d470b06279678945ecbdb
+    modelId: 1210147
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊友善生物的鼓点，'
@@ -2945,6 +3092,7 @@ LSgd2:
     name: "&#ffc85eα-水生的鼓点"
     material_type: skull_hash
     material: 7076cf155002f92b729e4b65f072fc0df4f4676597e484d8089df54fe230935f
+    modelId: 1210148
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于水生生物的鼓点，'
@@ -2966,6 +3114,7 @@ LSgd2a:
     name: "&#ff9211β-雪肉混合的鼓点"
     material_type: skull_hash
     material: b54575cdd30c6911b36aa77dd8c66714f1000e1c866243ec4bd29cbddacab04b
+    modelId: 1210149
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊水生生物的鼓点，'
@@ -2987,6 +3136,7 @@ LSgd3:
     name: "&#ffc85eα-敌意的鼓点"
     material_type: skull_hash
     material: f978ae3031a4ef329e28f0ac2c6f727e62a08a6cbf6ea76601d11a197b7e1e6
+    modelId: 1210150
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于敌意生物的鼓点，'
@@ -3008,6 +3158,7 @@ LSgd3a:
     name: "&#ff9211β-注视交错的鼓点"
     material_type: skull_hash
     material: ec9fa7828b4b37e8262d2c222a04f8e3261af2ab3bd494ea807a932ccd184a50
+    modelId: 1210151
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊敌意生物的鼓点，'
@@ -3029,6 +3180,7 @@ LSgd4:
     name: "&#ffc85eα-哀嚎的鼓点"
     material_type: skull_hash
     material: 6aedf6a36206d22fa1f157f7644e4815fb8eec649199a18522bf191dbaa4639a
+    modelId: 1210152
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于哀嚎生物的鼓点，'
@@ -3050,6 +3202,7 @@ LSgd4a:
     name: "&#ff9211β-悲泣旧日的鼓点"
     material_type: skull_hash
     material: 633362b866f56cd05b4eb70763d82945886c379fa1076d6e1fb8b2c5bc078953
+    modelId: 1210153
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于特殊哀嚎生物的鼓点，'
@@ -3071,6 +3224,7 @@ LSxl1:
     name: "&#ac80ffα旋律 &#6bffab古老大地的起伏"
     material_type: skull_hash
     material: f757cfc7c11b1e6f1028b80462d1e4302dca5ab8592225ea8c8b7639c70e61f9
+    modelId: 1210154
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3一段源于古代植物的旋律，'
@@ -3092,6 +3246,7 @@ LSxl2:
     name: "&#ac80ffα旋律 &#ff6b6b危机四伏的凝视"
     material_type: skull_hash
     material: 9115dc88e3214c38243d782d63edb0a6e06291eb6da8e600c7e2ea36e7f61b31
+    modelId: 1210155
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3一段源于强大生物的旋律，'
@@ -3113,6 +3268,7 @@ LSxl3:
     name: "&#c64dffβ旋律 &#828282崇&#936c6c高&#a35757寂&#b44141夜&#c52b2b的&#d51616燃&#e60000烧"
     material_type: skull_hash
     material: 520716203da039cafca24bbd9f3e9bd5c6985c3c25527bcd506d388e99bb7afe
+    modelId: 1210156
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3一段源于特殊古代植物的旋律，'
@@ -3134,6 +3290,7 @@ LSxl4:
     name: "&#c64dffβ旋律 &#4ddbff相&#51e4ed伴&#55eddb走&#58f6c8过&#5cffb6的&#85eda1纯&#aeda8c白&#d6c876花&#ffb561园"
     material_type: skull_hash
     material: 2b055c810bddfd16264ec8d439c43283e35bca71a50983e15e364cd8ab7c668f
+    modelId: 1210157
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3一段源于特殊强大生物的旋律，'
@@ -3155,6 +3312,7 @@ LSxl5:
     name: "&#c64dffβ旋律 &#7a78dd守&#8276dd护&#8a74dc净&#9273dc土&#9a71db之&#a16fdb龙&#a96dda的&#b16cda安&#b96ad9魂&#c168d9歌"
     material_type: skull_hash
     material: db6975af70724d6a44fd5946e60b2717737dfdb545b4dab1893351a9c9dd183c
+    modelId: 1210158
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3一段源于特殊强大生物的旋律，'
@@ -3175,6 +3333,7 @@ LSyq1:
     glow: true
     name: "&#5fd379“&#4bb07a偏&#388d7c执&#24697e秩&#10467f序&#204f99的&#3059b3宠&#4062ce儿&#506be8”"
     material: vine
+    modelId: 1210159
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3这是世人所乐于描述的秩序，平庸却完满。'
@@ -3194,6 +3353,7 @@ LSyq2:
     glow: true
     name: "&#ff0a0a“&#f30d11我&#e71118请&#da141f求&#ce1827咏&#c21b2e叹&#b61e35破&#a9223c旧&#9d2543苍&#9d224c穹&#9c1e55下&#9c1b5e的&#9b1767难&#9b1470从&#9a1079困&#9a0d82兽&#99098b”"
     material: crimson_fungus
+    modelId: 1210160
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3毫无疑问，这是危机，这是怒觉，这是时间的可憎痕迹！'
@@ -3213,6 +3373,7 @@ LSyq3:
     glow: true
     name: "&#ff004d“&#ff003a燃&#ff0027烧&#ff0013。&#ff0000”"
     material: torchflower
+    modelId: 1210161
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3不要引起焚火者的注意力，他的生命早已被正义与无奈耗尽。'
@@ -3232,6 +3393,7 @@ LSyq4:
     glow: true
     name: "&#fb4eff“&#e43bff大&#cd28ff深&#a91aed渊&#7813c8献&#480ca3”"
     material: wither_rose
+    modelId: 1210162
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3平淡的远征？不见得。伟大的征服？不尽然。'
@@ -3251,6 +3413,7 @@ LSyq5:
     glow: true
     name: "&#ccff00“&#d9fc00幼&#e6f900小&#f2f500的&#fff200黄&#ffdc00金&#ffc500国&#ffaf00度&#ff9900”"
     material: lily_of_the_valley
+    modelId: 1210163
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3垩格列的人啊，拆掉那熔炉！脚踩那旗帜！'
@@ -3270,6 +3433,7 @@ LSyq6:
     glow: true
     name: "&#8c0d39“&#85174d请&#7e2161泣&#772a75颂&#703489我&#804f89们&#8f6a88自&#9f8488己&#ae9f87”"
     material: rose_bush
+    modelId: 1210164
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3你凭什么这么做，你凭什么荆棘丛生？'
@@ -3289,6 +3453,7 @@ LSyq7:
     glow: true
     name: "&#f5f5f5“&#f5f5f5没&#f6f6f6有&#f6f6f6名&#f6f6f6字&#f7f7f7的&#f7f7f7流&#f8f8f8行&#f8f8f8口&#f8f8f8水&#f9f9f9歌&#f9f9f9”"
     material: pitcher_plant
+    modelId: 1210165
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3你们这些听流行、说唱、国风、古风、日语、英语、韩语...'
@@ -3308,6 +3473,7 @@ LSyq8:
     glow: true
     name: "&#18ffff“&#12dfff致&#0cbfff伟&#069fff大&#007fff航&#0c77ff路&#186fff、&#2466ff船&#305eff长&#4f57ff与&#6d51ff真&#8b4aff理&#aa43ff的&#be4fff魔&#d15bff女&#e467ff！&#f873ff”"
     material: tube_coral
+    modelId: 1210166
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3我受够你了！拿金币来，我要砸死他吔！'
@@ -3327,6 +3493,7 @@ LSyq9:
     glow: true
     name: "&#848484“&#8a858e第&#8f8797无&#9588a1数&#9b8aaa次&#a08bb3，&#a68cbd被&#ab8ec7提&#b18fd0起&#b68dd2的&#bc8bd4纯&#c189d6白&#c788d9色&#cc86db的&#d184dd荒&#d782df原&#dc80e1”"
     material: pink_petals
+    modelId: 1210167
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3第无数次在我的作品中提到这一片温暖祥和的荒地。'
@@ -3346,6 +3513,7 @@ LSyq10:
     glow: true
     name: "&#5a5ae4“&#5176e1我&#4791de创&#3eaddb造&#34c8d8与&#2be3d5传&#21ffd2颂&#2debca的&#3ad8c2世&#46c4ba界&#52b0b1一&#5f9da9隅&#6b89a1”"
     material: dragon_breath
+    modelId: 1210168
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3朝夜之歌、深红远星、寂夜诟火...'
@@ -3365,6 +3533,7 @@ LScs1:
     glow: true
     name: "&#ff2ef8伪·&#00ffb3创&#1dff9e世 &#989898似&#8f9090乎&#868789卑&#7d7f81劣&#737679的&#6a6e72沉&#61656a淀"
     material: gunpowder
+    modelId: 1210169
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于上帝的暗房，从世界一隅中析出的残渣；'
@@ -3384,6 +3553,7 @@ LScs2:
     glow: true
     name: "&#ff2ef8伪·&#00ffb3创&#1dff9e世 &#ff0000欢&#f90505欣&#f30909红&#ed0e0e火&#e61212的&#e01616生&#da1b1b机"
     material: redstone
+    modelId: 1210170
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3源于上帝的暗房，从世界一隅中析出的生机；'
@@ -3403,6 +3573,7 @@ LScs3:
     glow: true
     name: "&#ff2ef8伪·&#00ffb3创&#1dff9e世 &#ffd900升&#ffb70a华&#ff9515奇&#ff731f伟&#ff5915的&#ff400a烛&#ff2600光"
     material: glowstone_dust
+    modelId: 1210171
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
     - '&#fff5b3超脱于上帝的暗房，从世界一隅中诞生的烛火，'
@@ -3427,6 +3598,7 @@ ls_EAE介绍:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#ea9f2f伊&#eaaa33赭&#ebb637璃&#ebc13b离&#eccd40岸&#ecd844工&#ede348业&#ebdb46群&#e7be3d专&#e3a135利&#e0842c管&#dc6724理&#d84a1b工&#d42d13会"
     material: BOOK
+    modelId: 1210172
     glow: true
     lore:
     - '&b星座&9：&#99ff00风眼座'
@@ -3446,6 +3618,7 @@ EAE_压缩微尘:
     glow: true
     name: "&#92b4cfα材料 &#4687e8压缩微尘"
     material: gravel
+    modelId: 1210173
     lore:
     - '&b归属&9：&#ede94a伊&#ecd442赭&#ebbf3b璃&#eaaa33离&#e78f2b岸&#e16e23工&#da4e1b业&#d42d13群'
     - '&#fff5b3由空气中的杂质压缩而成，以特殊的形式保存；'
@@ -3464,6 +3637,7 @@ EAE_压缩腐尘:
     glow: true
     name: "&#92b4cfα材料 &#4687e8压缩腐尘"
     material: moss_block
+    modelId: 1210174
     lore:
     - '&b归属&9：&#ede94a伊&#ecd442赭&#ebbf3b璃&#eaaa33离&#e78f2b岸&#e16e23工&#da4e1b业&#d42d13群'
     - '&#fff5b3由空气中被捕获的有机质与稀有气体组成，以特殊的形式保存；'
@@ -3481,6 +3655,7 @@ EAE_合金滤芯:
   item:
     name: "&#92b4cfα耗材 &#4687e8有机分子滤芯"
     material: mangrove_propagule
+    modelId: 1210175
     lore:
     - '&b归属&9：&#ede94a伊&#ecd442赭&#ebbf3b璃&#eaaa33离&#e78f2b岸&#e16e23工&#da4e1b业&#d42d13群'
     - '&#fff5b3一种金属与有机物制成的滤芯；'
@@ -3499,6 +3674,7 @@ EAE_有机合金滤芯:
     glow: true
     name: "&#ffc894γ耗材 &#ff824d有机高分子合金滤芯"
     material: mangrove_propagule
+    modelId: 1210176
     lore:
     - '&b归属&9：&#ede94a伊&#ecd442赭&#ebbf3b璃&#eaaa33离&#e78f2b岸&#e16e23工&#da4e1b业&#d42d13群'
     - '&#fff5b3一种精密的高分子合金滤芯，十分脆弱；'
@@ -3521,6 +3697,7 @@ ls_FKR介绍:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊"
     material: BOOK
+    modelId: 1210177
     glow: true
     lore:
     - '&b星座&9：&#ba0000炼&#d10000诏&#e80000拳&#ff0000座'
@@ -3538,6 +3715,7 @@ ls_FKR介绍2:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊"
     material: BOOK
+    modelId: 1210178
     glow: true
     lore:
     - '&b星座&9：&#ba0000炼&#d10000诏&#e80000拳&#ff0000座'
@@ -3556,6 +3734,7 @@ FKR_武器工具模板:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e8ae67武器工具模板"
     material: emerald_block
+    modelId: 1210179
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3金属打造的模式分辨模板；'
@@ -3576,6 +3755,7 @@ FKR_护具模板:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e8ae67护具模板"
     material: diamond_block
+    modelId: 1210180
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3金属打造的模式分辨模板；'
@@ -3596,6 +3776,7 @@ FKR_特殊模板:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e8ae67特殊模板"
     material: redstone_block
+    modelId: 1210181
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3金属打造的模式分辨模板；'
@@ -3616,6 +3797,7 @@ FKR_发射器装件:
   item:
     name: "&#92b4cfα枪械组件 &#4687e8发射器装件"
     material: bow
+    modelId: 1210182
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由金属打造的单元化零件，用于组装枪械；'
@@ -3637,6 +3819,7 @@ FKR_通古斯弹药集成匣:
   item:
     name: "&#92b4cfα枪械组件 &#4687e8通古斯弹药集成匣"
     material: ender_chest
+    modelId: 1210183
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭打造的供弹零件，用于组装枪械；'
@@ -3659,6 +3842,7 @@ FKR_玻璃粘合装载器:
   item:
     name: "&#af92cfβ枪械组件 &#a746e8玻璃粘合装载器"
     material: target
+    modelId: 1210184
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由电器材料打造的校准零件，用于组装高序列枪械；'
@@ -3681,6 +3865,7 @@ FKR_星轨信标:
   item:
     name: "&#ffc894γ枪械组件 &#ff824d星轨信标"
     material: beacon
+    modelId: 1210185
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3从星轨中摘离的信标组件，用于组装高序列枪械；'
@@ -3715,6 +3900,7 @@ FKR_深渊召来:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#3a908a压&#4b8495缩&#5c78a1脆&#6d6cac弱&#7e5fb7守&#8f53c2卫&#a047ce雕&#b13bd9像"
     material: echo_shard
+    modelId: 1210186
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3右键召唤一只低智能的守卫雕像，一碰就死且对你抱有敌意。'
@@ -3733,6 +3919,7 @@ FKR_炽古花盆:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#e59b50二&#e4974e环&#e3934c术&#e28f4a式&#e18b48·&#e08746十&#de8245五&#dd7e43枚&#dc7a41燃&#db763f古&#da723d之&#d96e3b花"
     material: book
+    modelId: 1210187
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3任何位于粒子物理法则的星座的智慧生物都拥有施术的能力；'
@@ -3761,6 +3948,7 @@ FKR_钢铁靶:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#d7d7d7钢&#bebebe铁&#a4a4a4靶"
     material: iron_ingot
+    modelId: 1210188
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3一块暗藏玄机的铁锭；'
@@ -3790,6 +3978,7 @@ FKR_铋铲:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#4687e8铋铲"
     material: 工具武器/铋铲
+    modelId: 1210189
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -3815,6 +4004,7 @@ FKR_铋镐:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#4687e8铋镐"
     material: 工具武器/铋镐
+    modelId: 1210190
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -3840,6 +4030,7 @@ FKR_铋斧:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#4687e8铋短斧"
     material: 工具武器/铋斧
+    modelId: 1210191
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -3865,6 +4056,7 @@ FKR_铋剑:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#4687e8铋薄打剑"
     material: 工具武器/铋剑
+    modelId: 1210192
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -3889,6 +4081,7 @@ FKR_铋剑:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210193
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -3901,6 +4094,7 @@ FKR_棉铂华镀层手斧:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#fffa6b棉铂华手斧"
     material: 工具武器/棉铂华镀层手斧
+    modelId: 1210194
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -3926,6 +4120,7 @@ FKR_棉铂华淬火匕首:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#fffa6b棉铂华淬火匕首"
     material: 工具武器/棉铂华淬火匕首
+    modelId: 1210195
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -3950,6 +4145,7 @@ FKR_棉铂华淬火匕首:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210196
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -3961,6 +4157,7 @@ FKR_棉铂华淬火匕首:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210197
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -3973,6 +4170,7 @@ FKR_致密苦艾合金铲:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ff61ef致&#ff75b6密&#ff887c苦&#ff9c43艾&#fdbd3d合&#fcde38金&#faff32铲"
     material: 工具武器/致密苦艾合金铲
+    modelId: 1210198
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -3998,6 +4196,7 @@ FKR_致密苦艾合金镐:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#ff61ef致&#ff75b6密&#ff887c苦&#ff9c43艾&#fdbd3d合&#fcde38金&#faff32镐"
     material: 工具武器/致密苦艾合金镐
+    modelId: 1210199
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4022,6 +4221,7 @@ FKR_致密苦艾合金镐:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210200
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -4033,6 +4233,7 @@ FKR_致密苦艾合金镐:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210201
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -4044,6 +4245,7 @@ FKR_致密苦艾合金镐:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210202
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -4056,6 +4258,7 @@ FKR_炽热星涡重斧:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#cd002e炽&#e12c2b热&#f55728星&#ec6252涡&#c74da9重&#a138ff斧"
     material: 工具武器/炽热星涡重斧
+    modelId: 1210203
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4081,6 +4284,7 @@ FKR_炽热星涡砍刀:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#cd002e炽&#e12c2b热&#f55728星&#ec6252涡&#c74da9砍&#a138ff刀"
     material: 工具武器/炽热星涡砍刀
+    modelId: 1210204
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4105,6 +4309,7 @@ FKR_炽热星涡砍刀:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210205
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -4116,6 +4321,7 @@ FKR_炽热星涡砍刀:
   item_group: A_G1a
   item:
     material: black_stained_glass_pane
+    modelId: 1210206
     name: "&8 "
     lore:
     - '&7为了保持美观与易读性放置的占位符'
@@ -4132,6 +4338,7 @@ FKR_通古斯制式步枪:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#7e95a9古&#788ca7斯&#7282a5制&#6c78a4式&#666fa3步&#6065a1枪"
     material: crossbow
+    modelId: 1210207
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的枪械，手感优秀，数值平庸；'
@@ -4159,6 +4366,7 @@ FKR_通古斯战壕霰弹:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#979296古&#aa8582斯&#bd786e战&#cf6a5a壕&#e25d46霰&#f55032弹"
     material: crossbow
+    modelId: 1210208
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的霰弹枪，手感优秀，爆发力强；'
@@ -4186,6 +4394,7 @@ FKR_通古斯涡轮式单兵机枪:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#92a5bd古&#a1acd0斯&#afb2e3涡&#beb9f6轮&#cbaae6式&#d786b3单&#e46280兵&#f03e4d机&#fc1a1a枪"
     material: crossbow
+    modelId: 1210209
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的单兵化大火力机枪；'
@@ -4213,6 +4422,7 @@ FKR_通古斯防御型脉冲手铳:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#70a9b5古&#5cb3c1斯&#49bccc防&#35c6d7御&#26d1df型&#1ddce4脉&#13e8e9冲&#0af3ed手&#00fff2铳"
     material: crossbow
+    modelId: 1210210
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构自卫手铳，能够发射高温脉冲；'
@@ -4240,6 +4450,7 @@ FKR_通古斯制式轨道信标投递器:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#7a8fa8古&#707fa5斯&#6770a3制&#6e5f92式&#9a4e66轨&#c53d3b道&#f12c0f信&#fd3603标&#f94d07投&#f6650c递&#f27c10器"
     material: crossbow
+    modelId: 1210211
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3利用通用枪械结构打造的信标发射器；'
@@ -4271,6 +4482,7 @@ FKR_通古斯过载式步枪:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#8d8d96古&#967a82斯&#9f686e过&#a7565b载&#b04447式&#b93133渐&#c21f1f强&#cb1b1b鼓&#d31616点&#dc1212反&#e50d0d卫&#ee0909星&#f60404步&#ff0000枪"
     material: crossbow
+    modelId: 1210212
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的拥有巨型火力的步枪；'
@@ -4298,6 +4510,7 @@ FKR_伏地:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#b2b2b2伏&#949494地"
     material: 工具武器/伏地
+    modelId: 1210213
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4333,6 +4546,7 @@ FKR_风墟龙冕:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#fdffb0风&#d0ffc2墟&#a2ffd4龙&#75ffe6冕"
     material: 工具武器/风墟龙冕
+    modelId: 1210214
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4368,6 +4582,7 @@ FKR_无锋破军:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#c9aa92无&#cd8e7e锋&#d1736b破&#d55757军"
     material: 工具武器/破军
+    modelId: 1210215
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4408,6 +4623,7 @@ FKR_ASPL:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#7e56c8阿&#7c69c7诗&#7a7bc6普&#788ec5勒&#75a1c4定&#73b3c3位&#71c6c2器"
     material: 工具武器/ASPL
+    modelId: 1210216
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4443,6 +4659,7 @@ FKR_隐兰狂玉唤剑葫:
   item:
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#5adacd隐&#5db4ce兰&#5f8dce狂&#6267cf玉&#8864bb唤&#ae62a6剑&#d45f92葫"
     material: 工具武器/隐兰狂玉唤剑葫
+    modelId: 1210217
     material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
@@ -4488,6 +4705,7 @@ UMPV介绍:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#ff31da魔&#f938dd药&#f440e0联&#ee47e3合&#e94ee6™&#e356e9食&#de5ded药&#d864f0工&#d26cf3程&#cd73f6有&#c77af9限&#c282fc公&#bc89ff司"
     material: BOOK
+    modelId: 1210218
     glow: true
     lore:
     - '&b星座&9：&#f73cdf涟音座'
@@ -4507,6 +4725,7 @@ UMPV_一堆种子:
     name: "&#81ff7e&#92b4cfα原种 &#81ff7e一&#85ff97堆&#88ffaf种&#8cffc8子"
     material_type: skull_hash
     material: 3be8db48a63f09bb85044d9dbd325cfc3881c00912e9edc33bf22fda320bea66
+    modelId: 1210219
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3从植物中搜集的一些特殊种子，它一定会有用的；'
@@ -4522,6 +4741,7 @@ UMPV_一堆药材:
     name: "&#7effb2&#92b4cfα原种 &#7effb2一&#83f1cc堆&#87e4e5药&#8cd6ff材"
     material_type: skull_hash
     material: c62679f7dc43fe33f70c848defb42ecf6d249500670d7edda2e8be986ac5f101
+    modelId: 1210220
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3从植物中搜集的一些药草根系，它一定会有用的；'
@@ -4536,6 +4756,7 @@ UMPV_淡绿鸧种子:
   item:
     name: "&#92b4cfα提纯农种 &#ffea7d淡&#eaef81绿&#d4f485鸧&#bffa88种&#aaff8c子"
     material: WHEAT_SEEDS
+    modelId: 1210221
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4554,6 +4775,7 @@ UMPV_块结香颗粒:
   item:
     name: "&#92b4cfα提纯农种 &#fff48c块&#ffe088结&#ffcc85香&#ffb881颗&#ffa47d粒"
     material: MELON_SEEDS
+    modelId: 1210222
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4572,6 +4794,7 @@ UMPV_九里绕黄根茎:
   item:
     name: "&#af92cfβ提纯农种 &#e0af52九&#c3b14f里&#a6b44c绕&#88b64a黄&#6bb947根&#4ebb44茎"
     material: TORCHFLOWER_SEEDS
+    modelId: 1210223
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4590,6 +4813,7 @@ UMPV_腐糯粉状菌丝:
   item:
     name: "&#af92cfβ提纯农种 &#aaa5e3腐&#b6a5e0糯&#c1a5dd粉&#cda5d9状&#d8a5d6菌&#e4a5d3丝"
     material: BRAIN_CORAL_FAN
+    modelId: 1210224
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4608,6 +4832,7 @@ UMPV_铑金化石稻谷块:
   item:
     name: "&#ffc894γ提纯农种 &#fff06d铑&#f6db61金&#edc556化&#e4b04a石&#eaa650稻&#f09d56谷&#f6935c块"
     material: GOLD_NUGGET
+    modelId: 1210225
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4626,6 +4851,7 @@ UMPV_被动生物DNA集束片:
   item:
     name: "&#af92cfβ环境插槽 &#80e054被&#7ce05e动&#77e068生&#73e073物&#6fe07dD&#6ae187N&#66e191A&#62e19c集&#5de1a6束&#59e1b0片"
     material: LIME_CANDLE
+    modelId: 1210226
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4647,6 +4873,7 @@ UMPV_水生生物DNA集束片:
   item:
     name: "&#af92cfβ环境插槽 &#54cfe0水&#55c4e0生&#55bae0生&#56afe0物&#56a4e0D&#579ae1N&#578fe1A&#5884e1集&#587ae1束&#596fe1片"
     material: LIGHT_BLUE_CANDLE
+    modelId: 1210227
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4668,6 +4895,7 @@ UMPV_敌意生物DNA集束片:
   item:
     name: "&#af92cfβ环境插槽 &#e05454敌&#e05b55意&#e06255生&#e06956物&#e07056D&#e17657N&#e17d57A&#e18458集&#e18b58束&#e19259片"
     material: ORANGE_CANDLE
+    modelId: 1210228
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4689,6 +4917,7 @@ UMPV_富营养的胶泥:
   item:
     name: "&#92b4cfα生物质 &#4687e8富营养的胶泥"
     material: mud
+    modelId: 1210229
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4703,6 +4932,7 @@ UMPV_平凡肥料:
     name: "&#92b4cfα生物质 &#4687e8平凡的肥料"
     material_type: skull_hash
     material: ffc8641835dde6273adf24f60146a22e64ec4cfa1a130904d9497c21c8470c0
+    modelId: 1210230
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4722,6 +4952,7 @@ UMPV_高效肥料:
     name: "&#af92cfβ生物质 &#a746e8高效的肥料"
     material_type: skull_hash
     material: b761634c2461a0b01e42d14f69b965c265f97ee557eb648b56d12d6fa1945ca
+    modelId: 1210231
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4741,6 +4972,7 @@ UMPV_活泼肥料:
     name: "&#ffc894γ生物质 &#ff824d活泼的肥料"
     material_type: skull_hash
     material: 81967e4aa1871376333da814c4c77e9acff7bde4dd693c33e90d91fdf98ab639
+    modelId: 1210232
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -4764,6 +4996,7 @@ skey介绍0:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰"
     material: BOOK
+    modelId: 1210233
     glow: true
     lore:
     - '&b星座&9：&#ff59da风&#fd81e6海&#fca8f3深&#fad0ff渊&#e2acff滞&#ca89ff留&#b265ff域'
@@ -4782,6 +5015,7 @@ skey_权限凭证1:
   item:
     name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#63f6ffA&#6bedff1&#73e3ff权&#7bdaff限&#83d0ff凭&#8bc7ff证"
     material: light_blue_stained_glass
+    modelId: 1210234
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4799,6 +5033,7 @@ skey_权限凭证2:
   item:
     name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#6385ffA&#7186ff2&#7f87ff权&#8d89ff限&#9b8aff凭&#a98bff证"
     material: blue_stained_glass
+    modelId: 1210235
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4816,6 +5051,7 @@ skey_权限凭证3:
   item:
     name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ba63ffA&#c86bfd3&#d673fa权&#e37bf8限&#f183f5凭&#ff8bf3证"
     material: purple_stained_glass
+    modelId: 1210236
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4833,6 +5069,7 @@ skey_空白订单:
   item:
     name: "&f空白的订单"
     material: book
+    modelId: 1210237
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4851,6 +5088,7 @@ skey_订单:
   item:
     name: "&#2998ff舰&#21a6ff体&#19b5ff需&#10c3ff求&#08d2ff订&#00e0ff单"
     material: book
+    modelId: 1210238
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4871,6 +5109,7 @@ skey_能源土:
   item:
     name: "&#a1f4e5α辐能原料 &#53ffe0能源土"
     material: mud
+    modelId: 1210239
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4889,6 +5128,7 @@ skey_离子锁定气:
   item:
     name: "&#93aafaβ辐能原料 &#379fff离子锁定气"
     material: dragon_breath
+    modelId: 1210240
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4911,6 +5151,7 @@ skey_突变轻烯片岩:
   item:
     name: "&#93aafaβ辐能原料 &#379fff突变轻烯片岩"
     material: andesite
+    modelId: 1210241
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4933,6 +5174,7 @@ skey_GVS中坚矿族石料:
   item:
     name: "&#93aafaβ辐能原料 &#379fffGVS中坚矿族石料"
     material: tuff
+    modelId: 1210242
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4955,6 +5197,7 @@ skey_致密尘埃颗粒:
   item:
     name: "&#93aafaβ辐能原料 &#379fff致密尘埃颗粒"
     material: smooth_basalt
+    modelId: 1210243
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -4978,6 +5221,7 @@ skey_迷迭色流体:
     name: "&#93aafaβ辐能原料 &#379fff迷迭色流体"
     material_type: skull_hash
     material: 19801721c771c3c4898cb7d248321d89a9087a92d3dd58163cbd4e12ed75b549
+    modelId: 1210244
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5001,6 +5245,7 @@ skey_残余临界冷却剂:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2残余临界冷却剂"
     material: glass_bottle
+    modelId: 1210245
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5022,6 +5267,7 @@ skey_惰性氡氧化合单元:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2惰性氡氧化合单元"
     material: pink_dye
+    modelId: 1210246
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5043,6 +5289,7 @@ skey_焚风粒子电浆料:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2焚风粒子电浆料"
     material: magenta_dye
+    modelId: 1210247
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5064,6 +5311,7 @@ skey_G55溶胶气砖:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2G55溶胶气砖"
     material: purple_dye
+    modelId: 1210248
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5086,6 +5334,7 @@ skey_粗制碇钕晶簇:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2粗制碇钕晶簇"
     material: raw_iron_block
+    modelId: 1210249
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5107,6 +5356,7 @@ skey_碳钆聚集砂:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2碳钆聚集砂"
     material: raw_copper_block
+    modelId: 1210250
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5129,6 +5379,7 @@ skey_放射钪磷尾矿:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2放射钪磷尾矿"
     material: raw_gold_block
+    modelId: 1210251
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5150,6 +5401,7 @@ skey_铽-65基质粉芯:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2铽-65基质粉芯"
     material: glowstone
+    modelId: 1210252
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5172,6 +5424,7 @@ skey_红铁原矿:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2红铁原矿"
     material: deepslate_redstone_ore
+    modelId: 1210253
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5193,6 +5446,7 @@ skey_火镎矿:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2火镎矿"
     material: deepslate_emerald_ore
+    modelId: 1210254
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5214,6 +5468,7 @@ skey_沉重耀斑石矿:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2沉重耀斑石矿"
     material: ancient_debris
+    modelId: 1210255
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5235,6 +5490,7 @@ skey_深空重冰原矿:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2深空重冰原矿"
     material: packed_ice
+    modelId: 1210256
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5257,6 +5513,7 @@ skey_深渊辐电结晶:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2深渊辐电结晶"
     material: echo_shard
+    modelId: 1210257
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5278,6 +5535,7 @@ skey_微晶十字盐砂:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2微晶十字盐砂"
     material: nether_star
+    modelId: 1210258
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5299,6 +5557,7 @@ skey_尘核心:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2尘核心"
     material: chorus_plant
+    modelId: 1210259
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5320,6 +5579,7 @@ skey_重核心:
   item:
     name: "&#ffaaedγ辐能原料 &#ff56b2重核心"
     material: conduit
+    modelId: 1210260
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5343,6 +5603,7 @@ skey_高能胶:
     name: "&#ffaaedγ辐能原料 &#ff56b2高能胶"
     material_type: skull_hash
     material: 4e10bce6dc2d77a517966a17cf5534e4ce44cfe731a792f4fbaa01dc54c9c748
+    modelId: 1210261
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5365,6 +5626,7 @@ skey_黄金镀层熔浆:
     name: "&#ffaaedγ辐能原料 &#ff56b2黄金镀层熔浆"
     material_type: skull_hash
     material: ec6e604bd53d97887595a062b7c512ca4dbbfe48bb4adcef7125d1db103ab7ff
+    modelId: 1210262
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5387,6 +5649,7 @@ skey_磁稳蚀刻液:
     name: "&#ffaaedγ辐能原料 &#ff56b2磁稳蚀刻液"
     material_type: skull_hash
     material: 468c1fa4a21ba4f27dcb30ab3bfab0dc22a1e4fcf9ed12c1d7a70feb07f8d7ae
+    modelId: 1210263
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5409,6 +5672,7 @@ skey_交界谐振屏障液:
     name: "&#ffaaedγ辐能原料 &#ff56b2交界谐振屏障液"
     material_type: skull_hash
     material: 768d3d445bf4c7c5fc28a38b4e3018521fbc4d712246c50783724d266132e420
+    modelId: 1210264
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5431,6 +5695,7 @@ skey_红墨钴锭:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0红墨钴锭"
     material: resin_brick
+    modelId: 1210265
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5453,6 +5718,7 @@ skey_纳米红铁粉末:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0纳米红铁粉末"
     material: redstone
+    modelId: 1210266
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5476,6 +5742,7 @@ skey_三方晶系钛粒:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0三方晶系钛粒"
     material: copper_nugget
+    modelId: 1210267
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5499,6 +5766,7 @@ skey_超浓缩铀:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0超浓缩铀"
     material: ominous_trial_key 
+    modelId: 1210268
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5521,6 +5789,7 @@ skey_黄镎锭:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0黄镎锭"
     material: prismarine_shard
+    modelId: 1210269
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5543,6 +5812,7 @@ skey_活镎:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0活镎"
     material: prismarine_crystals
+    modelId: 1210270
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5565,6 +5835,7 @@ skey_逾限锿化合物:
   item:
     name: "&#93aafaβ辐能材料 &#379fff逾限锿化合物"
     material: ghast_tear
+    modelId: 1210271
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5588,6 +5859,7 @@ skey_黯饮重银:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0黯饮重银"
     material: flint
+    modelId: 1210272
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5610,6 +5882,7 @@ skey_日耀锇锭:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0日耀锇锭"
     material: netherite_scrap
+    modelId: 1210273
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5632,6 +5905,7 @@ skey_加涅厄卓片金:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0加涅厄·卓片金"
     material: disc_fragment_5
+    modelId: 1210274
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5655,6 +5929,7 @@ skey_富纤维硅晶:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0富纤维硅晶"
     material: diamond
+    modelId: 1210275
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5677,6 +5952,7 @@ skey_钠锂立方:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0钠锂立方"
     material: blue_ice
+    modelId: 1210276
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5699,6 +5975,7 @@ skey_深空铂粉:
   item:
     name: "&#a1f4e5α辐能材料 &#53ffe0深空铂粉"
     material: white_dye
+    modelId: 1210277
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5721,6 +5998,7 @@ skey_风窒铱:
   item:
     name: "&#93aafaβ辐能材料 &#379fff风窒铱"
     material: iron_nugget
+    modelId: 1210278
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5745,6 +6023,7 @@ skey_光盐化钍:
   item:
     name: "&#b00000μ&#bc0800自&#c71100然&#d31900阱&#de2200单&#ea2a00元 &#eefffc光&#f4aaa8盐&#f95554化&#ff0000钍"
     material: red_terracotta
+    modelId: 1210279
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5771,6 +6050,7 @@ skey_光盐化钚:
   item:
     name: "&#b00000μ&#bc0800自&#c71100然&#d31900阱&#de2200单&#ea2a00元 &#eefffc光&#f4c9a8盐&#f99254化&#ff5c00钚"
     material: orange_terracotta
+    modelId: 1210280
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5797,6 +6077,7 @@ skey_光盐化钔:
   item:
     name: "&#b00000μ&#bc0800自&#c71100然&#d31900阱&#de2200单&#ea2a00元 &#eefffc光&#f4e2a8盐&#f9c554化&#ffa800钔"
     material: yellow_terracotta
+    modelId: 1210281
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5823,6 +6104,7 @@ skey_光盐化𬭳:
   item:
     name: "&#b00000μ&#bc0800自&#c71100然&#d31900阱&#de2200单&#ea2a00元 &#eefffc光&#b3ffc4盐&#77ff8b化&#3cff52𬭳"
     material: green_terracotta
+    modelId: 1210282
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5849,6 +6131,7 @@ skey_光盐化𫟼:
   item:
     name: "&#b00000μ&#bc0800自&#c71100然&#d31900阱&#de2200单&#ea2a00元 &#eefffc光&#dabffd盐&#c680fe化&#b240fe𫟼"
     material: purple_terracotta
+    modelId: 1210283
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5875,6 +6158,7 @@ skey_光盐化𫓧:
   item:
     name: "&#b00000μ&#bc0800自&#c71100然&#d31900阱&#de2200单&#ea2a00元 &#eefffc光&#f2bffa盐&#f780f9化&#fb40f7𫓧"
     material: pink_terracotta
+    modelId: 1210284
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5901,6 +6185,7 @@ skey_电动力阱:
   item:
     name: "&#b00000μ&#bc0800自&#c71100然&#d31900阱&#de2200单&#ea2a00元 &#fbff29电&#fcce1b动&#fe9c0e力&#ff6b00阱"
     material: black_terracotta
+    modelId: 1210285
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5930,6 +6215,7 @@ skey_高钙磷根系坨:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#b8e986高&#ace98f钙&#a0e999磷&#95e9a2根&#89e9ac系&#7de9b5坨"
     material: cactus
+    modelId: 1210286
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5944,6 +6230,7 @@ skey_残青草晶:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#82b6d4残&#80addb青&#7fa4e2草&#7d9be9晶"
     material: lapis_ore
+    modelId: 1210287
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5958,6 +6245,7 @@ skey_活花质:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#c7fffb活&#e1e7fd花&#fbcfff质"
     material: cherry_leaves
+    modelId: 1210288
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5972,6 +6260,7 @@ skey_长生原木:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#b2daff长&#c1d3e1生&#d1ccc4原&#e0c5a6木"
     material: oak_log
+    modelId: 1210289
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -5986,6 +6275,7 @@ skey_奥术原木:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#ffb2f7奥&#f7bcd6术&#eec5b6原&#e6cf95木"
     material: cherry_log
+    modelId: 1210290
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6000,6 +6290,7 @@ skey_雷击原木:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#ffdf35雷&#eed32b击&#ddc620原&#ccba16木"
     material: polished_basalt
+    modelId: 1210291
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6014,6 +6305,7 @@ skey_盛槟花:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#ffdeab缠&#ede9b2盛&#dbf4b9槟&#c9ffc0花"
     material: azure_bluet
+    modelId: 1210292
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6028,6 +6320,7 @@ skey_龙文凯安必忧兰:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#8cf1ff龙&#abf3ff文&#caf5ff凯&#e9f7ff安&#f0e4e9必&#f8d0d3忧&#ffbdbd兰"
     material: blue_orchid
+    modelId: 1210293
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6042,6 +6335,7 @@ skey_悦鸧花:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#faffbc悦&#e1ffda鸧&#c8fff8花"
     material: pink_tulip
+    modelId: 1210294
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6057,6 +6351,7 @@ skey_古沃吉影酒神:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#5ed880罗&#6bce99吉&#77c4b3沃&#84bbcc坎&#90b1e6酒&#9da7ff神"
     material: warped_roots
+    modelId: 1210295
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6071,6 +6366,7 @@ skey_绽晶古树菇:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#40cb89绽&#6ca9c4晶&#9786ff古&#c788ff树&#f68aff菇"
     material: amethyst_cluster
+    modelId: 1210296
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6085,6 +6381,7 @@ skey_龙蛋果:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#dddddd龙&#d690ee蛋&#ce43ff果"
     material: dragon_egg
+    modelId: 1210297
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6099,6 +6396,7 @@ skey_十九劫天赐樱:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#c0fffb十&#d9fbd5九&#f2f7ae劫&#ffe8ad天&#ffcdd2赐&#ffb3f7樱"
     material: lilac
+    modelId: 1210298
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6113,6 +6411,7 @@ skey_叠霄竹:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#d5e1ff叠&#c0e9ff霄&#abf0ff竹"
     material: bamboo
+    modelId: 1210299
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6127,6 +6426,7 @@ skey_荆棘剑麻:
   item:
     name: "&#6558ffη&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#29ff58荆&#1ff069棘&#16e17a剑&#0cd28b麻"
     material: tall_grass
+    modelId: 1210300
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6141,6 +6441,7 @@ skey_舞火酿歌:
   item:
     name: "&#6558ffη²&#7678ee荒&#8898dd宙&#9ab8cb植&#abd8ba系 &#ff9393“&#ffba94舞&#ffe195火&#e8eeab酿&#bbe2d5歌&#8ed6ff”"
     material: torchflower
+    modelId: 1210301
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6158,6 +6459,7 @@ skey_红铁锭:
     name: "&#d7cb64α&#e7cd60元&#f7d05c序&#ffc05a列&#ff9d5b合&#ff7a5c金 &#ff4e4e&l红铁锭"
     material_type: skull_hash
     material: 55d5ebef99868a9b6ace9489c9397e979fe0f2b56cafb2f69b94a8c59a856860
+    modelId: 1210302
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6183,6 +6485,7 @@ skey_漩涡锭:
     name: "&#f0a056β&#f67a4e元&#fc5445序&#ff4349列&#ff465a合&#ff4a6b金 &#ff2626&l漩涡锭"
     material_type: skull_hash
     material: d1404d63fea0803e35aff637edf05695fbcc30d5538d0233e861aea23b904d48
+    modelId: 1210303
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6212,6 +6515,7 @@ skey_毡星锭:
     name: "&#ff6954γ&#ff4d5b元&#ff3162序&#ff1c7c列&#ff0ea9合&#ff00d6金 &#ff005c&l毡星锭"
     material_type: skull_hash
     material: 5f524166f7ce88a537158766a1c511e322a93a5e11dbf30fa6e85e78da861d8
+    modelId: 1210304
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6236,6 +6540,7 @@ skey_工业起泡银:
   item:
     name: "&#96d2ffα&#86b7ff强&#769cff化&#6581ff合&#5566ff金 &#959cd8工&#97a4da业&#98abdb起&#9ab3dd泡&#9bbade银"
     material: polished_diorite_slab
+    modelId: 1210305
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6259,6 +6564,7 @@ skey_红磁流钴锭:
   item:
     name: "&#96d2ffα&#86b7ff强&#769cff化&#6581ff合&#5566ff金 &#bf957d红&#c49891磁&#c99aa5流&#a39fb3钴&#7ca4c2锭"
     material: polished_andesite_slab
+    modelId: 1210306
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6282,6 +6588,7 @@ skey_忒弥斯锭:
   item:
     name: "&#96d2ffα&#86b7ff强&#769cff化&#6581ff合&#5566ff金 &#d8bb8f忒&#d4baa6弥&#cfbabd斯&#cbb9d4锭"
     material: end_stone_brick_slab
+    modelId: 1210307
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6305,6 +6612,7 @@ skey_纯净铂锭:
   item:
     name: "&#96d2ffα&#86b7ff强&#769cff化&#6581ff合&#5566ff金 &#cedad7纯&#c1dad7净&#b4dad7铂&#a7dad7锭"
     material: smooth_quartz_slab
+    modelId: 1210308
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6328,6 +6636,7 @@ skey_禁闭纯钛合金:
   item:
     name: "&#bd9cf3β&#c286f6强&#c671f9化&#cb5bfc合&#cf45ff金 &#ea7a4b禁&#e67550闭&#e37155纯&#df6c59钛&#dc685e合&#d86363金"
     material: resin_brick_slab
+    modelId: 1210309
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6355,6 +6664,7 @@ skey_錾制重金锭:
   item:
     name: "&#bd9cf3β&#c286f6强&#c671f9化&#cb5bfc合&#cf45ff金 &#d8c310錾&#ecd61f制&#ffea2e重&#fceb4e金&#f9eb6e锭"
     material: bamboo_mosaic_slab
+    modelId: 1210310
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6382,6 +6692,7 @@ skey_磁耀锇钢锭:
   item:
     name: "&#bd9cf3β&#c286f6强&#c671f9化&#cb5bfc合&#cf45ff金 &#cccccc磁&#e4e4e4耀&#c2c2c2锇&#a0a0a0钢&#7e7e7e锭"
     material: polished_deepslate_slab
+    modelId: 1210311
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6409,6 +6720,7 @@ skey_镀铂电气合金锭:
   item:
     name: "&#bd9cf3β&#c286f6强&#c671f9化&#cb5bfc合&#cf45ff金 &#c1d2ff镀&#e0e9ff铂&#ffffff电&#ddfbff气&#bcf7ff合&#9af3ff金&#78efff锭"
     material: purpur_slab
+    modelId: 1210312
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6440,6 +6752,7 @@ skey_充能锿:
   item:
     name: "&#ffb190γ&#ff9774强&#ff7d58化&#ff623b合&#ff481f金 &#00fff0充能锿"
     material: QUARTZ
+    modelId: 1210313
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6467,6 +6780,7 @@ skey_伊甸红锭:
   item:
     name: "&#ffb190γ&#ff9774强&#ff7d58化&#ff623b合&#ff481f金 &#ed7d9f伊&#ed608f甸&#ec437e红&#ec266e锭"
     material: red_nether_brick_slab
+    modelId: 1210314
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6511,6 +6825,7 @@ skey_深境燃子素钢锭:
   item:
     name: "&#ffb190γ&#ff9774强&#ff7d58化&#ff623b合&#ff481f金 &#d117b0深&#db2688境&#e4345f燃&#ed4237子&#f26739素&#f68c3b钢&#fbb03d锭"
     material: prismarine_brick_slab
+    modelId: 1210315
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6555,6 +6870,7 @@ skey_至纯风暴铱:
   item:
     name: "&#ffa5dbΩ&#ff6cc4强&#ff32ad化&#ff1975合&#ff003d金 &#96b5ff至&#72c7ff纯&#4ddaff风&#29ecff暴&#05ffff铱"
     material: wind_charge
+    modelId: 1210316
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6575,6 +6891,7 @@ skey_框架1:
   item:
     name: "&#6fbbc0α&#83c9cb机&#96d7d5器&#aae6e0框&#bdf4eb架 &#b5eee5硬&#ade9df化&#a5e3d9磁&#9dddd2电&#95d8cc外&#8dd2c6壳"
     material: white_stained_glass
+    modelId: 1210317
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6598,6 +6915,7 @@ skey_液压1:
   item:
     name: "&#91ebffα&#90e0ff升&#8ed4ff级&#8dc9ff组&#8bbdff件 &#8ab2ff罗&#77a6ff氏&#659bff液&#528fff压&#4084ff模&#2d78ff块"
     material: piston
+    modelId: 1210318
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6622,6 +6940,7 @@ skey_管道1:
   item:
     name: "&#91ebffα&#a7ede8升&#bdeed0级&#d3f0b9组&#e9f1a1件 &#fff38a鎏&#ffdf71铂&#ffcb57气&#ffb73e密&#ffa324模&#ff8f0b块"
     material: chiseled_copper
+    modelId: 1210319
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6646,6 +6965,7 @@ skey_框架2:
   item:
     name: "&#ce745eβ&#d98e6e机&#e4a97f器&#efc48f框&#fadf9f架 &#fce5a2封&#f7d898闭&#f1cb8e化&#ecbe83钛&#e6b179金&#e1a46f外&#db9765壳"
     material: ORANGE_stained_glass
+    modelId: 1210320
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6677,6 +6997,7 @@ skey_液压2:
   item:
     name: "&#c191ffβ&#cca5ff升&#d8b9ff级&#e3cdff组&#eee1ff件 &#f9f5ff负&#f5f5f5闪&#e1e1e1光&#cdcdcd液&#b9b9b9导&#a5a5a5模&#919191块"
     material: sticky_piston
+    modelId: 1210321
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6701,6 +7022,7 @@ skey_管道2:
   item:
     name: "&#c191ffβ&#cb88e5升&#d47fcb级&#de75b1组&#e76c96件 &#f1637cG&#fa5a62R&#ff584eG&#ff5e41燃&#ff6334素&#ff6927气&#ff6f1a压&#ff740d模&#ff7a00块"
     material: reinforced_deepslate
+    modelId: 1210322
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6729,6 +7051,7 @@ skey_框架3:
   item:
     name: "&#ff3843γ&#ff5465机&#ff7186器&#ff8da8框&#ffa9c9架 &#faadcc无&#f199b0协&#e88593议&#df7177充&#d65d5b能&#cd493e外&#c43522壳"
     material: RED_stained_glass
+    modelId: 1210323
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6761,6 +7084,7 @@ skey_框架4:
   item:
     name: "&#6957ffΩ&#8e89ff机&#b4bcff器&#d9eeff框&#cdfff8架 &#a7ffee至&#81ffe3臻&#5bffd9纯&#3ff4d5铱&#37d1e0镀&#2eafea火&#268cf5外&#1d6aff壳"
     material: tinted_glass
+    modelId: 1210324
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6789,6 +7113,7 @@ skey_芯盘1:
     name: "&#b60000Σ&#c20000智&#ce0000能&#db0000核&#e70000心 &#f30000“&#ff0000歌&#ff1010利&#ff1f1f亚&#ff2f2f”&#ff3f3f级&#ff4e4e芯&#ff5e5e盘"
     material_type: skull_hash
     material: 95a23025f0e09e94c9244d40450fc2b08a61cb64971f40b8a82adcdfca360009
+    modelId: 1210325
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6816,6 +7141,7 @@ skey_芯盘2:
     name: "&#9d00b6Φ&#a200c1智&#a700cc能&#ac00d8核&#b100e3心 &#b600ee“&#bb00f9垂&#c207fe眸&#cc16fb后&#d624f9土&#e133f6”&#eb41f4级&#f550f1芯&#ff5eef盘"
     material_type: skull_hash
     material: 5bc1fd7ec1a1145063239095b17135568e3188be203b318a989df4964b8cf2e0
+    modelId: 1210326
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6847,6 +7173,7 @@ skey_芯盘3:
     name: "&#90f3e1Ω&#7aebe6智&#64e4ea能&#4edcef核&#37d5f3心 &#21cdf8“&#0bc6fd&o&l风&#09c1ff&o&l暴&#1abeff&o&l命&#2bbcff&o&l途&#3db9ff&o”&#4eb7ff级&#60b4ff芯&#71b2ff盘"
     material_type: skull_hash
     material: 147ef866ac020457f38f88ccb7fc42b2c128d0a8446c937d54510466cda1d7c0
+    modelId: 1210327
     glow: true
     lore:
     - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
@@ -6882,6 +7209,7 @@ skey_芯盘3:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#ffffffn&#e6d6fau&#ccaef6l&#b385f1l&#9a5cecG&#9745d5#&#ac40ac &#c13b83咆&#d63559哮&#eb3030系统"
     material: BOOK
+    modelId: 1210328
     glow: true
     lore:
     - '&b星座&9：&4无'
@@ -6901,6 +7229,7 @@ skey_芯盘3:
   item:
     name: "&#ffffffn&#e8dafbu&#d1b6f7l&#bb91f2l&#a46deeG&#8d48ea#&#a043c5 &#b33ea0咆&#c53a7a哮&#d83555外&#eb3030壳&8-T1"
     material: shulker_shell
+    modelId: 1210329
     glow: true
     lore:
     - '&b归属&9： &4？？？'
@@ -6951,6 +7280,7 @@ shop_阿米洛索你是谁1:
   item:
     name: "啊？"
     material: stone
+    modelId: 1210330
     glow: true
     lore:
     - '你谁阿？'
@@ -6961,6 +7291,7 @@ shop_阿米洛索你是谁2:
   item:
     name: "啊？"
     material: stone
+    modelId: 1210331
     glow: true
     lore:
     - '你谁阿？'
@@ -6971,6 +7302,7 @@ shop_阿米洛索你是谁3:
   item:
     name: "啊？"
     material: stone
+    modelId: 1210332
     glow: true
     lore:
     - '你谁阿？'
@@ -6981,6 +7313,7 @@ shop_阿米洛索你是谁4:
   item:
     name: "啊？"
     material: stone
+    modelId: 1210333
     glow: true
     lore:
     - '你谁阿？'
@@ -6991,6 +7324,7 @@ shop_阿米洛索你是谁5:
   item:
     name: "啊？"
     material: stone
+    modelId: 1210334
     glow: true
     lore:
     - '你谁阿？'
@@ -7001,6 +7335,7 @@ shop_阿米洛索你是谁6:
   item:
     name: "啊？"
     material: stone
+    modelId: 1210335
     glow: true
     lore:
     - '你谁阿？'
@@ -7017,6 +7352,7 @@ DLC_描述1:
   item:
     name: "&#e0e5ff额&#d0dbf7外&#c1d2ee信&#b1c8e6息 &b作者的话"
     material: paper
+    modelId: 1210336
     glow: true
     lore:
     - '&#fff5b3DLC是用于收录与GLTC本体关联性不大或是存在特殊情况的势力的独立区域；'
@@ -7038,6 +7374,7 @@ DLC_log1:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee7DLC第一次更新"
     material: map
+    modelId: 1210337
     glow: true
     lore:
     - '&b时间：&f2026 6 2'
@@ -7055,6 +7392,7 @@ DLC_log2:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee7DLC第二次更新"
     material: map
+    modelId: 1210338
     glow: true
     lore:
     - '&b时间：&f2026-6-23'
@@ -7072,6 +7410,7 @@ DLC_log3:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee7DLC第三次更新"
     material: map
+    modelId: 1210339
     glow: true
     lore:
     - '&b时间：&f2026-6-29'
@@ -7090,6 +7429,7 @@ DLC_log4:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee7DLC第四次更新"
     material: map
+    modelId: 1210340
     glow: true
     lore:
     - '&b时间：&f2026-7-15'
@@ -7108,6 +7448,7 @@ DLC_log5:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#70e9ffG&#69e2f9L&#63dcf3T&#5cd5edC&#56cee7DLC第五次更新"
     material: map
+    modelId: 1210341
     glow: true
     lore:
     - '&b时间：&f2026-8-15'
@@ -7126,6 +7467,7 @@ OST介绍:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#22a719奥&#1fb218史&#1cbe18莱&#19c917特&#16d416中&#13e016古&#10eb15科&#1ce616技&#27e117爱&#33dc18好&#3fd61a者&#4ad11b协&#56cc1c会"
     material: BOOK
+    modelId: 1210342
     glow: true
     lore:
     - '&b星座&9：&2由蕨座'
@@ -7145,6 +7487,7 @@ OST_基础逻素:
     name: "&#92b4cfα粘液材料 &#4687e8基础逻素-1"
     material_type: skull_hash
     material: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTBhMTllMjNkMjFmMmRiMDYzY2M1NWU5OWFlODc0ZGM4YjIzYmU3NzliZTM0ZTUyZTdjN2I5YTI1In19fQ==
+    modelId: 1210343
     glow: true
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
@@ -7164,6 +7507,7 @@ OST_基础逻素2:
     name: "&#92b4cfα粘液材料 &#4687e8基础逻素-2"
     material_type: skull_hash
     material: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2M1OTZhNDFkYWVhNTFiZTJlOWZlYzdkZTJkODkwNjhlMmZhNjFjOWQ1N2E4YmRkZTQ0YjU1OTM3YjYwMzcifX19
+    modelId: 1210344
     glow: true
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
@@ -7183,6 +7527,7 @@ OST_基础逻素3:
     name: "&#92b4cfα粘液材料 &#4687e8基础逻素-3"
     material_type: skull_hash
     material: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjg1ZDRmZGE1NmJmZWI4NTEyNDQ2MGZmNzJiMjUxZGNhOGQxZGViNjU3ODA3MGQ2MTJiMmQzYWRiZjVhOCJ9fX0=
+    modelId: 1210345
     glow: true
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
@@ -7202,6 +7547,7 @@ OST_高级逻素:
     name: "&#af92cfβ粘液材料 &#a746e8高级逻素-1"
     material_type: skull_hash
     material: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWViZDg1YjdmOWU2MjIyYjM5NTQ1MWFkYjQ2Yjc2YTYyZjdlOTVkYTZmYmY3ZWZlNzE1Yzc4MzQ1NTE0MCJ9fX0=
+    modelId: 1210346
     glow: true
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
@@ -7221,6 +7567,7 @@ OST_高级逻素2:
     name: "&#af92cfβ粘液材料 &#a746e8高级逻素-2"
     material_type: skull_hash
     material: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNTAyZWJhODNhNmE5NTM5MTdmMWQ5OTFiYjM3OWIzNmU3ZmYwNGE0OTZkMTdmNTQyNGQwNGFhMTJlZmJhYiJ9fX0=
+    modelId: 1210347
     glow: true
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
@@ -7240,6 +7587,7 @@ OST_高级逻素3:
     name: "&#af92cfβ粘液材料 &#a746e8高级逻素-3"
     material_type: skull_hash
     material: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTFmZjUyZDE1ZTdhNzc1OGIwM2M2ZmE4NjFhY2JjZTkzYWU1NjYyZjc1NzgyNjE1NDBiMzkyZGU0MTU3YjI5In19fQ==
+    modelId: 1210348
     glow: true
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
@@ -7259,6 +7607,7 @@ OST_魔力逻素:
     name: "&#af92cfβ粘液材料 &#a746e8魔力逻素"
     material_type: skull_hash
     material: eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZmFjMDdjZGYyODlhMDMzMWI5MmQ0ZTNhZDhmNjAzZTE2ZDUyOWExMzBmMWZiNGRiMGZkMjdhYzU4NWU1MzcifX19
+    modelId: 1210349
     glow: true
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
@@ -7279,6 +7628,7 @@ OST_轮椅宣言:
     glow: true
     name: "&#10eb15O&#19c917S&#22a719T &4轮椅宣言"
     material: bell
+    modelId: 1210350
     lore:
     - '&b归属&9：&#10eb15奥&#12e415史&#14dd16莱&#15d716特&#17d017古&#19c917械&#1bc217爱&#1dbb18好&#1eb518者&#20ae19协&#22a719会'
     - '&#fff5b3手持并右键以启用轮椅权限。'
@@ -7300,6 +7650,7 @@ al_q_hinet:
   item:
     name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#a0ff40乎&#9bff55维&#96ff6b米&#90ff80亚&#8bff96运&#86ffab输&#7af2bc网&#6fe5cd络&#63d8dd供&#58cbee应&#4cbeff商"
     material: BOOK
+    modelId: 1210351
     glow: true
     lore:
     - '&b星座&9：&#7efff4琴&#76d8fa廊&#6db0ff座'
@@ -7326,6 +7677,7 @@ UMPV_酥脆大薯条:
     name: "&#ffce94酥&#ffbe87脆&#ffaf7a大&#ff9f6c薯&#ff8f5f条"
     material_type: skull_hash
     material: 505826b37a7f7b23c3ac9dda97f4744d120340d6fa44f937e2b79f8d395f
+    modelId: 1210352
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3使用土豆制作的薯条；'
@@ -7350,6 +7702,7 @@ UMPV_炭烤海螺:
     name: "&#ff4040炭&#ff514a烤&#ff6155海&#ff725f螺"
     material_type: skull_hash
     material: 8126cac16fd8e47516e84520cd3981c45d708f55d3458494d8f081c505d6d304
+    modelId: 1210353
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3直接烤制的海螺；'
@@ -7374,6 +7727,7 @@ UMPV_大盘煎蛋:
     name: "&#ff9b63大&#ffa462盘&#ffac60煎&#ffb55f蛋"
     material_type: skull_hash
     material: a323118295de64c5c34297c25d11e41a8228004e4d91f9d5c08c8e1be472d2a3
+    modelId: 1210354
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘口感充实的煎蛋；'
@@ -7398,6 +7752,7 @@ UMPV_久蒸大米饭:
     name: "&#ff7a41久&#ff8f52蒸&#ffa463大&#ffb973米&#ffce84饭"
     material_type: skull_hash
     material: 994c95414d927f7ed86a4ae18077df66798ea736ddb5cb49aad7699d91dd1ef2
+    modelId: 1210355
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一碗蒸汽腾腾的美味米饭；'
@@ -7423,6 +7778,7 @@ UMPV_猛炸大薯条:
     name: "&#ff6565猛&#ff7057炸&#ff7b4a大&#ff873c薯&#ff922e条"
     material_type: skull_hash
     material: d55a12afc51c5380fd0a4de22bf3e3a598e2fa6f8f833051719cd1ea0074fdb3
+    modelId: 1210356
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3全新升级的超级大薯条；'
@@ -7448,6 +7804,7 @@ UMPV_肉糜煎蛋:
     name: "&#fa81d8赭&#fb7cb0赭&#fc7688肉&#fd7160糜&#fe6b38煎&#ff6610蛋"
     material_type: skull_hash
     material: d5c441cba4d6b57ded54c8369216a6c7156fb887d4b5639ee934f1bb6cbfdb
+    modelId: 1210357
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘冒着热气的炖煮肉糜；'
@@ -7473,6 +7830,7 @@ UMPV_烤厄索斯菜卷:
     name: "&#ffc736烤&#fcbe56厄&#f9b576索&#f5ab96斯&#f2a2b6卷&#ef99d6菜"
     material_type: skull_hash
     material: 98eeafdf6d7c6c9943e44bfcfdbe037d6c15d6d5e354c3ccf72bf886cde4e1c6
+    modelId: 1210358
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘厄索斯烤肉卷菜；'
@@ -7498,6 +7856,7 @@ UMPV_酱烤岩兽串:
     name: "&#ff9263酱&#ff886e烤&#ff7e78岩&#ff7483兽&#ff6a8d串"
     material_type: skull_hash
     material: 78cfd0588a8a93b8cd21bdd2ce165489cb393948714fdd85fb10e44d4886f6
+    modelId: 1210359
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一串涂抹酱料后烤制的岩兽肉串；'
@@ -7525,6 +7884,7 @@ UMPV_瓜片炒餮头肉:
     name: "&#b0ff4b瓜&#c0ea4d片&#d0d450炒&#dfbf52餮&#efa955头&#ff9457肉"
     material_type: skull_hash
     material: d7b80db0d7c86c0edf214cfd13abd91c156c2dae2941133bdec91017fdd1e1b1
+    modelId: 1210360
     lore:
       - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
       - '&#fff5b3一份瓜夹肉片小炒；'
@@ -7550,6 +7910,7 @@ UMPV_翠玉卷心瓜片:
     name: "&#a8e06f翠&#a2d97a玉&#9cd285卷&#96cb90心&#90c49b瓜&#8abda6片"
     material_type: skull_hash
     material: 1c47f4cef8c1b9e90fd9682211758dc34ad0e34ec921c95450d9b5286efc8354
+    modelId: 1210361
     lore:
       - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
       - '&#fff5b3一盘卷心菜鲜切瓜片的清拌小菜；'
@@ -7575,6 +7936,7 @@ UMPV_屑切菜香肉盘:
     name: "&#56f71d屑&#9ae543切&#ddd469菜&#ffbe70香&#ffa559肉&#ff8b41盘"
     material_type: skull_hash
     material: 2c7c845d31d6ffc80f630f7b8a46ce7d911e1448b1bd35243b20d24ce9ec34b4
+    modelId: 1210362
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘香菜肉丝；'
@@ -7604,6 +7966,7 @@ UMPV_蘑菇萝卜厚炖:
     name: "&#cc7e52蘑&#e0ab53菇&#f5d854萝&#ffdb5a卜&#ffb563厚&#ff8f6c炖"
     material_type: skull_hash
     material: 6bbecba5231805aaadda81d764b096eee62ed2e4cb447448544f5182b091f101
+    modelId: 1210363
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一锅香气浓郁的去皮鲜炖全鸡；'
@@ -7633,6 +7996,7 @@ UMPV_蛋炒鱼肉丝:
     name: "&#929dff蛋&#c991e3炒&#ff85c7鱼&#ff9d92肉&#ffb45c丝"
     material_type: skull_hash
     material: b6c98b410123b0944422303798fc2db8cea0feeb09d0da40f5361b59498f3e8b
+    modelId: 1210364
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一碗菜炒鱼肉丝；'
@@ -7662,6 +8026,7 @@ UMPV_狂野人生烤串:
     name: "&#ff2a2a狂&#ff593d野&#ff8850人&#ff964e生&#ff8337烤&#ff701f串"
     material_type: skull_hash
     material: f0a510db84c018d8d250ab1ee564418529e88d3af3aec16fc1bdef408d1d4ec8
+    modelId: 1210365
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一大块还未切开的煮肉条；'
@@ -7691,6 +8056,7 @@ UMPV_深海野兽:
     name: "&#ff7347深&#d57784海&#ab7ac2野&#817eff兽"
     material_type: skull_hash
     material: 7de71648796462fb459e383088de3db0d5607d10fd7b2b660bf250afeca6920e
+    modelId: 1210366
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘野兽肉沫与鱼肉粒烹煮料理；'
@@ -7720,6 +8086,7 @@ UMPV_水煮虐王兽肉汤:
     name: "&#ff2929水&#ff3d2e煮&#ff5232虐&#ff6637王&#ff726a兽&#ff7e9d肉&#ff8ad0汤"
     material_type: skull_hash
     material: 3714bdb7c25357f15b728de4d6242820d5c036aa5a8d2462121a6659e0ea883e
+    modelId: 1210367
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘顶级的新鲜野味炖汤；'
@@ -7749,6 +8116,7 @@ UMPV_大锅炖肉土豆:
     name: "&#ff7f56大&#ff845c锅&#ff8963炖&#ff8d69肉&#ff9270土&#ff9776豆"
     material_type: skull_hash
     material: 2819f48ebdec4ade233633beed6962e908eeba654d559e9644c5a830b0bdfcb8
+    modelId: 1210368
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一锅精致的土豆炖肉；'
@@ -7778,6 +8146,7 @@ UMPV_浮沉盐海的阖眸:
     name: "&#5062ff浮&#7f69ff沉&#ad71ff盐&#dc78ff海&#a5a1ff的&#6fcaff阖&#38f3ff眸"
     material_type: skull_hash
     material: 412037720e76328e8cfa929d0087e1e53fbc8143968248fa0e06b4f782aab485
+    modelId: 1210369
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘只用海洋食物制作的料理；'
@@ -7812,6 +8181,7 @@ UMPV_菌萝香炖稻焖饭:
     name: "&#ffd27c菌&#ffb47b萝&#ff9679香&#ff7878炖&#ff816d稻&#ff8b63焖&#ff9458饭"
     material_type: skull_hash
     material: 4e947fe09ebb7e7b3769bb8a5da5cb734646b2c7973ab6a35b6627a7dc1245d1
+    modelId: 1210370
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘包裹着菜果菌的金黄焖饭；'
@@ -7846,6 +8216,7 @@ UMPV_苔香辣卤海鲜汤:
     name: "&#82ff56苔&#abd78e辣&#d4aec7卤&#fd86ff海&#c18dfe鲜&#8595fe汤&#499cfd汤"
     material_type: skull_hash
     material: 9b54225d7a2078319d886a7751c9147c6b7e13bb0aa0ca18cdce01357bc65b3a
+    modelId: 1210371
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3陶碗盛装的热海鲜高汤；'
@@ -7880,6 +8251,7 @@ UMPV_海陆双菌酒生煎:
     name: "&#4971fd海&#7a68fe陆&#ac5ffe双&#dd56ff菌&#e860cb酒&#f26b96生&#fd7562煎"
     material_type: skull_hash
     material: 31e9359292be8de0e6467bba69260c4c7a8c1bfc08ae09bae78b6fcd612b7ca3
+    modelId: 1210372
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一盘带着酒香的口味复杂的料理；'
@@ -7914,6 +8286,7 @@ UMPV_黄金焗酱烤整羽:
     name: "&#fff73e黄&#ffb93e金&#ff7b3d焗&#ff3d3d酱&#ff4e44烤&#ff604b整&#ff7152羽"
     material_type: skull_hash
     material: f33b1bbceedadff8d3cf786860b163bd24024606ff9e499d0c390cbe2690b778
+    modelId: 1210373
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一只刚出炉的酱烤全羽兽；'
@@ -7948,6 +8321,7 @@ UMPV_见手金果炸全腿:
     name: "&#ffe03e见&#ffcd3e手&#ffb93d金&#ffa63d果&#ff833d炸&#ff603d全&#ff3d3d腿"
     material_type: skull_hash
     material: 86c31fd57f99ee32bc9dbdfdce0114ad1973f44fbfe8f5d194ad75a36867ac92
+    modelId: 1210374
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一只切块后的油炸弃拉泊齿兽腿；'
@@ -7982,6 +8356,7 @@ UMPV_百香爆烤整身虐王排:
     name: "&#ff5fbf百&#ff5c84香&#ff5949爆&#ff6523烤&#ff8d26整&#ffb528身&#ff9a26虐&#ff5c22王&#ff1e1e排"
     material_type: skull_hash
     material: b2125d129190c88f8c44e42e8c51ad5edbe445e674d98af0676c74609485c15
+    modelId: 1210375
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一整条滋油焦红的烤虐王兽肉排；'
@@ -8022,6 +8397,7 @@ UMPV_灼金香烹餮汤锅:
     name: "&#e3b542灼&#eccb39金&#f6e130香&#fff727烹&#ffcb26餮&#ff9f25汤&#ff7324锅"
     material_type: skull_hash
     material: 73081f38234e03e0836c3e6cf0c4f572db5647376412958ae214055db17ae0ef
+    modelId: 1210376
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一锅秘制炖煮，分量十足的餮头兽肉锅；'
@@ -8062,6 +8438,7 @@ UMPV_疯狂星期四:
     name: "&#fa00ff疯&#fc00be狂&#fd007e星&#ff003d™  &#ff0000&l王&#ff270c&l室&#ff4e18&l特&#ff7524&l典&#ff9229&l全&#ffaa2b&l球&#ffc12c&l桶&#ffc82b&l盛&#ffae25&l宴&#ff941f&l套&#ff7a19&l餐"
     material_type: skull_hash
     material: f247a4478d09637f3995593a23ee5c7e94ec4a9980ac63b162fef3de6af8974b
+    modelId: 1210377
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一桶誉满群星的快餐品牌推出的全家桶套餐；'
@@ -8102,6 +8479,7 @@ UMPV_黄金炒饭:
     name: "&#ff1f00盛&#ff4d00世&#ff7a00百&#ff9100年 &#ff7a00· &#ff6400黄&#ff4500金&#ff2300炒&#ff0000饭"
     material_type: skull_hash
     material: c3dc9eb5c3128bd682479394e2b806e4a2ed2da148c74b0e31528e666d091d96
+    modelId: 1210378
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
     - '&#fff5b3一碗热气腾腾的大碗炒饭；'
@@ -8145,6 +8523,7 @@ UMPV_板蓝根:
   item:
     name: "&#92b4cfα药物 &#4687e8板蓝根颗粒"
     material: prismarine_crystals
+    modelId: 1210379
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8168,6 +8547,7 @@ UMPV_满穗线香:
   item:
     name: "&#92b4cfα药物 &#4687e8满穗线香"
     material: string
+    modelId: 1210380
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8187,6 +8567,7 @@ UMPV_末嫦娥:
   item:
     name: "&#92b4cfα药物 &#4687e8末嫦娥"
     material: bone_meal
+    modelId: 1210381
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8210,6 +8591,7 @@ UMPV_琼华古冶散:
   item:
     name: "&#92b4cfα药物 &#4687e8琼华古冶散"
     material: redstone
+    modelId: 1210382
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8229,6 +8611,7 @@ UMPV_原神丸:
   item:
     name: "&#af92cfβ毒药 &#a746e8原神丸"
     material: ink_sac
+    modelId: 1210383
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8248,6 +8631,7 @@ UMPV_半满之月:
   item:
     name: "&#af92cfβ药物 &#a746e8半满之月"
     material: glass_bottle
+    modelId: 1210384
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8280,6 +8664,7 @@ UMPV_辟风兽角:
   item:
     name: "&#af92cfβ药物 &#a746e8辟风兽角"
     material: sugar
+    modelId: 1210385
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8303,6 +8688,7 @@ UMPV_悠久的群天之甘露:
   item:
     name: "&#ffc494δ&#ffada4药&#ff97b3物 &#38cfff悠&#4da8ff久&#6181ff的&#765aff群&#9246ee天&#b646cc之&#db45aa甘&#ff4588露"
     material: pink_dye
+    modelId: 1210386
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8327,6 +8713,7 @@ UMPV_龙心:
   item:
     name: "&#ffc494δ&#ffada4药&#ff97b3物 &#c15dff龙&#8e82ff心&#5ba6ff赋&#28cbff骨&#53dcb3煮&#7dee66月&#a8ff1a瓶"
     material: dragon_breath
+    modelId: 1210387
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'
@@ -8362,6 +8749,7 @@ UMPV_果冻:
   item:
     name: "&#ffc494δ&#ffada4药&#ff97b3物 &#fd0000归&#fd0033命&#fe0066灼&#fe0099道&#ff00cc无&#ff09e0上&#ff1cd4大&#ff2fc8意&#ff41bc果&#ff54b0冻"
     material: medium_amethyst_bud
+    modelId: 1210388
     glow: true
     lore:
     - '&b归属&9：&#ff31da魔&#f73cdf药&#ee47e3联&#e652e8合&#de5ded™&#d568f1食&#cd73f6药&#c47efa工&#bc89ff程'

@@ -17,14 +17,19 @@ var UUID = java.util.UUID;
 var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 var ITEM_ID = "FKR_伏地";            // 粘液科技物品ID
+var SIT_MARK_MULT = 4;               // 标记伤害：4x SIT
+var SIT_HIT_MULT = 4;                // 下砸伤害：4x SIT
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 var COOLDOWN_MS = 3000;               // 右键再装填时间（毫秒）3秒
 var RANGE = 20;                       // 标记范围（格）
 var FOV_DEG = 100;                     // 视野夹角（度），左右各45°
-var MARK_DAMAGE = 40;                 // 标记造成的伤害
 var SLOWNESS_TICKS = 60;              // 缓慢持续时间（tick），60 = 3秒
 var SLOWNESS_LEVEL = 2;               // 缓慢等级（2 = III）
 var MARK_DURATION_MS = 4500;          // 标记状态保留时间（毫秒），略长于缓慢时长
-var HIT_DAMAGE = 40;                  // 下砸伤害
 var FALL_HEIGHT = 5;                  // 粒子生成高度（生物头顶上方格数）
 var FALL_SPEED = 0.4;                 // 每tick下落格数
 var FALL_CLUSTER_COUNT = 12;          // 每tick生成的粒子数量（一坨三色粒子）
@@ -42,6 +47,51 @@ var EXPLOSION_PARTICLE = (function () {
 })();
 var cdMap = new java.util.HashMap();    // 玩家UUID -> 上次右键时间(ms)
 var marked = new java.util.HashMap();   // 被标记实体UUID -> 标记过期时间(ms)
+function getAbilityPower() {
+    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
+}
+function calcSitDamage(mult) { return mult * getAbilityPower(); }
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function dealSitDamage(target, player, item, sitMult) {
+    var dmg = calcSitDamage(sitMult);
+    target.setNoDamageTicks(0);
+    target.damage(dmg, player);
+    notifyAbilityDamage(player, item, dmg);
+    return dmg;
+}
 function onUse(event) {
     var player = event.getPlayer();
     var item = player.getInventory().getItemInMainHand();
@@ -72,8 +122,7 @@ function onUse(event) {
         if (dist < 0.5 || dist > RANGE) continue;
         if (dir.dot(to.normalize()) < halfCos) continue;
         marked.put(ent.getUniqueId().toString(), expire);
-        ent.setNoDamageTicks(0);
-        ent.damage(MARK_DAMAGE, player);
+        dealSitDamage(ent, player, item, SIT_MARK_MULT);
         ent.addPotionEffect(new PotionEffect(SLOWNESS, SLOWNESS_TICKS, SLOWNESS_LEVEL, false, true, true));
         markRing(ent);
         count++;
@@ -183,8 +232,8 @@ function summonBlackBlock(target, player) {
                 }
                 dropY -= FALL_SPEED;
                 if (dropY <= groundY) {
-                    target.setNoDamageTicks(0);
-                    target.damage(HIT_DAMAGE, player);
+                    var weaponItem = player.getInventory().getItemInMainHand();
+                    dealSitDamage(target, player, weaponItem, SIT_HIT_MULT);
                     var hitLoc = target.getLocation().add(0, 0.5, 0);
                     world.playSound(hitLoc, "block.anvil.land", 2.0, 0.6);
                     world.playSound(hitLoc, "entity.generic.explode", 1.5, 0.5);

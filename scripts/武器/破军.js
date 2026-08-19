@@ -23,6 +23,11 @@ var UUIDClass = Java.type("java.util.UUID");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 
 var ITEM_ID = "FKR_无锋破军";
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 
 // === 药水效果类型 ===
 var TYPE_BLINDNESS = PotionEffectType.getByName("BLINDNESS");
@@ -48,7 +53,7 @@ var STRENGTH_LEVEL_ADD      = 10;     // 每次踩旗增加的力量等级（amp
 // === 镇压参数 ===
 var CRUSH_RANGE           = 30;      // 30格内
 var CRUSH_FOV_DEG         = 120;     // 视线120度
-var CRUSH_DAMAGE          = 500;     // 250伤害
+var SIT_CRUSH_MULT        = 50;      // 镇压：50x SIT
 var CRUSH_BLIND_TICKS     = 120;     // 6秒失明
 var CRUSH_SLOWNESS_TICKS  = 120;     // 6秒缓慢
 var CRUSH_SLOWNESS_LEVEL  = 99;      // 缓慢100（amplifier=99，无法移动）
@@ -83,6 +88,52 @@ var DARK_RED_DUST_BIG = new DustOptions(Color.fromRGB(150, 10, 10), 2.2); // 大
 var heavyEdgeMap     = new java.util.HashMap(); // UUID -> 重锋层数
 var heavyEdgeTimeMap = new java.util.HashMap(); // UUID -> 上次获得/刷新重锋时间(ms)
 var bannerMap        = new java.util.HashMap(); // UUID -> 旌旗数组 [{loc, born}]
+
+function getAbilityPower() {
+    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
+}
+function calcSitDamage(mult) { return mult * getAbilityPower(); }
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function dealSitDamage(target, player, item, sitMult) {
+    var dmg = calcSitDamage(sitMult);
+    target.setNoDamageTicks(0);
+    target.damage(dmg, player);
+    notifyAbilityDamage(player, item, dmg);
+    return dmg;
+}
 
 // ===================================================================
 // 辅助：检查玩家是否手持破军
@@ -375,7 +426,7 @@ function dealCrushDamage(player) {
         var dot = viewDir.dot(toEnt.normalize());
         if (dot < fovCos) continue;
 
-        ent.damage(CRUSH_DAMAGE, player);
+        dealSitDamage(ent, player, player.getInventory().getItemInMainHand(), SIT_CRUSH_MULT);
         var entLoc = ent.getLocation().add(0, ent.getHeight() / 2, 0);
         world.spawnParticle(Particle.DUST, entLoc, 25, 0.8, 1.2, 0.8, 0, RED_DUST_BIG);
         world.playSound(entLoc, "entity.player.attack.crit", 1.5, 0.7);

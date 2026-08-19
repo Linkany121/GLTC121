@@ -1,8 +1,13 @@
 
+var SIT_DAMAGE_MULT = 5;
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 var COOLDOWN_MS = 4000; // 冷却时间（毫秒）
 var RANGE = 40; // 水球最大飞行距离（米）
 var BLAST_RADIUS = 12; // 爆炸伤害范围（米）
-var DAMAGE = 50; // 对生物造成的伤害
 var LEVITATION_TICKS = 20; // 飘浮持续时间（tick），20=1秒
 var LEVITATION_LEVEL = 7; // 飘浮等级，5=VI
 var TELEPORT_DELAY = 20; // 命中后延迟传送时间（tick），20=1秒
@@ -25,6 +30,51 @@ var waterDust = new DustOptions(Color.fromRGB(80, 200, 255), 1.2);
 var TYPE_LEVITATION = PotionEffectType.getByName("LEVITATION");
 
 var cdMap = new java.util.HashMap();
+function getAbilityPower() {
+    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
+}
+function calcSitDamage(mult) { return mult * getAbilityPower(); }
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function dealSitDamage(target, player, item, sitMult) {
+    var dmg = calcSitDamage(sitMult);
+    target.setNoDamageTicks(0);
+    target.damage(dmg, player);
+    notifyAbilityDamage(player, item, dmg);
+    return dmg;
+}
 
 function onUse(event) {
     var player = event.getPlayer();
@@ -176,14 +226,14 @@ function triggerWaterBlast(world, loc, player) {
     world.playSound(loc, "entity.player.splash.high_speed", 2.0, 0.8);
     world.playSound(loc, "entity.generic.explode", 1.5, 1.2);
 
-    // 12米内所有生物：飘浮1秒(等级6) + 50伤害
+    // 12米内所有生物：飘浮1秒(等级6) + 5x SIT 伤害
+    var weaponItem = player.getInventory().getItemInMainHand();
     var targets = world.getNearbyEntities(loc, BLAST_RADIUS, BLAST_RADIUS, BLAST_RADIUS);
     var it = targets.iterator();
     while (it.hasNext()) {
         var ent = it.next();
         if (ent instanceof org.bukkit.entity.LivingEntity && ent !== player) {
-            ent.setNoDamageTicks(0);
-            ent.damage(DAMAGE, player);
+            dealSitDamage(ent, player, weaponItem, SIT_DAMAGE_MULT);
             ent.addPotionEffect(new PotionEffect(TYPE_LEVITATION, LEVITATION_TICKS, LEVITATION_LEVEL, false, true, true));
         }
     }

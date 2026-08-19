@@ -1,5 +1,55 @@
-var DAMAGE = 60;
+var SIT_DAMAGE_MULT = 6;
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 var COOLDOWN_MS = 1000;
+function getAbilityPower() {
+    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
+}
+function calcSitDamage(mult) { return mult * getAbilityPower(); }
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function dealSitDamage(target, player, item, sitMult) {
+    var dmg = calcSitDamage(sitMult);
+    target.setNoDamageTicks(0);
+    target.damage(dmg, player);
+    notifyAbilityDamage(player, item, dmg);
+    return dmg;
+}
 var RANGE = 40;
 var BEAM_DIAMETER = 2.0;
 var WHITE_CIRCLE_POINTS = 12;
@@ -74,8 +124,7 @@ function onUse(event) {
         var expandedBox = box.expand(beamRadius);
         var hit = expandedBox.rayTrace(startVec, dir, endDist);
         if (hit == null) continue;
-        ent.setNoDamageTicks(0);
-        ent.damage(DAMAGE, player);
+        dealSitDamage(ent, player, item, SIT_DAMAGE_MULT);
         damageCount++;
     }
     var anyVec = new Vector(0, 1, 0);

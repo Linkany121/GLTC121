@@ -1,6 +1,56 @@
-var DAMAGE_PER_BULLET = 6;
-var DAMAGE_BEAM = 200;
+var SIT_PER_BULLET = 0.6;
+var SIT_BEAM_MULT = 20;
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 var RANGE = 60;
+function getAbilityPower() {
+    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
+}
+function calcSitDamage(mult) { return mult * getAbilityPower(); }
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function dealSitDamage(target, player, item, sitMult) {
+    var dmg = calcSitDamage(sitMult);
+    target.setNoDamageTicks(0);
+    target.damage(dmg, player);
+    notifyAbilityDamage(player, item, dmg);
+    return dmg;
+}
 var COOLDOWN_MS = 5000;
 var BULLET_INTERVAL = 2;
 var MAX_BULLETS = 10;
@@ -21,6 +71,7 @@ var beamCoreDust = new DustOptions(Color.fromRGB(255, 120, 0), 1.5);
 var beamRingDust = new DustOptions(Color.fromRGB(255, 0, 0), 1.2);
 function fireBullet(player, bulletIndex) {
     var world = player.getWorld();
+    var item = player.getInventory().getItemInMainHand();
     var start = player.getEyeLocation();
     var dir = start.getDirection().normalize();
 
@@ -37,8 +88,7 @@ function fireBullet(player, bulletIndex) {
         endDist = start.toVector().distance(hitPos);
         var hitEntity = rayHit.getHitEntity();
         if (hitEntity != null) {
-            hitEntity.setNoDamageTicks(0);
-            hitEntity.damage(DAMAGE_PER_BULLET, player);
+            dealSitDamage(hitEntity, player, item, SIT_PER_BULLET);
         }
     }
     var tracerLoc = start.clone();
@@ -60,6 +110,7 @@ function fireBullet(player, bulletIndex) {
 }
 function fireBeam(player) {
     var world = player.getWorld();
+    var item = player.getInventory().getItemInMainHand();
     var start = player.getEyeLocation();
     var dir = start.getDirection().normalize();
     var beamRadius = BEAM_RADIUS;
@@ -94,8 +145,7 @@ function fireBeam(player) {
         if (!(ent instanceof org.bukkit.entity.LivingEntity) || ent === player) continue;
         var box = ent.getBoundingBox().expand(beamRadius);
         if (box.rayTrace(startVec, dir, endDist) == null) continue;
-        ent.setNoDamageTicks(0);
-        ent.damage(DAMAGE_BEAM, player);
+        dealSitDamage(ent, player, item, SIT_BEAM_MULT);
     }
     var anyVec = new Vector(0, 1, 0);
     if (Math.abs(dir.getX()) < 0.01 && Math.abs(dir.getZ()) < 0.01) {

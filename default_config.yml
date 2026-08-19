@@ -1,0 +1,10 @@
+# 首次加载后会复制到：
+#   plugins/RykenSlimefunCustomizer/addon_configs/GLTC121/config.yml
+# 服主请修改 addon_configs 目录下的 config.yml；勿改附属包内此模板（更新会覆盖）。
+
+# 异能强度(SIT) 枪械与异能武器的伤害将受此影响 默认10
+StarbyssAdjustment: 10
+
+# 枪械与异能武器的伤害提示方式
+# chat 聊天框 / actionbar 物品栏上方 / none 不显示
+DamageNotifyMode: chat

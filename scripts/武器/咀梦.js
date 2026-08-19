@@ -5,7 +5,7 @@
 //   右键 [赐梦仪式]：引爆视野内(120°/32格)敌人的斥命
 //   斥命>8：召唤宴死者之龙（末影龙下落特效）
 //   被动：玩家视野内生物死亡时，在死亡处召唤祝灵
-// 异能强度：暂未实装，固定为 10
+// 异能强度：读取附属配置 StarbyssAdjustment（default_config.yml），默认 10
 // ===================================================================
 
 var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
@@ -47,7 +47,11 @@ var META_CHIMING_EXTRA = "gltc_jiumeng_chiming_extra"; // 斥命额外伤害防�
 // -------------------------------------------------------------------
 // 1. 基础 / 异能强度
 // -------------------------------------------------------------------
-var ABILITY_POWER = 10;                 // 异能强度（暂未接势力系统，先写死）
+var ABILITY_POWER_DEFAULT = 10;         // 异能强度默认值（配置缺失时的回退）
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment"; // 异能强度配置 ID
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode"; // 伤害提示方式
+var DAMAGE_NOTIFY_DEFAULT = "chat"; // chat / actionbar / none
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 var CHIMING_EXTRA_FACTOR = 0.1;         // 斥命受伤额外伤害：层数 × 此值 × 异能强度
 var RITUAL_DAMAGE_FACTOR = 1.0;         // 赐梦仪式伤害：层数 × 此值 × 异能强度
 var DRAGON_DAMAGE_FACTOR = 100.0;       // 龙落地爆炸伤害：此值 × 异能强度
@@ -56,7 +60,7 @@ var DRAGON_DAMAGE_FACTOR = 100.0;       // 龙落地爆炸伤害：此值 × 异
 // 2. 左键蓄力
 // -------------------------------------------------------------------
 var CHARGE_TICKS = 20;                  // 蓄力时长（tick，20=1秒，40=2秒）
-var CHARGE_SEGMENTS = 10;               // ActionBar ◆ 格数
+var CHARGE_SEGMENTS = 16;               // ActionBar ◆ 格数
 var CHARGE_BAR_EMPTY = "§8·";           // 进度为 0 时占位
 var CHARGE_BAR_COLOR_CHARGING = "§0";   // 未满颜色（黑）
 var CHARGE_BAR_COLOR_FULL = "§d";       // 满条颜色（紫）
@@ -67,12 +71,15 @@ var CHARGE_START_SOUND_PITCH = 1.2;     // 开始蓄力音调
 var CHARGE_FULL_SOUND = "block.note_block.chime"; // 蓄满/释放音效
 var CHARGE_FULL_SOUND_VOL = 0.8;        // 蓄满音量
 var CHARGE_FULL_SOUND_PITCH = 1.6;      // 蓄满音调
+var CHARGE_RELEASE_SPLASH_SOUND = "entity.splash_potion.break"; // 蓄力完成召唤祝灵时播放
+var CHARGE_RELEASE_SPLASH_VOL = 1.0;
+var CHARGE_RELEASE_SPLASH_PITCH = 1.0;
 
 // -------------------------------------------------------------------
 // 3. 蓄力开场特效（樱花球 + 脚下紫爆）
 // -------------------------------------------------------------------
-var CHARGE_FX_CHERRY_RADIUS = 15.0;     // 樱花随机散布半径（格）
-var CHARGE_FX_CHERRY_COUNT = 180;       // 樱花采样点数
+var CHARGE_FX_CHERRY_RADIUS = 14.0;     // 樱花随机散布半径（格）
+var CHARGE_FX_CHERRY_COUNT = 150;       // 樱花采样点数
 var CHARGE_FX_CHERRY_PER_POINT = 2;     // 每个采样点粒子数
 var CHARGE_FX_OFFSET_X = 0.1;           // 每个点 X 随机偏移半幅（±此值）
 var CHARGE_FX_OFFSET_Y = 0.4;           // 每个点 Y 随机偏移半幅（±此值）
@@ -87,20 +94,22 @@ var CHARGE_FX_SOUND_BURST_2 = "block.amethyst_block.break"; // 脚下爆发音�
 // -------------------------------------------------------------------
 // 4. 祝灵（悦灵）
 // -------------------------------------------------------------------
-var ZHU_LING_MAX = 5;                   // 每玩家同时存在上限（仪式爆发可 bypass）
+var ZHU_LING_MAX = 16;                   // 每玩家同时存在上限（仪式爆发可 bypass）
 var ZHU_LING_LIFE_TICKS = 120;          // 存活时长（6秒）
-var ZHU_LING_SPEED = 0.55;              // 每 tick 飞行距离
-var ZHU_LING_HIT_RANGE = 1.35;          // 命中判定半径
+var ZHU_LING_SPEED = 0.6;              // 每 tick 飞行距离
+var ZHU_LING_HIT_RANGE = 1.4;          // 命中判定半径
 var ZHU_LING_SEARCH_RANGE = 32;         // 寻敌半径
 var ZHU_LING_SPAWN_ABOVE_HEAD = 1.0;    // 相对头顶再抬高（格）
-var ZHU_LING_RESIST_TICKS = 200;        // 抗性持续（10秒）
+var ZHU_LING_RESIST_TICKS = 130;        // 抗性持续（10秒）
 var ZHU_LING_RESIST_LEVEL = 10;         // 抗性提升 amplifier（10=抗性XI）
-var ZHU_LING_TRAIL_CHERRY = 2;          // 飞行尾迹樱花数
+var ZHU_LING_TRAIL_CHERRY = 1;          // 飞行尾迹樱花数
 var ZHU_LING_TRAIL_DUST = 1;            // 飞行尾迹紫色尘数
-var ZHU_LING_HIT_CHERRY = 20;           // 命中樱花数
+var ZHU_LING_HIT_CHERRY = 16;           // 命中樱花数
 var ZHU_LING_HIT_DUST = 16;             // 命中紫色尘数
 var ZHU_LING_SPAWN_SOUND = "entity.allay.ambient_without_item"; // 生成音效
 var ZHU_LING_HIT_SOUND = "entity.allay.hurt";                   // 命中音效
+var ZHU_LING_HIT_BLAST_RADIUS = 1.4;    // 命中后爆炸半径（直径 3 米）
+var ZHU_LING_HIT_BLAST_DAMAGE = 1.0;    // 命中爆炸伤害系数 × 异能强度
 var ZHU_LING_PRIORITIZE_CHIMING = true; // 优先索敌已有斥命的目标
 
 // -------------------------------------------------------------------
@@ -117,10 +126,10 @@ var CHIMING_SLOW_TICKS = 120;           // 缓慢刷新时长
 var CHIMING_RING_BASE = 0.4;            // 圆环基础半径加成
 var CHIMING_RING_WIDTH_FACTOR = 0.6;    // 圆环随实体宽度系数
 var CHIMING_RING_PER_STACK = 0.08;      // 每层圆环半径增加
-var CHIMING_RING_POINTS_BASE = 15;      // 圆环基础点数
-var CHIMING_FULL_CHERRY_1 = 120;        // 叠满大爆樱花（主层）
-var CHIMING_FULL_CHERRY_2 = 60;         // 叠满大爆樱花（次层）
-var CHIMING_FULL_DUST = 40;             // 叠满大爆紫色尘数量
+var CHIMING_RING_POINTS_BASE = 12;      // 圆环基础点数
+var CHIMING_FULL_CHERRY_1 = 100;        // 叠满大爆樱花（主层）
+var CHIMING_FULL_CHERRY_2 = 50;         // 叠满大爆樱花（次层）
+var CHIMING_FULL_DUST = 32;             // 叠满大爆紫色尘数量
 
 // -------------------------------------------------------------------
 // 6. 赐梦仪式（右键）
@@ -136,50 +145,61 @@ var RITUAL_HIT_SOUND = "entity.generic.explode";     // 引爆命中音效
 // 7. 宴死者之龙 — 生成与下落
 // -------------------------------------------------------------------
 var DRAGON_HEIGHT = 30;                 // 出生高度：目标头顶上方（格）
-var DRAGON_FALL_PER_SEC = 15;           // 下落速度（格/秒）
-var DRAGON_BIRTH_DELAY_TICKS = 10;      // 先播阵法再出龙的延迟
+var DRAGON_FALL_PER_SEC = 30;           // 下落速度（格/秒）
+var DRAGON_BIRTH_DELAY_TICKS = 20;      // 先播阵法再出龙的延迟
 var DRAGON_YAW_OFFSET = 180.0;          // 模型朝向修正（头朝下常用 +180）
 var DRAGON_PITCH = 90.0;                // 俯视俯仰角
-var DRAGON_LAND_Y_SLOP = 0.35;          // 落地高度容差
+var DRAGON_LAND_Y_SLOP = 0.1;          // 落地高度容差
 var DRAGON_VELOCITY_MIN_DOWN = -0.5;    // 传送纠偏时最小向下速度
 var DRAGON_GROWL_SOUND = "entity.ender_dragon.growl"; // 诞生咆哮音效
-var DRAGON_GROWL_VOL = 0.9;             // 咆哮音量
-var DRAGON_GROWL_PITCH = 0.55;          // 咆哮音调
-var DRAGON_MUTE_RANGE = 96;             // 静默音效影响玩家距离
+var DRAGON_GROWL_SOUND_ALT = "entity.ender_dragon.ambient"; // 备用龙吼（部分客户端 growl 更难听见）
+var DRAGON_GROWL_VOL = 2.5;             // 咆哮音量（偏大，避免距离衰减听不见）
+var DRAGON_GROWL_PITCH = 1.1;           // 咆哮音调
+var DRAGON_GROWL_EXTRA_FOR_OWNER = true; // 额外在召唤者耳边再播一次龙吼
+var DRAGON_BLAST_EXTRA_FOR_OWNER = true; // 爆炸时额外为召唤者再播一次爆炸声
+var DRAGON_BLAST_ANCHOR_BREAK_SOUND = "block.respawn_anchor.deplete"; // 每次爆炸额外为玩家播重生锚破碎
+var DRAGON_BLAST_ANCHOR_BREAK_VOL = 1.2;   // 破碎音音量
+var DRAGON_BLAST_ANCHOR_BREAK_PITCH = 0.85; // 破碎音音调
+var DRAGON_LAND_ON_GROUND = true;       // 落到地面高度，而非碰到生物即消失
+var DRAGON_LAND_FX_LIFT = 0.3;          // 落地特效相对地面抬高（避免埋进方块）
+var DRAGON_MUTE_RANGE = 64;             // 静默音效影响玩家距离
 var DRAGON_MUTE_RETRY_TICKS = [1, 5];   // 移除后再清音效的延迟
 
 // -------------------------------------------------------------------
 // 8. 龙 — 阵法与落地爆炸
 // -------------------------------------------------------------------
-var DRAGON_CIRCLE_RADIUS = 6;           // 诞生/命中阵法半径
-var DRAGON_LAND_CIRCLE_RADIUS = 12;     // 落地额外法阵半径
+var DRAGON_CIRCLE_RADIUS = 12;           // 诞生/命中阵法半径
+var DRAGON_LAND_CIRCLE_RADIUS = 16;     // 落地额外法阵半径
 var DRAGON_AOE_RADIUS = 10;             // 兼容旧名：爆炸伤害半径
 var DRAGON_BLAST_COUNT = 3;             // 爆炸次数
 var DRAGON_BLAST_INTERVAL = 15;         // 爆炸间隔（tick，10=0.5秒）
-var DRAGON_BLAST_OFFSET = 2;            // 爆炸中心随机水平偏移范围
-var DRAGON_BLAST_Y = 0.1;               // 爆炸相对高度
+var DRAGON_BLAST_OFFSET = 1;            // 爆炸中心随机水平偏移范围
+var DRAGON_BLAST_Y = 3;               // 爆炸相对落地特效中心的高度
 var DRAGON_BLAST_ONLY_FIRST_DAMAGES = true; // 仅第一次爆炸有伤害
+var DRAGON_BLAST_PITCHES = [1.0, 0.8, 0.6]; // 三次爆炸音调（依次降低）
 // 爆炸粒子（更密、更大 + 中心紫球）
-var DRAGON_BLAST_CHERRY_COUNT = 220;    // 外圈樱花数量
+var DRAGON_BLAST_CHERRY_COUNT = 160;    // 外圈樱花数量
 var DRAGON_BLAST_CHERRY_SPREAD = 7.5;   // 外圈樱花水平散布
 var DRAGON_BLAST_CHERRY_Y = 2.8;        // 外圈樱花垂直散布
-var DRAGON_BLAST_DUST_BIG = 200;        // 大型紫尘数量
+var DRAGON_BLAST_DUST_BIG = 160;        // 大型紫尘数量
 var DRAGON_BLAST_DUST_BIG_SPREAD = 7.0; // 大型紫尘散布
-var DRAGON_BLAST_DUST = 140;            // 普通紫尘数量
+var DRAGON_BLAST_DUST = 120;            // 普通紫尘数量
 var DRAGON_BLAST_DUST_SPREAD = 6.0;     // 普通紫尘散布
 var DRAGON_BLAST_EXPLOSION_COUNT = 8;   // 原版爆炸粒子数
 var DRAGON_BLAST_EXPLOSION_SPREAD = 3.5;// 原版爆炸粒子散布
-var DRAGON_BLAST_SPHERE_POINTS = 96;    // 中心紫球采样点数
-var DRAGON_BLAST_SPHERE_RADIUS = 3.2;   // 中心紫球半径
-var DRAGON_BLAST_SPHERE_SHELLS = 3;     // 紫球壳层数（由内到外）
-var DRAGON_BLAST_SPHERE_PER_POINT = 2;  // 每个采样点紫尘数
-
+var DRAGON_BLAST_SPHERE_POINTS = 64;    // 飞散射线数量
+var DRAGON_BLAST_SPHERE_RADIUS = 16;   // 紫球最终扩散半径（格）
+var DRAGON_BLAST_SPHERE_PER_POINT = 3;  // 每条射线每帧紫尘数
+var DRAGON_BLAST_SPHERE_UP_BIAS = 0.3; // 飞散偏上（0=全球，1=仅上半球）
+var DRAGON_BLAST_SPHERE_BURST_TICKS = 10;   // 向外扩散动画帧数（DUST 无速度，靠逐帧位移）
+var DRAGON_BLAST_SPHERE_BURST_PERIOD = 1;   // 动画帧间隔 tick
+var DRAGON_BLAST_SPHERE_TRAIL_STEPS = 2;    // 每帧在轨迹上补点，增强「在飞」感
 // -------------------------------------------------------------------
 // 9. 额外召唤祝灵（龙落地后 / 斥命未引爆即死亡 / 死亡被动）
 //     散开距离、高度差统一用本区；召唤位置均为玩家头顶附近
 // -------------------------------------------------------------------
 var DRAGON_POST_ZHU_LING_COUNT = 4;     // 第三次爆炸后生成数量
-var DRAGON_POST_ZHU_LING_DELAY = 2;     // 相对第三次爆炸后再延迟 tick
+var DRAGON_POST_ZHU_LING_DELAY = 3;     // 相对第三次爆炸后再延迟 tick
 var DRAGON_POST_ZHU_LING_SPREAD = 3;    // 玩家头顶周围散开距离（格）
 var DRAGON_POST_ZHU_LING_Y_STEP = 0.5;  // 彼此微调高度差，避免重叠
 var CHIMING_DEATH_ZHU_LING_ENABLED = true; // 带斥命未引爆就死亡时，按层数召唤祝灵
@@ -205,7 +225,7 @@ var TASK_RING_PERIOD = 5;               // 斥命环重绘周期
 // 12. 台词（支持 &#RRGGBB 渐变，运行时转 §x）
 // -------------------------------------------------------------------
 var MSG_CHIMING_FULL = "&#ff0099我&#fc0ea4将&#fa1cae剥&#f729b9夺&#f537c4你&#f245cf曾&#f053d9拥&#ed61e4有&#eb6eef过&#e87cfa的&#e77cfe所&#e76efc有&#e661f9苦&#e653f7痛&#e645f5与&#e537f2欢&#e529f0欣&#e51cee.&#e40eeb.&#e400e9."; // 斥命叠满台词
-var MSG_DRAGON_LINE1 = "&#e400e9.&#e40deb.&#e51aed.&#e527f0愿&#e534f2你&#e642f4破&#e64ff6碎&#e65cf8的&#e669fb灵&#e776fd魂&#e783ff与&#e976f5过&#ec69eb往&#ee5ce0与&#f14fd6所&#f342cc爱&#f534c2之&#f827b8人&#fa1aad重&#fd0da3逢&#ff0099。"; // 召唤龙台词1
+var MSG_DRAGON_LINE1 = "      &#e400e9.&#e40deb.&#e51aed.&#e527f0愿&#e534f2你&#e642f4破&#e64ff6碎&#e65cf8的&#e669fb灵&#e776fd魂&#e783ff与&#e976f5过&#ec69eb往&#ee5ce0能与&#f14fd6所&#f342cc爱&#f534c2之&#f827b8人&#fa1aad重&#fd0da3逢&#ff0099。"; // 召唤龙台词1
 var MSG_DRAGON_LINE2 = "&#ff00e6[ &#ff0de7九&#ff1ae9环&#ff27ea固&#ff34eb化&#ff42ed废&#ff4fee墟&#ff5cef术&#ff69f0式 &#ff76f2· &#ff83f3赐&#ff76e5如&#ff69d8绸&#ff5cca纱&#ff4fbd迸&#ff42af裂&#ff34a1般&#ff2794的&#ff1a86永&#ff0d79梦 &#ff006b]"; // 召唤龙台词2
 var MSG_ZHU_LING_CAP = "§7祝灵已达上限 §f";           // 祝灵上限提示前缀
 var MSG_RITUAL_OK_PREFIX = "§d赐梦仪式 §f引爆 §c";   // 仪式成功前缀
@@ -287,7 +307,103 @@ function isHoldingItem(player) {
 }
 
 function getAbilityPower() {
-    return ABILITY_POWER;
+    try {
+        return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT);
+    } catch (e) {
+        return ABILITY_POWER_DEFAULT;
+    }
+}
+
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+
+/** 仅对指定玩家播放音效（不影响他人） */
+function playSoundForPlayer(player, loc, sound, vol, pitch) {
+    if (player == null || !player.isOnline() || sound == null) return;
+    try {
+        var at = loc != null ? loc : player.getLocation();
+        player.playSound(at, sound, vol, pitch);
+    } catch (e) {}
+}
+
+/**
+ * 播放龙吼：在落地目标附近播一次世界音，并在召唤者耳边再播一次（避免 30 格高空衰减听不见）。
+ */
+function playDragonGrowl(owner, hearLoc) {
+    var vol = DRAGON_GROWL_VOL;
+    var pitch = DRAGON_GROWL_PITCH;
+    if (hearLoc != null) {
+        try { hearLoc.getWorld().playSound(hearLoc, DRAGON_GROWL_SOUND, vol, pitch); } catch (e0) {}
+        try { hearLoc.getWorld().playSound(hearLoc, DRAGON_GROWL_SOUND_ALT, vol * 0.85, pitch); } catch (e1) {}
+    }
+    if (DRAGON_GROWL_EXTRA_FOR_OWNER && owner != null && owner.isOnline()) {
+        // 耳边播放：用玩家自身坐标，不受高空距离衰减影响
+        var ear = owner.getLocation();
+        playSoundForPlayer(owner, ear, DRAGON_GROWL_SOUND, vol, pitch);
+        playSoundForPlayer(owner, ear, DRAGON_GROWL_SOUND_ALT, vol * 0.85, pitch);
+    }
+}
+
+/**
+ * 获取地面表面高度（龙最终落地用）。
+ * getHighestBlockYAt 返回的是方块 Y，表面在 +1。
+ */
+function getGroundY(world, x, z, fallbackY) {
+    try {
+        var blockY = world.getHighestBlockYAt(Math.floor(x), Math.floor(z));
+        if (blockY <= world.getMinHeight()) return fallbackY;
+        return blockY + 1.0;
+    } catch (e) {
+        return fallbackY;
+    }
+}
+
+function playZhuLingHitBlast(world, loc, owner) {
+    var radius = ZHU_LING_HIT_BLAST_RADIUS;
+    var dmg = ZHU_LING_HIT_BLAST_DAMAGE * getAbilityPower();
+    spawnCherry(world, loc, 35, radius * 0.9, radius * 0.5, radius * 0.9, 0.04);
+    spawnDust(world, loc, 45, radius * 0.85, radius * 0.45, radius * 0.85, 0.02, PURPLE_BIG);
+    spawnDust(world, loc, 25, radius * 0.7, radius * 0.35, radius * 0.7, 0.03, PURPLE_DUST);
+    if (EXPLOSION_PARTICLE != null) {
+        try { world.spawnParticle(EXPLOSION_PARTICLE, loc, 2, radius * 0.4, radius * 0.25, radius * 0.4, 0); } catch (e) {}
+    }
+    world.playSound(loc, "entity.generic.explode", 0.9, 1.35);
+    world.playSound(loc, "entity.splash_potion.break", 0.7, 1.1);
+    aoeDamage(world, loc, owner, radius, dmg);
 }
 
 function spawnDust(world, loc, count, dx, dy, dz, speed, dust) {
@@ -300,6 +416,86 @@ function spawnCherry(world, loc, count, dx, dy, dz, speed) {
     try {
         world.spawnParticle(CHERRY, loc, count, dx, dy, dz, speed);
     } catch (e) {}
+}
+
+/** 预生成紫球飞散方向（单位向量） */
+function buildSphereBurstDirections(count, upBias) {
+    var dirs = [];
+    if (upBias < 0) upBias = 0;
+    if (upBias > 1) upBias = 1;
+    for (var i = 0; i < count; i++) {
+        var theta = Math.random() * Math.PI * 2;
+        var cosPhi = (2 * Math.random() - 1) * (1 - upBias) + upBias;
+        if (cosPhi > 1) cosPhi = 1;
+        if (cosPhi < -1) cosPhi = -1;
+        var phi = Math.acos(cosPhi);
+        var dx = Math.sin(phi) * Math.cos(theta);
+        var dy = Math.cos(phi);
+        var dz = Math.sin(phi) * Math.sin(theta);
+        dirs.push({ dx: dx, dy: dy, dz: dz, dust: i % 3 });
+    }
+    return dirs;
+}
+
+/**
+ * 紫球爆炸：DUST 粒子不支持速度向量，改为逐 tick 沿射线向外位移生成，
+ * 视觉上呈现紫色粒子从中心向外飞散。
+ */
+function playSphereBurstDispersal(world, center) {
+    var core = center.clone();
+    var cx = core.getX();
+    var cy = core.getY();
+    var cz = core.getZ();
+    var dirs = buildSphereBurstDirections(DRAGON_BLAST_SPHERE_POINTS, DRAGON_BLAST_SPHERE_UP_BIAS);
+    var maxR = DRAGON_BLAST_SPHERE_RADIUS;
+    var totalTicks = Math.max(4, DRAGON_BLAST_SPHERE_BURST_TICKS);
+    var period = Math.max(1, DRAGON_BLAST_SPHERE_BURST_PERIOD);
+    var trailSteps = Math.max(0, DRAGON_BLAST_SPHERE_TRAIL_STEPS);
+
+    spawnDust(world, core, 28, 0.28, 0.28, 0.28, 0.14, PURPLE_BIG);
+    spawnDust(world, core, 18, 0.16, 0.16, 0.16, 0.2, LIGHT_PURPLE);
+
+    var tick = 0;
+    var taskRef = null;
+    var BurstTask = Java.extend(BukkitRunnable, {
+        run: function () {
+            tick++;
+            var t = tick / totalTicks;
+            // easeOutCubic：先快后慢，像冲击波扩散
+            var eased = 1 - Math.pow(1 - t, 3);
+            var radius = maxR * eased;
+            var prevT = Math.max(0, (tick - 1) / totalTicks);
+            var prevEased = 1 - Math.pow(1 - prevT, 3);
+            var prevRadius = maxR * prevEased;
+
+            for (var i = 0; i < dirs.length; i++) {
+                var d = dirs[i];
+                var dust = d.dust === 0 ? PURPLE_BIG : (d.dust === 1 ? PURPLE_DUST : LIGHT_PURPLE);
+
+                var px = cx + d.dx * radius;
+                var py = cy + d.dy * radius;
+                var pz = cz + d.dz * radius;
+                var front = new Location(world, px, py, pz);
+                spawnDust(world, front, DRAGON_BLAST_SPHERE_PER_POINT, 0.05, 0.05, 0.05, 0, dust);
+
+                for (var s = 1; s <= trailSteps; s++) {
+                    var st = s / (trailSteps + 1);
+                    var rTrail = prevRadius + (radius - prevRadius) * st;
+                    var tp = new Location(world, cx + d.dx * rTrail, cy + d.dy * rTrail, cz + d.dz * rTrail);
+                    spawnDust(world, tp, 1, 0.03, 0.03, 0.03, 0, dust);
+                }
+
+                if (i % 10 === 0 && tick % 2 === 0) {
+                    spawnCherry(world, front, 1, 0.04, 0.04, 0.04, 0.01);
+                }
+            }
+
+            if (tick >= totalTicks) {
+                try { taskRef.cancel(); } catch (e) {}
+            }
+        }
+    });
+    taskRef = new BurstTask().runTaskTimer(plugin, 0, period);
 }
 
 /** &#RRGGBB → §x§R§R§G§G§B§B */
@@ -443,6 +639,7 @@ function autoReleaseZhuLing(player) {
     resetCharge(uuid);
     player.sendActionBar(CHARGE_BAR_COLOR_FULL + "◆◆◆◆◆◆◆◆◆◆");
     player.getWorld().playSound(player.getLocation(), CHARGE_FULL_SOUND, CHARGE_FULL_SOUND_VOL, CHARGE_FULL_SOUND_PITCH);
+    playSoundForPlayer(player, player.getLocation(), CHARGE_RELEASE_SPLASH_SOUND, CHARGE_RELEASE_SPLASH_VOL, CHARGE_RELEASE_SPLASH_PITCH);
     var spawnAt = player.getLocation().clone().add(0, player.getHeight() + ZHU_LING_SPAWN_ABOVE_HEAD, 0);
     summonZhuLing(player, spawnAt, player, false);
 }
@@ -800,6 +997,7 @@ function summonZhuLing(owner, spawnLoc, preferNearEntity, bypassMax) {
                         hit = true;
                         addChiming(target, 1, owner);
                         drawChimingRing(target);
+                        playZhuLingHitBlast(world, aim, owner);
                         spawnCherry(world, aim, ZHU_LING_HIT_CHERRY, 0.4, 0.4, 0.4, 0.02);
                         spawnDust(world, aim, ZHU_LING_HIT_DUST, 0.35, 0.35, 0.35, 0, ringColorForStacks(getChimingStacks(target)));
                         world.playSound(aim, ZHU_LING_HIT_SOUND, 0.7, 1.8);
@@ -894,9 +1092,8 @@ function muteDragonSoundsNear(world, loc) {
         for (var i = 0; i < list.size(); i++) {
             var p = list.get(i);
             if (p.getLocation().distanceSquared(loc) > DRAGON_MUTE_RANGE * DRAGON_MUTE_RANGE) continue;
+            // 只清死亡/扑翅等恼人残留；不要 stop growl，否则会掐掉我们主动播的龙吼
             try { p.stopSound("entity.ender_dragon.death"); } catch (e1) {}
-            try { p.stopSound("entity.ender_dragon.growl"); } catch (e2) {}
-            try { p.stopSound("entity.ender_dragon.ambient"); } catch (e3) {}
             try { p.stopSound("entity.ender_dragon.flap"); } catch (e4) {}
         }
     } catch (e) {}
@@ -980,6 +1177,7 @@ function forceDragonTransform(dragon, world, x, y, z, yaw) {
 // 宴死者之龙（真实末影龙）
 // ===================================================================
 function aoeDamage(world, center, owner, radius, dmg) {
+    var item = owner != null ? owner.getInventory().getItemInMainHand() : null;
     var list = world.getNearbyEntities(center, radius, radius, radius);
     var it = list.iterator();
     while (it.hasNext()) {
@@ -990,13 +1188,14 @@ function aoeDamage(world, center, owner, radius, dmg) {
         ent.setNoDamageTicks(0);
         if (owner != null) ent.damage(dmg, owner);
         else ent.damage(dmg);
+        if (owner != null) notifyAbilityDamage(owner, item, dmg);
     }
 }
 
-function playLargeBlastFx(world, loc) {
-    var cx = loc.getX();
-    var cy = loc.getY();
-    var cz = loc.getZ();
+function playLargeBlastFx(world, loc, owner, blastIndex) {
+    if (blastIndex == null || blastIndex < 0) blastIndex = 0;
+    var blastPitch = DRAGON_BLAST_PITCHES[blastIndex];
+    if (blastPitch == null) blastPitch = DRAGON_BLAST_PITCHES[DRAGON_BLAST_PITCHES.length - 1];
 
     // 大范围密集外爆：樱花 + 紫尘
     spawnCherry(world, loc, DRAGON_BLAST_CHERRY_COUNT,
@@ -1016,33 +1215,20 @@ function playLargeBlastFx(world, loc) {
     }
     try { world.spawnParticle(Particle.FLASH, loc, 2, 0.4, 0.2, 0.4, 0, Color.fromRGB(255, 200, 255)); } catch (e2) {}
 
-    // 中心球形紫色爆发：多层球壳 + 球内随机点
-    var shells = DRAGON_BLAST_SPHERE_SHELLS;
-    var baseR = DRAGON_BLAST_SPHERE_RADIUS;
-    var points = DRAGON_BLAST_SPHERE_POINTS;
-    for (var shell = 1; shell <= shells; shell++) {
-        var r = baseR * (shell / shells);
-        var shellPoints = Math.floor(points * (0.55 + 0.45 * (shell / shells)));
-        for (var i = 0; i < shellPoints; i++) {
-            var theta = Math.random() * Math.PI * 2;
-            var phi = Math.acos(2 * Math.random() - 1);
-            var sx = cx + r * Math.sin(phi) * Math.cos(theta);
-            var sy = cy + r * Math.cos(phi);
-            var sz = cz + r * Math.sin(phi) * Math.sin(theta);
-            var p = new Location(world, sx, sy, sz);
-            var dust = (shell === shells) ? PURPLE_BIG : (shell === 1 ? LIGHT_PURPLE : PURPLE_DUST);
-            spawnDust(world, p, DRAGON_BLAST_SPHERE_PER_POINT, 0.05, 0.05, 0.05, 0, dust);
-            if (i % 3 === 0) spawnCherry(world, p, 1, 0.04, 0.04, 0.04, 0);
-        }
-    }
-    // 球心再补一波高密度爆发
-    spawnDust(world, loc, 80, 1.1, 1.1, 1.1, 0.12, PURPLE_BIG);
-    spawnDust(world, loc, 60, 0.85, 0.85, 0.85, 0.18, PURPLE_DUST);
-    spawnDust(world, loc, 40, 0.55, 0.55, 0.55, 0.22, LIGHT_PURPLE);
+    // 中心紫球：由一点向四周爆炸飞散（非静态球壳）
+    playSphereBurstDispersal(world, loc);
 
-    world.playSound(loc, "entity.generic.explode", 1.8, 0.5);
-    world.playSound(loc, "entity.dragon_fireball.explode", 1.2, 0.7);
-    try { world.playSound(loc, "entity.generic.explode", 1.4, 0.35); } catch (e3) {}
+    world.playSound(loc, "entity.generic.explode", 1.8, blastPitch);
+    world.playSound(loc, "entity.dragon_fireball.explode", 1.2, blastPitch);
+    try { world.playSound(loc, "entity.generic.explode", 1.4, blastPitch); } catch (e3) {}
+
+    // 额外为召唤者播放一次爆炸声 + 重生锚破碎（三次爆炸各播一次）
+    if (DRAGON_BLAST_EXTRA_FOR_OWNER && owner != null) {
+        playSoundForPlayer(owner, loc, "entity.generic.explode", 1.8, blastPitch);
+        playSoundForPlayer(owner, loc, "entity.dragon_fireball.explode", 1.2, blastPitch);
+        playSoundForPlayer(owner, loc, "entity.generic.explode", 1.4, blastPitch);
+        playSoundForPlayer(owner, loc, DRAGON_BLAST_ANCHOR_BREAK_SOUND, DRAGON_BLAST_ANCHOR_BREAK_VOL, DRAGON_BLAST_ANCHOR_BREAK_PITCH * blastPitch);
+    }
 }
 
 /** 落地后：直径20米法阵 + 三次爆炸（仅第一次有伤害）+ 法阵内随机5只祝灵 */
@@ -1063,7 +1249,7 @@ function playDragonLandingAftermath(owner, landLoc) {
             DRAGON_BLAST_Y,
             (Math.random() - 0.5) * DRAGON_BLAST_OFFSET
         );
-        playLargeBlastFx(world, offset);
+        playLargeBlastFx(world, offset, owner, index);
         if (index === 0 || !DRAGON_BLAST_ONLY_FIRST_DAMAGES) {
             aoeDamage(world, center, owner, blastRadius, blastDmg);
         }
@@ -1106,15 +1292,13 @@ function playDragonLandingAftermath(owner, landLoc) {
     new SpawnTask().runTaskLater(plugin, thirdDelay + DRAGON_POST_ZHU_LING_DELAY);
 }
 
-function startDragonFall(dragon, world, base, headY, startY, owner) {
-    var fallPerTick = DRAGON_FALL_PER_SEC / 20.0; // 0.5 格/tick
+function startDragonFall(dragon, world, base, landY, startY, owner) {
+    var fallPerTick = DRAGON_FALL_PER_SEC / 20.0;
     var posY = startY;
-    var landY = headY;
     var yaw = base.getYaw();
     var taskRef = null;
     var landed = false;
 
-    // 先钉到起点并朝下
     forceDragonTransform(dragon, world, base.getX(), startY, base.getZ(), yaw);
 
     var FallTask = Java.extend(BukkitRunnable, {
@@ -1135,19 +1319,17 @@ function startDragonFall(dragon, world, base, headY, startY, owner) {
                 spawnDust(world, fxLoc, 22, 1.6, 1.0, 1.6, 0, PURPLE_DUST);
                 spawnDust(world, fxLoc.clone().add(0, -1, 0), 10, 1.2, 0.6, 1.2, 0, PURPLE_BIG);
 
-                // 以追踪坐标与实体实际高度双重判定落地
-                var realY = posY;
-                try { realY = Math.min(realY, dragon.getLocation().getY()); } catch (eY) {}
-
-                if (posY <= landY || realY <= landY + DRAGON_LAND_Y_SLOP) {
+                // 落到地面高度才结算，不因碰到生物提前消失
+                if (posY <= landY + DRAGON_LAND_Y_SLOP) {
                     landed = true;
-                    var landLoc = new Location(world, base.getX(), landY, base.getZ());
+                    // 龙实体落到地面表面；特效抬高，避免埋进方块
                     forceDragonTransform(dragon, world, base.getX(), landY, base.getZ(), yaw);
-                    drawDragonCircle(world, landLoc);
-                    spawnCherry(world, landLoc, 90, 3.5, 1.2, 3.5, 0.05);
-                    spawnDust(world, landLoc, 100, 3.2, 1.0, 3.2, 0, PURPLE_BIG);
-                    silentRemoveDragon(dragon, world, landLoc);
-                    playDragonLandingAftermath(owner, landLoc);
+                    var fxLocLand = new Location(world, base.getX(), landY + DRAGON_LAND_FX_LIFT, base.getZ());
+                    drawDragonCircle(world, fxLocLand);
+                    spawnCherry(world, fxLocLand, 90, 3.5, 1.2, 3.5, 0.05);
+                    spawnDust(world, fxLocLand, 100, 3.2, 1.0, 3.2, 0, PURPLE_BIG);
+                    silentRemoveDragon(dragon, world, fxLocLand);
+                    playDragonLandingAftermath(owner, fxLocLand);
                     try { taskRef.cancel(); } catch (eC) {}
                 }
             } catch (ex) {
@@ -1170,6 +1352,9 @@ function summonFeastDragon(owner, target) {
     try { yaw = target.getLocation().getYaw(); } catch (eY) {}
     var headY = base.getY() + height;
     var startY = headY + DRAGON_HEIGHT;
+    var landY = DRAGON_LAND_ON_GROUND
+        ? getGroundY(world, base.getX(), base.getZ(), base.getY())
+        : headY;
     var start = new Location(world, base.getX(), startY, base.getZ());
     start.setPitch(90);
     start.setYaw(yaw);
@@ -1179,9 +1364,11 @@ function summonFeastDragon(owner, target) {
         sendColored(owner, MSG_DRAGON_LINE2);
     }
 
-    // ① 诞生前：先生成直径 10 米圆形阵法
+    // ① 诞生前：先生成直径 10 米圆形阵法（高空视觉）
+    // 龙吼在目标附近 + 召唤者耳边播放，避免在 30 格高空播导致听不见
     drawDragonCircle(world, start.clone());
-    world.playSound(start, DRAGON_GROWL_SOUND, DRAGON_GROWL_VOL, DRAGON_GROWL_PITCH);
+    var growlAt = new Location(world, base.getX(), landY + DRAGON_LAND_FX_LIFT, base.getZ());
+    playDragonGrowl(owner, growlAt);
 
     var BirthTask = Java.extend(BukkitRunnable, {
         run: function () {
@@ -1197,7 +1384,7 @@ function summonFeastDragon(owner, target) {
                     } catch (eSpawn2) {
                         plugin.getLogger().warning("[咀梦] 无法生成末影龙: " + eSpawn2);
                         aoeDamage(world, base, owner, DRAGON_AOE_RADIUS, DRAGON_DAMAGE_FACTOR * getAbilityPower());
-                        drawDragonCircle(world, new Location(world, base.getX(), headY, base.getZ()));
+                        drawDragonCircle(world, new Location(world, base.getX(), landY + DRAGON_LAND_FX_LIFT, base.getZ()));
                         return;
                     }
                 }
@@ -1205,7 +1392,9 @@ function summonFeastDragon(owner, target) {
 
                 setupFeastDragon(dragon);
                 try { dragon.teleport(start); } catch (eT) {}
-                startDragonFall(dragon, world, base, headY, startY, owner);
+                // 龙诞生时再吼一次（仍在地面附近 + 耳边）
+                playDragonGrowl(owner, growlAt);
+                startDragonFall(dragon, world, base, landY, startY, owner);
             } catch (ex) {
                 plugin.getLogger().warning("[咀梦] 龙诞生流程异常: " + ex);
             }
@@ -1253,6 +1442,7 @@ function castDreamRitual(player) {
 
         ent.setNoDamageTicks(0);
         ent.damage(dmg, player);
+        notifyAbilityDamage(player, player.getInventory().getItemInMainHand(), dmg);
         count++;
 
         spawnCherry(world, center, 25, 0.5, 0.5, 0.5, 0.03);

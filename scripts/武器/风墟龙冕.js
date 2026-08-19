@@ -21,6 +21,11 @@ var UUIDClass = Java.type("java.util.UUID");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 
 var ITEM_ID = "FKR_风墟龙冕";
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 // 气斩/剑气造成伤害时的实体标记，用于防止 EntityDamageByEntityEvent 递归触发气斩
 var META_SWORD_QI_DAMAGE = "fx_sword_qi_damage";
 
@@ -31,7 +36,7 @@ var TYPE_SPEED      = PotionEffectType.getByName("SPEED");
 
 // === 气斩参数 ===
 var AIR_SLASH_COOLDOWN_MS       = 500;   // 再装填0.8秒
-var AIR_SLASH_DAMAGE            = 40;    // 伤害
+var SIT_AIR_SLASH_MULT          = 4;     // 气斩：4x SIT
 var AIR_SLASH_SPEED             = 1.1;  // 
 var AIR_SLASH_RANGE             = 16;    // 持续16格
 var AIR_SLASH_HALF_LENGTH_START = 0.5;   // 起始：剑气线半长0.1格
@@ -47,7 +52,8 @@ var AIR_SLASH_END_ROD_INTERVAL   = 1.5;    // 每隔 N 个点生成一个 END_RO
 var AIR_SLASH_END_ROD_COUNT      = 1;    // END_ROD 粒子数量
 
 // === 竖直剑气参数 ===
-var VERTICAL_DAMAGE             = 120;   // 伤害
+var VERTICAL_DAMAGE             = 120;   // 已废弃
+var SIT_VERTICAL_MULT           = 12;    // 竖直剑气：12x SIT
 var VERTICAL_SPEED              = 0.7;   // 每秒4格 = 0.2格/tick
 var VERTICAL_RANGE              = 24;    // 持续24格
 var VERTICAL_HALF_HEIGHT_START  = 1.5;     // 起始：上下各延伸1格
@@ -87,6 +93,52 @@ var windVeinMap      = new java.util.HashMap();  // UUID -> 风脉层数
 var windVeinDecayMap = new java.util.HashMap();  // UUID -> 上次风脉衰减时间(ms)
 var windVeinBarMap   = new java.util.HashMap();  // UUID -> BossBar（风脉倒计时显示）
 var leftClickCdMap   = new java.util.HashMap();  // UUID -> 上次左键时间(ms)
+
+function getAbilityPower() {
+    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
+}
+function calcSitDamage(mult) { return mult * getAbilityPower(); }
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function dealSitDamage(target, player, item, sitMult) {
+    var dmg = calcSitDamage(sitMult);
+    target.setNoDamageTicks(0);
+    target.damage(dmg, player);
+    notifyAbilityDamage(player, item, dmg);
+    return dmg;
+}
 
 // ===================================================================
 // 辅助：检查方块是否阻挡
@@ -285,8 +337,7 @@ function releaseAirSlash(player, angleDeg) {
                     hitEntities.add(entId);
                     // 标记本次伤害来源为气斩，避免 EntityDamageByEntityEvent 递归触发新的气斩
                     try { ent.setMetadata(META_SWORD_QI_DAMAGE, new FixedMetadataValue(plugin, true)); } catch (e) {}
-                    ent.setNoDamageTicks(0);
-                    ent.damage(AIR_SLASH_DAMAGE, player);
+                    dealSitDamage(ent, player, player.getInventory().getItemInMainHand(), SIT_AIR_SLASH_MULT);
                     try { ent.removeMetadata(META_SWORD_QI_DAMAGE, plugin); } catch (e) {}
                     // 击退：沿剑气飞行方向（水平化），而非剑气线方向
                     var knockDir = dir.clone();
@@ -401,8 +452,7 @@ function fireVerticalBeam(world, start, dir, player) {
                     hitEntities.add(entId);
                     // 标记本次伤害来源为剑气，避免 EntityDamageByEntityEvent 递归触发气斩
                     try { ent.setMetadata(META_SWORD_QI_DAMAGE, new FixedMetadataValue(plugin, true)); } catch (e) {}
-                    ent.setNoDamageTicks(0);
-                    ent.damage(VERTICAL_DAMAGE, player);
+                    dealSitDamage(ent, player, player.getInventory().getItemInMainHand(), SIT_VERTICAL_MULT);
                     try { ent.removeMetadata(META_SWORD_QI_DAMAGE, plugin); } catch (e) {}
                     // 击退：沿剑气方向
                     ent.setVelocity(ent.getVelocity().add(dir.clone().multiply(VERTICAL_KNOCKBACK)));

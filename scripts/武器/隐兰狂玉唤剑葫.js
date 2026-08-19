@@ -34,6 +34,11 @@ var FluidCollisionMode = Java.type("org.bukkit.FluidCollisionMode");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 
 var ITEM_ID = "FKR_隐兰狂玉唤剑葫";
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 
 // === 药水效果类型 ===
 var TYPE_LEVITATION = PotionEffectType.getByName("LEVITATION");
@@ -90,7 +95,7 @@ var AOE_RADIUS          = 3;     // 范围伤害半径（直径 4）
 // ===================================================================
 // 剑光参数（左键）
 // ===================================================================
-var JIANGUANG_DAMAGE      = 70;   // 白剑落地伤害
+var SIT_JIANGUANG_MULT    = 7;    // 白剑：7x SIT
 var JIANGUANG_RANGE       = 32;   // 剑光最大射程
 var JIANGUANG_SWORD_DROP_HEIGHT = 8; // 白剑召唤高度(米)
 var JIANGUANG_SWORD_DROP_TICK   = 8; // 白剑落地时长(tick)
@@ -102,7 +107,7 @@ var JIANGUANG_CD_MS       = 400;  // 剑光点击再装填
 var YANMOU_COOLDOWN_MS    = 6000; // 焰眸冷却 6 秒
 var YANMOU_INTERVAL_TICK  = 10;   // 每 0.5 秒发射一道红剑
 var YANMOU_DURATION_TICK  = 60;   // 法阵持续 3 秒
-var YANMOU_TOTAL_DAMAGE   = 500;  // 焰眸每轮红剑总伤害（按道数平分）
+var SIT_YANMOU_TOTAL_MULT = 50;   // 焰眸每轮红剑总伤害（按道数平分）
 var YANMOU_FORWARD        = 15;   // 无目标时法阵位于玩家前方距离（15格）
 var YANMOU_HEIGHT_ABOVE   = 15;   // 法阵中心在目标/最高地面之上 y+15 格
 var YANMOU_RADIUS         = 7.5;  // 法阵半径（直径 15）
@@ -112,7 +117,7 @@ var YANMOU_CAST_TICK      = 15;   // 红球飞行 / 法阵展开 各 0.5 秒(10t
 // ===================================================================
 // 雷魂剑参数（心霆状态左键）
 // ===================================================================
-var JIANTING_DAMAGE     = 100;   // 召唤闪电/命中伤害
+var SIT_JIANTING_MULT   = 10;    // 剑霆：10x SIT
 var JIANTING_RANGE      = 32;    // 剑霆最远距离（米）
 
 // ===================================================================
@@ -156,11 +161,51 @@ function isHoldingItem(player) {
     return sfItem != null && sfItem.getId() === ITEM_ID;
 }
 
+function getAbilityPower() {
+    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
+}
+function calcSitDamage(mult) { return mult * getAbilityPower(); }
+function formatAbilityDamage(dmg) {
+    var v = Math.round(dmg * 10) / 10;
+    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
+}
+function getWeaponDisplayName(item) {
+    if (item == null) return "未知武器";
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
+    } catch (e) {}
+    return "未知武器";
+}
+function getDamageNotifyMode() {
+    try {
+        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
+        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
+        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
+        if (mode === "chat" || mode === "聊天框") return "chat";
+        return DAMAGE_NOTIFY_DEFAULT;
+    } catch (e) {
+        return DAMAGE_NOTIFY_DEFAULT;
+    }
+}
+function notifyAbilityDamage(player, item, damage) {
+    if (player == null || !player.isOnline()) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+
 // ===================================================================
 // 辅助：对指定半径内的所有活体实体造成纯伤害（不含玩家自身）
 //   返回是否至少命中了一个生物
 // ===================================================================
 function aoeDamageParam(world, hitPoint, player, radius, dmg) {
+    var item = player.getInventory().getItemInMainHand();
     var targets = world.getNearbyEntities(hitPoint, radius, radius, radius);
     var it = targets.iterator();
     var hitAny = false;
@@ -169,6 +214,7 @@ function aoeDamageParam(world, hitPoint, player, radius, dmg) {
         if (ent instanceof LivingEntity && ent != player) {
             ent.setNoDamageTicks(0);
             ent.damage(dmg, player);
+            notifyAbilityDamage(player, item, dmg);
             hitAny = true;
         }
     }
@@ -521,7 +567,7 @@ function castSwordLight(player) {
     summonSwordDrop(
         world, target, player,
         WHITE_DUST, JIANGUANG_SWORD_DROP_HEIGHT, JIANGUANG_SWORD_DROP_TICK,
-        AOE_RADIUS, JIANGUANG_DAMAGE,
+        AOE_RADIUS, calcSitDamage(SIT_JIANGUANG_MULT),
         function(w, loc, p, hitAny) {
             w.spawnParticle(Particle.CLOUD, loc, 20, 1.0, 1.0, 1.0, 0.04);
             spawnDust(w, loc, 25, 1.2, 1.2, 1.2, 0, WHITE_DUST);
@@ -715,7 +761,7 @@ function castFlameEye(player) {
                 }
                 // 最多 5 道，这一轮每把伤害 = 总伤害 / 本轮红剑数量
                 if (dropLocs.length > 5) dropLocs.length = 5;
-                var roundDamage = YANMOU_TOTAL_DAMAGE / dropLocs.length;
+                var roundDamage = calcSitDamage(SIT_YANMOU_TOTAL_MULT / dropLocs.length);
                 for (var dl = 0; dl < dropLocs.length; dl++) {
                     var fallTarget = dropLocs[dl];
                     fallTarget.setY(world.getHighestBlockYAt(fallTarget.getBlockX(), fallTarget.getBlockZ()) - 0.5);
@@ -796,7 +842,7 @@ function castSwordThunder(player) {
     world.spawnParticle(Particle.ELECTRIC_SPARK, endLoc, 150, 4, 2, 4, 0.06);
     world.spawnParticle(Particle.SOUL_FIRE_FLAME, endLoc, 80, 3, 1.5, 3, 0.04);
     // 命中的范围伤害
-    var hitAny = aoeDamageParam(world, endLoc, player, AOE_RADIUS, JIANTING_DAMAGE);
+    var hitAny = aoeDamageParam(world, endLoc, player, AOE_RADIUS, calcSitDamage(SIT_JIANTING_MULT));
 
     // 声音
     world.playSound(endLoc, SOUND_THUNDER, 1.5, 0.7);

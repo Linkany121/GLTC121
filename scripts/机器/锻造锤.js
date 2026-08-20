@@ -2,14 +2,14 @@
 // 功能：所有【正在加工】的锻造锤，每 1 秒播放一次铁砧锻造声 +
 //       铁傀儡死亡声，并播撒爆炸状的火焰粒子与烟雾。
 //
-// 方案说明：无需玩家右键、无需扫描区块。
-// 通过 Slimefun 数据层 API 直接读取所有已加载区块中的方块数据，
-// 按机器 ID 过滤出锻造锤，仅对正在加工的播放特效。
+// 方案：登记制 —— 周期性轻量扫描同步“加工中”位置集合，
+//       特效 tick 只遍历该集合（避免每次扫全部已加载 SF 方块）。
 // ===============================================================
 
 var MACHINE_ID = "FKR_锻造锤";  // 目标机器ID
 var PROGRESS_SLOT = 11;          // 机器GUI中的进度条槽位（对应菜单 progressbar）
 var EFFECT_INTERVAL_TICKS = 20;  // 特效播放间隔（20tick = 1秒）
+var RESCAN_EVERY = 5;            // 每 N 次特效 tick 做一次全量同步
 var RANGE = 2.0;                 // 粒子散落范围
 
 // ---------- 常用对象 ----------
@@ -40,6 +40,29 @@ try {
         _databaseManager = Slimefun.getInstance().getDatabaseManager();
     } catch (e2) {
         _databaseManager = null;
+    }
+}
+
+function getActiveMap() {
+    if (PLUGIN.gltcForgeActive == null) {
+        PLUGIN.gltcForgeActive = new java.util.concurrent.ConcurrentHashMap();
+    }
+    return PLUGIN.gltcForgeActive;
+}
+
+function locKey(loc) {
+    return loc.getWorld().getName() + "," + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ();
+}
+
+function locFromKey(key) {
+    try {
+        var parts = String(key).split(",");
+        if (parts.length !== 4) return null;
+        var world = Bukkit.getWorld(parts[0]);
+        if (world == null) return null;
+        return world.getBlockAt(parseInt(parts[1]), parseInt(parts[2]), parseInt(parts[3])).getLocation();
+    } catch (e) {
+        return null;
     }
 }
 
@@ -83,26 +106,50 @@ function playForgeEffects(loc) {
     } catch (e) {}
 }
 
-// ---------- 主循环：从数据层列出所有锻造锤，对运行中的播放特效 ----------
-function tickAllMachines() {
+function rescanActiveMachines() {
+    var active = getActiveMap();
+    active.clear();
     try {
         if (_databaseManager == null) return;
         var controller = _databaseManager.getBlockDataController();
-        var chunkDatas = controller.getAllLoadedChunkData(); // Set<SlimefunChunkData>
+        var chunkDatas = controller.getAllLoadedChunkData();
         var cit = chunkDatas.iterator();
         while (cit.hasNext()) {
             var chunkData = cit.next();
-            var blocks = chunkData.getAllBlockData(); // Set<SlimefunBlockData>
+            var blocks = chunkData.getAllBlockData();
             var bit = blocks.iterator();
             while (bit.hasNext()) {
                 var bd = bit.next();
                 if (bd.getSfId() === MACHINE_ID) {
                     var loc = bd.getLocation();
                     if (isProcessing(loc)) {
-                        playForgeEffects(loc);
+                        active.put(locKey(loc), true);
                     }
                 }
             }
+        }
+    } catch (e) {}
+}
+
+// ---------- 主循环：登记集合上播放特效；每隔 RESCAN_EVERY 次同步加工中列表 ----------
+function tickAllMachines() {
+    try {
+        if (PLUGIN.gltcForgeTickCount == null) PLUGIN.gltcForgeTickCount = 0;
+        PLUGIN.gltcForgeTickCount = Number(PLUGIN.gltcForgeTickCount) + 1;
+        var active = getActiveMap();
+        if (PLUGIN.gltcForgeTickCount % RESCAN_EVERY === 1 || active.isEmpty()) {
+            rescanActiveMachines();
+            active = getActiveMap();
+        }
+        var keys = active.keySet().toArray();
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var loc = locFromKey(key);
+            if (loc == null || !isProcessing(loc)) {
+                active.remove(key);
+                continue;
+            }
+            playForgeEffects(loc);
         }
     } catch (e) {}
 }

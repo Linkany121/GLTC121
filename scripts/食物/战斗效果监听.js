@@ -286,11 +286,16 @@ function handleFoodCombat(event) {
 }
 
 function registerFoodCombatListener() {
-    if (_foodListenerRegistered) return;
-    _foodListenerRegistered = true;
+    try {
+        if (PLUGIN.gltcFoodCombatListener != null) {
+            EntityDamageEvent.getHandlerList().unregister(PLUGIN.gltcFoodCombatListener);
+            PLUGIN.gltcFoodCombatListener = null;
+        }
+    } catch (e0) {}
 
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcFoodCombatListener = listenerInstance;
 
     // 监听 EntityDamageEvent：百香爆烤需覆盖非实体伤害；攻击类效果在内部用 instanceof 判断
     Bukkit.getPluginManager().registerEvent(

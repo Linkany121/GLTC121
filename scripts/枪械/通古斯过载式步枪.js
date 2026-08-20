@@ -1,11 +1,20 @@
-var SIT_PER_BULLET = 0.6;
-var SIT_BEAM_MULT = 20;
-var ABILITY_POWER_DEFAULT = 10;
-var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
-var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
-var DAMAGE_NOTIFY_DEFAULT = "chat";
-var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
-var RANGE = 60;
+// ===================================================================
+// 通古斯过载式步枪（反卫星）· 可调配置
+// 最终伤害 = 系数 × 异能强度(SIT)；改完重载脚本生效
+// ===================================================================
+var SIT_PER_BULLET = 0.6;              // 单发充能光束伤害系数（×SIT）
+var SIT_BEAM_MULT = 20;                // 第10发后巨型脉冲伤害系数（×SIT）
+var ABILITY_POWER_DEFAULT = 10;        // 异能强度默认值（配置缺失时回退）
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment"; // 异能强度读取的配置键
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";   // 伤害提示方式配置键
+var DAMAGE_NOTIFY_DEFAULT = "chat";    // 伤害提示默认：chat / actionbar / none
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f"; // 伤害提示前缀
+var RANGE = 60;                        // 射程（格）
+var COOLDOWN_MS = 5000;                // 整轮射击结束后的再装填（毫秒）
+var BULLET_INTERVAL = 2;               // 充能连射间隔（tick，2≈0.1秒）
+var MAX_BULLETS = 10;                  // 充能连射发数（打满后触发脉冲）
+var BEAM_RADIUS = 2.0;                 // 巨型脉冲判定圆柱半径（格）
+
 function getAbilityPower() {
     try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
 }
@@ -51,13 +60,6 @@ function dealSitDamage(target, player, item, sitMult) {
     notifyAbilityDamage(player, item, dmg);
     return dmg;
 }
-var COOLDOWN_MS = 5000;
-var BULLET_INTERVAL = 2;
-var MAX_BULLETS = 10;
-var BEAM_RADIUS = 2.0;
-var cdMap = new java.util.HashMap();
-var firingMap = new java.util.HashMap();
-var taskMap = new java.util.HashMap();
 var Particle = org.bukkit.Particle;
 var Location = org.bukkit.Location;
 var Vector = org.bukkit.util.Vector;
@@ -66,6 +68,22 @@ var Color = org.bukkit.Color;
 var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 var FluidCollisionMode = org.bukkit.FluidCollisionMode;
+var cdMap = new java.util.HashMap();
+var firingMap = new java.util.HashMap();
+var taskMap = new java.util.HashMap();
+// 热重载：取消上一份脚本残留的连射任务（必须在 plugin 定义之后）
+try {
+    if (plugin.gltcOverloadTaskMap != null) {
+        var _oldFire = plugin.gltcOverloadTaskMap.values().toArray();
+        for (var _fi = 0; _fi < _oldFire.length; _fi++) {
+            try { _oldFire[_fi].cancel(); } catch (_fe) {}
+        }
+    }
+} catch (_fo) {}
+try {
+    plugin.gltcOverloadTaskMap = taskMap;
+    plugin.gltcOverloadFiringMap = firingMap;
+} catch (_fp) {}
 var bulletDust = new DustOptions(Color.fromRGB(255, 180, 0), 1.0);
 var beamCoreDust = new DustOptions(Color.fromRGB(255, 120, 0), 1.5);
 var beamRingDust = new DustOptions(Color.fromRGB(255, 0, 0), 1.2);
@@ -279,4 +297,5 @@ var _cdCleanup = Java.extend(BukkitRunnable, {
         }
     }
 });
-new _cdCleanup().runTaskTimer(plugin, 400, 400);
+try{if(plugin.gltcGunCdTask_通古斯过载式步枪!=null){org.bukkit.Bukkit.getScheduler().cancelTask(plugin.gltcGunCdTask_通古斯过载式步枪);plugin.gltcGunCdTask_通古斯过载式步枪=null;}}catch(_e){}
+plugin.gltcGunCdTask_通古斯过载式步枪 = new _cdCleanup().runTaskTimer(plugin, 400, 400).getTaskId();

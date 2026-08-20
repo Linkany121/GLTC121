@@ -7429,8 +7429,26 @@ VASA_驭粒终端:
     - '&#fff5b3一个能作用于视网膜的分析接口；'
     - '&#fff5b3右键打开术士中心，能够查看自己的详细数据与特殊装备。'
     - '&#fff5b3环夜谷荣誉出品，此终端被开发的原意为让分子物理法则星系的人也能施术。'
-    - '&f[&e!&f]&#e1ccbd左键拿起饰品后，点击黑曜石槽即可装备。'
+    - '&f[&e!&f]&#e1ccbd能够查询自己的详细数据与装备特殊组件。'
   script: 术士系统/装备菜单
+  recipe_type: NULL
+  amount: 1
+
+VASA_彼岸钢调控终端:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#ff6b6b彼&#ff5252岸&#e63946钢&#c9184a™&#a4161a智&#8d0e1f能&#ff8fa3调&#ffb3c1控&#ffe5ec终&#ffffff端"
+    material: nether_star
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3管理员专用调控接口；仅对自己的术士档案生效。'
+    - '&#fff5b3可增减术士等级、术士/体能潜能点数，'
+    - '&#fff5b3以及一键重置全部术士数据。'
+    - '&f[&#96d6a7权限&f]&#fff5b3OP · gltc.admin · vasa.admin'
+    - '&f[&e!&f]&#e1ccbd右键打开面板；非管理员无法使用。'
+  script: 术士系统/调控终端
   recipe_type: NULL
   amount: 1
 
@@ -7444,8 +7462,8 @@ VASA_测试戒指:
     glow: true
     lore:
     - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&#fff5b3测试用强化组件；只能装入强化组件槽。'
-    - '&f[&#96d6a7类型&f]&#fff5b3强化组件'
+    - '&#fff5b3测试用强化组件；只能装入粒术中转组件槽。'
+    - '&f[&#96d6a7类型&f]&#fff5b3粒术中转组件'
     - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1 · 松垂体容量 +1'
 
 
@@ -7464,8 +7482,41 @@ VASA_木质法杖:
     - '&f[&#96d6a7特效&f]&#fff5b3施术后脚下小型蒸汽爆炸（装饰）'
     - '&f[&e!&f]&#e1ccbd必须手持本杖才能施术。'
     - '&f[&e!&f]&#e1ccbd站立右键施术 · 蹲下右键开关选术环。'
-    - '&f[&e!&f]&#e1ccbd选术环：看向槽位后右键确认；切换主手自动关闭。'
+    - '&f[&e!&f]&#e1ccbd选术环：看向槽位后左键或右键确认，选中后自动关闭；切换主手也会关闭。'
+    - '&f[&e已刻录术式&f]&#e1ccbd：'
+    - '&f[&7未刻录&f]&f'
+    - '&f[&7未刻录&f]&f'
   script: 施术道具/木质法杖
+  recipe_type: NULL
+  amount: 1
+
+VASA_辉墨摇篮:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#ffffff辉&#dddddd墨&#bcbcbc摇&#9a9a9a篮"
+    material: iron_sword
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3一把构造独特，成分奇异的仪式用剑；'
+    - '&#fff5b3每次挥舞，仿佛有光影水墨流转其上，朦胧间无法看清。'
+    - '&#fff5b3此剑为焱招博物馆的特殊藏品的仿制版本，不仿制外形，而是模仿功能。'
+    - '&f[&#96bed6术士序列&f] &f法杖 第四'
+    - '&f[&#96d6a7术式槽位&f]&#fff5b3 §e六枚'
+    - '&f[&#96d6a7特效&f]&#fff5b3蹲下右键时，释放&f[&7光影废墟&f]，冷却60秒。'
+    - '&f[&7光影废墟&f]&#fff5b3获得短暂抗性提升1与速度2，并召唤3只&f[&f墨角石像&f]。'
+    - '&f[&f墨角石像&f]&#fff5b3以不同速度冲向敌人，分别造成：'
+    - '&#fff5b3光影爆发：大范围的&#fda5ff 5&#f79ff3倍&#f199e7粒&#ea93dc子&#e48dd0修&#de88c4正&#d882b8的&#d27cac脉&#cb76a1冲&#c57095伤&#bf6a89害 &f；'
+    - '&#fff5b3墨涌：小范围的&#fda5ff 2&#f79ff3倍&#f199e7粒&#ea93dc子&#e48dd0修&#de88c4正&#d882b8的&#d27cac脉&#cb76a1冲&#c57095伤&#bf6a89害 &f。'
+    - '&f[&e已刻录术式&f]&#e1ccbd'
+    - '&f[&7未刻录&f]&f'
+    - '&f[&7未刻录&f]&f'
+    - '&f[&7未刻录&f]&f'
+    - '&f[&7未刻录&f]&f'
+    - '&f[&7未刻录&f]&f'
+    - '&f[&7未刻录&f]&f'
+  script: 施术道具/辉墨摇篮
   recipe_type: NULL
   amount: 1
 

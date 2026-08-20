@@ -3,6 +3,7 @@ var Bukkit = Java.type("org.bukkit.Bukkit");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var Player = Java.type("org.bukkit.entity.Player");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -182,6 +183,9 @@ var initFudiListener = new RunnableImpl({
             try {
                 EntityDamageByEntityEvent.getHandlerList().unregister(plugin.gltcFudiListener);
             } catch (e) {}
+            try {
+                PlayerQuitEvent.getHandlerList().unregister(plugin.gltcFudiListener);
+            } catch (e2) {}
         }
         plugin.gltcFudiListener = fudiListener;
         plugin.gltcFudiRegistered = true;
@@ -191,6 +195,17 @@ var initFudiListener = new RunnableImpl({
             EventPriority.NORMAL,
             function (l, event) {
                 onEntityDamageByEntity(event);
+            },
+            plugin
+        );
+        Bukkit.getPluginManager().registerEvent(
+            PlayerQuitEvent,
+            fudiListener,
+            EventPriority.MONITOR,
+            function (l, event) {
+                try {
+                    cdMap.remove(event.getPlayer().getUniqueId().toString());
+                } catch (e) {}
             },
             plugin
         );
@@ -307,10 +322,13 @@ function markRing(ent) {
     world.spawnParticle(Particle.DUST, ground, 14, radius, 0.1, radius, 0, GRAY);
     world.spawnParticle(Particle.CLOUD, ground, 5, radius, 0.1, radius, 0.03);
 }
-var markTaskStarted = false;
 function startMarkTask() {
-    if (markTaskStarted) return;
-    markTaskStarted = true;
+    try {
+        if (plugin.gltcFudiMarkTaskId != null) {
+            Bukkit.getScheduler().cancelTask(Number(plugin.gltcFudiMarkTaskId));
+            plugin.gltcFudiMarkTaskId = null;
+        }
+    } catch (e0) {}
 
     var task = Java.extend(BukkitRunnable, {
         run: function () {
@@ -334,7 +352,7 @@ function startMarkTask() {
             } catch (e) {}
         }
     });
-    new task().runTaskTimer(plugin, 5, 5);
+    plugin.gltcFudiMarkTaskId = new task().runTaskTimer(plugin, 5, 5).getTaskId();
 }
 // RSC 在异步线程加载脚本，runTaskTimer 是主线程 API，需延迟到主线程启动
 var startMarkRunnable = new RunnableImpl({

@@ -30,6 +30,7 @@ var StandardCharsets = java.nio.charset.StandardCharsets;
 var TextAlignment = Java.type("org.bukkit.entity.TextDisplay$TextAlignment");
 var Billboard = Java.type("org.bukkit.entity.Display$Billboard");
 var Particle = Java.type("org.bukkit.Particle");
+var UUID = Java.type("java.util.UUID");
 
 // ---------------- 可调参数 ----------------
 var MACHINE_ID = "skey_舰体链接协议访问站";   // 机器ID
@@ -258,13 +259,23 @@ function removeAllPanelEntities(loc) {
     }
 }
 
-// 取消玩家面板的粒子定时任务并删除记录
+function removeEntitiesByIds(ids) {
+    if (ids == null) return;
+    for (var i = 0; i < ids.length; i++) {
+        try {
+            var ent = Bukkit.getEntity(UUID.fromString(ids[i]));
+            if (ent != null) ent.remove();
+        } catch (e) {}
+    }
+}
+
+// 取消玩家面板的粒子定时任务（不删面板记录）
 function cancelPanelTask(ownerUuid) {
     var p = _playerPanels[ownerUuid];
     if (p != null && p.task != null) {
         try { p.task.cancel(); } catch (e) {}
+        p.task = null;
     }
-    delete _playerPanels[ownerUuid];
 }
 
 // 清除指定玩家打开的面板（同一玩家同时只能有一个面板）
@@ -272,7 +283,10 @@ function removePlayerPanel(ownerUuid) {
     var p = _playerPanels[ownerUuid];
     if (p == null) return;
     var oldKey = p.key;
+    var entityIds = p.entityIds;
     cancelPanelTask(ownerUuid);
+    removeEntitiesByIds(entityIds);
+    delete _playerPanels[ownerUuid];
     if (oldKey == null) return;
     var parts = oldKey.split(",");
     if (parts.length !== 4) return;
@@ -282,22 +296,34 @@ function removePlayerPanel(ownerUuid) {
     removeAllPanelEntities(loc);
 }
 
-// 清除指定玩家的全部本机面板实体（跨世界按 OWNER_KEY 匹配，彻底清理旧残留）
+// 清除指定玩家的全部本机面板实体（优先按登记 UUID，再按面板位置附近兜底）
 function removePlayerAllEntities(ownerUuid) {
-    var worlds = Bukkit.getWorlds();
-    for (var wi = 0; wi < worlds.size(); wi++) {
-        var world = worlds.get(wi);
-        for (var it = world.getEntities().iterator(); it.hasNext();) {
-            var ent = it.next();
-            try {
-                var pdc = ent.getPersistentDataContainer();
-                if (pdc.has(OWNER_KEY, PersistentDataType.STRING) &&
-                    pdc.get(OWNER_KEY, PersistentDataType.STRING) === ownerUuid) {
-                    ent.remove();
-                }
-            } catch (e) {}
+    var p = _playerPanels[ownerUuid];
+    if (p == null) return;
+    removeEntitiesByIds(p.entityIds);
+    if (p.key != null) {
+        var parts = String(p.key).split(",");
+        if (parts.length === 4) {
+            var world = Bukkit.getWorld(parts[0]);
+            if (world != null) {
+                var loc = world.getBlockAt(parseInt(parts[1]), parseInt(parts[2]), parseInt(parts[3])).getLocation();
+                removeAllPanelEntities(loc);
+            }
         }
     }
+}
+
+// 脚本加载时清理：只清已登记面板，禁止全世界 getEntities
+function removeAllHolograms() {
+    var keys = [];
+    for (var uuid in _playerPanels) {
+        if (_playerPanels.hasOwnProperty(uuid)) keys.push(uuid);
+    }
+    for (var i = 0; i < keys.length; i++) {
+        try { removePlayerPanel(keys[i]); } catch (e) {}
+    }
+    _playerPanels = {};
+    try { PLUGIN.gltcShipLinkPanels = _playerPanels; } catch (e2) {}
 }
 
 // 读取指定机器位置面板的归属玩家UUID（无面板返回 null）
@@ -337,24 +363,6 @@ function hasPanel(loc) {
     return false;
 }
 
-// 脚本加载时清理世界上所有残留的本机器实体（防漏清）
-function removeAllHolograms() {
-    var worlds = Bukkit.getWorlds();
-    for (var wi = 0; wi < worlds.size(); wi++) {
-        var world = worlds.get(wi);
-        for (var it = world.getEntities().iterator(); it.hasNext();) {
-            var ent = it.next();
-            try {
-                var pdc = ent.getPersistentDataContainer();
-                if (pdc.has(HOLO_KEY, PersistentDataType.STRING)) {
-                    ent.remove();
-                }
-            } catch (e) {}
-        }
-    }
-    _playerPanels = {};
-}
-
 // ---------------- 全息生成 ----------------
 
 function spawnTextDisplay(world, loc, text, machineKey, ownerUuid) {
@@ -375,6 +383,11 @@ function spawnTextDisplay(world, loc, text, machineKey, ownerUuid) {
     }
     if (ownerUuid != null) {
         pdc.set(OWNER_KEY, PersistentDataType.STRING, ownerUuid);
+        var panel = _playerPanels[ownerUuid];
+        if (panel != null) {
+            if (panel.entityIds == null) panel.entityIds = [];
+            try { panel.entityIds.push(td.getUniqueId().toString()); } catch (eId) {}
+        }
     }
     return td;
 }
@@ -390,6 +403,11 @@ function spawnTradeHitbox(world, loc, machineKey, tradeId, ownerUuid) {
     pdc.set(TRADE_KEY, PersistentDataType.STRING, tradeId);
     if (ownerUuid != null) {
         pdc.set(OWNER_KEY, PersistentDataType.STRING, ownerUuid);
+        var panel = _playerPanels[ownerUuid];
+        if (panel != null) {
+            if (panel.entityIds == null) panel.entityIds = [];
+            try { panel.entityIds.push(ih.getUniqueId().toString()); } catch (eId) {}
+        }
     }
     return ih;
 }
@@ -474,17 +492,16 @@ function showAccessPanel(loc, player, page) {
     if (page < 0) page = 0;
     if (page > totalPages - 1) page = totalPages - 1;
 
-    // 同一玩家同时只能打开一个面板：取消旧粒子任务 + 彻底清除该玩家全部旧面板实体（防残留）
-    cancelPanelTask(ownerUuid);
-    removePlayerAllEntities(ownerUuid);
+    // 同一玩家同时只能打开一个面板
+    removePlayerPanel(ownerUuid);
 
     removeHolograms(loc);
     var world = loc.getWorld();
     var key = getMachineKey(loc);
     var data = getShipCurrency(ownerUuid);
 
-    // 记录该玩家的面板位置与页码
-    _playerPanels[ownerUuid] = {key: key, page: page, task: null};
+    // 记录该玩家的面板位置与页码（先建记录再生成，便于登记 entityIds）
+    _playerPanels[ownerUuid] = {key: key, page: page, task: null, entityIds: []};
 
     // 面板起始位置：机器方块中心上方 HOLO_OFFSET_Y 格
     var base = loc.clone().add(0.5, HOLO_OFFSET_Y, 0.5);

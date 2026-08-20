@@ -151,11 +151,15 @@ var CONFIRM_BUTTON;
 
 // 活跃的 GUI 实例集合
 var activeInventories = new java.util.HashSet();
-var _listenerRegistered = false;
 
-// ---------------- 信用点数据读写 ----------------
+// ---------------- 信用点数据读写（与能源流商店共用 gltcCreditLock） ----------------
 
-function getPlayerCredit(uuid) {
+function getCreditLock() {
+    if (PLUGIN.gltcCreditLock == null) PLUGIN.gltcCreditLock = new java.lang.Object();
+    return PLUGIN.gltcCreditLock;
+}
+
+function getPlayerCreditUnlocked(uuid) {
     var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
     if (!file.exists()) return 0;
     try {
@@ -166,15 +170,38 @@ function getPlayerCredit(uuid) {
     } catch (e) { return 0; }
 }
 
-function setPlayerCredit(uuid, credit) {
+function setPlayerCreditUnlocked(uuid, credit) {
     var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
     try {
         var lines = new java.util.ArrayList();
         lines.add(JSON.stringify({credit: credit}, null, 2));
         Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
+        return true;
     } catch (e) {
         Bukkit.getLogger().warning("[GLTC] 保存信用点失败: " + e);
+        return false;
     }
+}
+
+function getPlayerCredit(uuid) {
+    return Java.synchronized(getCreditLock(), function() {
+        return getPlayerCreditUnlocked(uuid);
+    })();
+}
+
+function setPlayerCredit(uuid, credit) {
+    return Java.synchronized(getCreditLock(), function() {
+        return setPlayerCreditUnlocked(uuid, credit);
+    })();
+}
+
+function addPlayerCredit(uuid, amount) {
+    return Java.synchronized(getCreditLock(), function() {
+        var cur = getPlayerCreditUnlocked(uuid);
+        var next = cur + amount;
+        if (!setPlayerCreditUnlocked(uuid, next)) return null;
+        return next;
+    })();
 }
 
 // ---------------- 卡片辅助 ----------------
@@ -281,19 +308,26 @@ function processExchange(player, inv) {
         return;
     }
 
-    // 消耗所有可兑换物品并计算信用点
     var gainedCredit = 0;
+    for (var id in itemCounts) {
+        gainedCredit += itemCounts[id] * EXCHANGE_RATES[id];
+    }
+
+    // 先原子加信用点，成功后再清空输入槽（避免写失败已扣材料）
+    var newCredit = addPlayerCredit(uuid, gainedCredit);
+    if (newCredit == null) {
+        player.sendMessage(GLTC_PREFIX + "§c信用点写入失败，请重试！");
+        return;
+    }
+
     for (var i = 0; i < INPUT_SLOTS.length; i++) {
         var stack = inv.getItem(INPUT_SLOTS[i]);
         if (!stack || stack.getType() === Material.AIR) continue;
-        var id = getSlimefunId(stack);
-        if (!id || !EXCHANGE_RATES[id]) continue;
-        gainedCredit += stack.getAmount() * EXCHANGE_RATES[id];
+        var sid = getSlimefunId(stack);
+        if (!sid || !EXCHANGE_RATES[sid]) continue;
         inv.setItem(INPUT_SLOTS[i], null);
     }
 
-    var newCredit = card.credit + gainedCredit;
-    setPlayerCredit(uuid, newCredit);
     syncAllCards(player.getInventory(), uuid, player.getName(), newCredit);
 
     // 特效
@@ -314,11 +348,17 @@ function processExchange(player, inv) {
 // ---------------- 事件监听注册 ----------------
 
 function registerListeners() {
-    if (_listenerRegistered) return;
-    _listenerRegistered = true;
+    try {
+        if (PLUGIN.gltcRechargeListener != null) {
+            InventoryClickEvent.getHandlerList().unregister(PLUGIN.gltcRechargeListener);
+            InventoryCloseEvent.getHandlerList().unregister(PLUGIN.gltcRechargeListener);
+            PLUGIN.gltcRechargeListener = null;
+        }
+    } catch (e0) {}
 
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcRechargeListener = listenerInstance;
 
     // InventoryClickEvent
     Bukkit.getPluginManager().registerEvent(

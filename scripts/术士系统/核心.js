@@ -41,7 +41,29 @@ var PULSE_META = "gltc_pulse_hit";
 
 var GEAR_CFG = null;
 var STAFF_CFG = null;
-var particleCache = new java.util.concurrent.ConcurrentHashMap();
+
+/**
+ * 跨脚本 eval 上下文共享缓存（挂 Plugin Metadata）。
+ * 否则驭粒终端 / 调控终端各自 eval 核心会各有一份缓存，潜能显示不一致。
+ */
+function sharedConcurrentMap(metaKey) {
+    try {
+        if (PLUGIN.hasMetadata(metaKey)) {
+            var old = PLUGIN.getMetadata(metaKey).get(0).value();
+            if (old != null) return old;
+        }
+    } catch (e0) {}
+    var map = new java.util.concurrent.ConcurrentHashMap();
+    try {
+        PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, map));
+    } catch (e1) {}
+    return map;
+}
+
+var particleCache = sharedConcurrentMap("gltc_shared_particle_cache");
+/** 存 JSON 字符串，避免 Graal 跨上下文传 JS 对象 */
+var statsDataCache = sharedConcurrentMap("gltc_shared_stats_json_cache");
+var equipBonusCache = sharedConcurrentMap("gltc_shared_equip_bonus_json_cache");
 
 // 升级时术士潜能/体能潜能获得量（1~8级）
 var LEVEL_POTENTIAL = [0, 4, 4, 12, 4, 4, 12, 4, 12];
@@ -110,10 +132,9 @@ function evalScriptExport(relativeUnderScripts) {
 }
 
 function loadGearConfig() {
-    if (GEAR_CFG && GEAR_CFG.GEAR_REGISTRY) return true;
     var exported = evalScriptExport("术士系统/装备加成.js");
     if (exported && exported.GEAR_REGISTRY) { GEAR_CFG = exported; return true; }
-    return false;
+    return !!(GEAR_CFG && GEAR_CFG.GEAR_REGISTRY);
 }
 
 function loadStaffConfig() {
@@ -185,12 +206,44 @@ function writeJsonFile(file, obj) {
 function statsFile(uuid) { return new File(STATS_DIR.getAbsolutePath() + "/" + uuid + ".json"); }
 function gearFile(uuid) { return new File(GEAR_DIR.getAbsolutePath() + "/" + uuid + ".json"); }
 
+function invalidatePlayerCache(uuid) {
+    uuid = String(uuid);
+    try { statsDataCache.remove(uuid); } catch (e0) {}
+    try { equipBonusCache.remove(uuid); } catch (e1) {}
+}
+
+function clonePlainObject(obj) {
+    var out = {};
+    if (!obj) return out;
+    for (var k in obj) out[k] = obj[k];
+    return out;
+}
+
+function cacheGetStatsJson(uuid) {
+    try {
+        if (!statsDataCache.containsKey(uuid)) return null;
+        return JSON.parse(String(statsDataCache.get(uuid)));
+    } catch (e) {
+        try { statsDataCache.remove(uuid); } catch (e2) {}
+        return null;
+    }
+}
+
+function cachePutStatsJson(uuid, data) {
+    try { statsDataCache.put(uuid, JSON.stringify(data)); } catch (e) {}
+}
+
 function getPlayerStats(uuid) {
+    uuid = String(uuid);
+    var cached = cacheGetStatsJson(uuid);
+    if (cached) return cached;
+
     var data = readJsonFile(statsFile(uuid));
     if (!data) {
         data = defaultStats();
         savePlayerStats(uuid, data);
-        return data;
+        cached = cacheGetStatsJson(uuid);
+        return cached ? cached : clonePlainObject(data);
     }
     var base = defaultStats();
     for (var k in base) {
@@ -200,17 +253,27 @@ function getPlayerStats(uuid) {
     if (data.currentParticles !== undefined) {
         delete data.currentParticles;
         savePlayerStats(uuid, data);
+        cached = cacheGetStatsJson(uuid);
+        return cached ? cached : clonePlainObject(data);
     }
-    return data;
+    cachePutStatsJson(uuid, data);
+    return clonePlainObject(data);
 }
 
 function savePlayerStats(uuid, data) {
+    uuid = String(uuid);
     var copy = {};
     for (var k in data) {
         if (k === "currentParticles") continue;
         copy[k] = data[k];
     }
-    return writeJsonFile(statsFile(uuid), copy);
+    var ok = writeJsonFile(statsFile(uuid), copy);
+    if (ok) {
+        cachePutStatsJson(uuid, copy);
+    } else {
+        try { statsDataCache.remove(uuid); } catch (e) {}
+    }
+    return ok;
 }
 
 function getPlayerGear(uuid) {
@@ -225,7 +288,10 @@ function getPlayerGear(uuid) {
 }
 
 function savePlayerGear(uuid, data) {
-    return writeJsonFile(gearFile(uuid), data);
+    uuid = String(uuid);
+    var ok = writeJsonFile(gearFile(uuid), data);
+    try { equipBonusCache.remove(uuid); } catch (e) {}
+    return ok;
 }
 
 /** 缓存未命中时按容量回满（纯内存，不落盘） */
@@ -247,7 +313,8 @@ function setCurrentParticles(uuid, value) {
 }
 
 function clearParticleCache(uuid) {
-    try { particleCache.remove(uuid); } catch (e) {}
+    try { particleCache.remove(String(uuid)); } catch (e) {}
+    invalidatePlayerCache(uuid);
 }
 
 /** @deprecated 纯内存后无落盘；保留空实现以免旧调用报错 */
@@ -335,6 +402,15 @@ function canEquipInSlot(stack, slotIndex) {
 }
 
 function getEquipmentBonuses(uuid) {
+    uuid = String(uuid);
+    try {
+        if (equipBonusCache.containsKey(uuid)) {
+            return JSON.parse(String(equipBonusCache.get(uuid)));
+        }
+    } catch (e0) {
+        try { equipBonusCache.remove(uuid); } catch (e1) {}
+    }
+
     loadGearConfig();
     var total = emptyBonuses();
     var gear = getPlayerGear(uuid);
@@ -344,6 +420,7 @@ function getEquipmentBonuses(uuid) {
         var item = itemFromBase64(gear.slots[i]);
         if (item) mergeBonus(total, getBonusesFromGearId(getSlimefunId(item)));
     }
+    try { equipBonusCache.put(uuid, JSON.stringify(total)); } catch (e2) {}
     return total;
 }
 
@@ -517,6 +594,75 @@ function resetAllPotentials(player) {
     return { ok: true, mage: refundMage, body: refundBody, mageLeft: data.magePotential, bodyLeft: data.bodyPotential };
 }
 
+/** 管理员：调整术士等级（0~8），不自动发放潜能 */
+function adminAdjustLevel(player, delta) {
+    delta = Math.floor(Number(delta) || 0);
+    if (!delta) return { ok: false, msg: "无效增量" };
+    var uuid = player.getUniqueId().toString();
+    var data = getPlayerStats(uuid);
+    var old = Number(data.mageLevel) || 0;
+    var next = old + delta;
+    if (next < 0) next = 0;
+    if (next > 8) next = 8;
+    if (next === old) return { ok: false, msg: "已达等级边界 (0~8)", level: old };
+    data.mageLevel = next;
+    savePlayerStats(uuid, data);
+    applyMageAttributes(player);
+    return { ok: true, level: next, from: old };
+}
+
+/**
+ * 管理员：调整潜能点数
+ * pool: "mage" | "body" | "both"
+ */
+function adminAdjustPotential(player, pool, delta) {
+    delta = Math.floor(Number(delta) || 0);
+    if (!delta) return { ok: false, msg: "无效增量" };
+    var uuid = player.getUniqueId().toString();
+    var data = getPlayerStats(uuid);
+    function bump(field) {
+        data[field] = Math.max(0, (Number(data[field]) || 0) + delta);
+    }
+    if (pool === "body") bump("bodyPotential");
+    else if (pool === "both") { bump("magePotential"); bump("bodyPotential"); }
+    else bump("magePotential");
+    savePlayerStats(uuid, data);
+    return {
+        ok: true,
+        magePotential: data.magePotential || 0,
+        bodyPotential: data.bodyPotential || 0
+    };
+}
+
+/** 管理员：重置自己的全部术士数据（数值默认 + 清空装备并归还 + 清粒子缓存） */
+function adminResetAllData(player) {
+    var uuid = player.getUniqueId().toString();
+    var gear = getPlayerGear(uuid);
+    var returned = 0;
+    if (gear && gear.slots) {
+        for (var i = 0; i < gear.slots.length; i++) {
+            if (!gear.slots[i]) continue;
+            var item = itemFromBase64(gear.slots[i]);
+            if (item) {
+                try {
+                    var left = player.getInventory().addItem(item);
+                    var it = left.values().iterator();
+                    while (it.hasNext()) player.getWorld().dropItemNaturally(player.getLocation(), it.next());
+                } catch (e) {}
+                returned++;
+            }
+            gear.slots[i] = null;
+        }
+        savePlayerGear(uuid, gear);
+    }
+    var fresh = defaultStats();
+    savePlayerStats(uuid, fresh);
+    clearParticleCache(uuid);
+    refillParticlesToCap(player);
+    applyMageAttributes(player);
+    return { ok: true, returned: returned, level: fresh.mageLevel };
+}
+
 function resolveAttribute(nameCandidates) {
     for (var i = 0; i < nameCandidates.length; i++) {
         try { return Attribute.valueOf(nameCandidates[i]); } catch (e) {}
@@ -600,14 +746,24 @@ function isPulseDamage(entity) {
     try { return entity.hasMetadata(PULSE_META); } catch (e) { return false; }
 }
 
-// 退出清内存缓存（再进服按容量回满）
+// 退出清内存缓存（再进服按容量回满）；热重载先卸旧监听
 (function registerParticleCacheCleanup() {
+    try {
+        if (PLUGIN.gltcMageCacheListener != null) {
+            PlayerQuitEvent.getHandlerList().unregister(PLUGIN.gltcMageCacheListener);
+            PLUGIN.gltcMageCacheListener = null;
+        }
+    } catch (eU) {}
+
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcMageCacheListener = listenerInstance;
     Bukkit.getPluginManager().registerEvent(
         PlayerQuitEvent, listenerInstance, EventPriority.MONITOR,
         function(l, event) {
-            try { clearParticleCache(event.getPlayer().getUniqueId().toString()); } catch (e) {}
+            try {
+                clearParticleCache(event.getPlayer().getUniqueId().toString());
+            } catch (e) {}
         }, PLUGIN
     );
 })();
@@ -618,6 +774,7 @@ function isPulseDamage(entity) {
     getPlayerGear: getPlayerGear,
     savePlayerGear: savePlayerGear,
     getTotalStats: getTotalStats,
+    invalidatePlayerCache: invalidatePlayerCache,
     getGLI: getGLI,
     calcSpellDamage: calcSpellDamage,
     calcSpellCooldownMs: calcSpellCooldownMs,
@@ -632,6 +789,10 @@ function isPulseDamage(entity) {
     tryLevelUp: tryLevelUp,
     spendPotential: spendPotential,
     resetAllPotentials: resetAllPotentials,
+    adminAdjustLevel: adminAdjustLevel,
+    adminAdjustPotential: adminAdjustPotential,
+    adminResetAllData: adminResetAllData,
+    defaultStats: defaultStats,
     MAGE_POINT_OPTIONS: MAGE_POINT_OPTIONS,
     BODY_POINT_OPTIONS: BODY_POINT_OPTIONS,
     LEVEL_POTENTIAL: LEVEL_POTENTIAL,

@@ -25,6 +25,11 @@ var STAFF_REGISTRY = {
         name: "木质法杖",
         spellSlots: 2,
         defaultSpells: []
+    },
+    "VASA_辉墨摇篮": {
+        name: "辉墨摇篮",
+        spellSlots: 6,
+        defaultSpells: []
     }
 };
 

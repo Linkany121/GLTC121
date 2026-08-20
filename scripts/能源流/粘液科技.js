@@ -57,8 +57,12 @@ var SF_ITEM_KEY = new NamespacedKey('slimefun', 'slimefun_item');
 var CARD_ID = 'GLTC_银行卡';
 var EXCHANGE_RATES = {'AL_A1':1,'AL_A2':1,'AL_A3':1,'AL_A4':1,'AL_A5':1,'AL_A6':1,'AL_B1':2,'TSTL':2,'TSSY':2,'TSG':2,'TSHH':3,'TSYY':3,'TSBD':3,'TSTLS':3,'TSND':3,'TSJJ':3,'TSGD':3,'TSXT':3,'TSTJ':4,'TSDBG':4,'TSBTL':4,'TSJLD':4,'TSYM':4,'TSLD':4,'TSYD':4,'TSDD':4,'TSPJD':5,'TSCH':5,'TSSKD':5,'TSLKS':5,'TSYMY':5,'TSDJL':5,'TSGWHS':5,'TSTHYY':5};
 function _getSlimefunId(s){if(!s||s.getType()===Material.AIR)return null;try{var m=s.getItemMeta();if(m){var p=m.getPersistentDataContainer();if(p.has(SF_ITEM_KEY,PersistentDataType.STRING))return p.get(SF_ITEM_KEY,PersistentDataType.STRING);}}catch(e){}var sf=SlimefunItem.getByItem(s);return sf?sf.getId():null;}
-function _getCredit(u){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');if(!f.exists())return 0;try{var b=Files.readAllBytes(f.toPath());var bb=Java.type('java.nio.ByteBuffer');var cb=StandardCharsets.UTF_8.decode(bb.wrap(b));return JSON.parse(cb.toString()).credit||0;}catch(e){return 0;}}
-function _setCredit(u,c){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');try{var l=new java.util.ArrayList();l.add(JSON.stringify({credit:c},null,2));Files.write(f.toPath(),l,StandardCharsets.UTF_8);}catch(e){}}
+function _creditLock(){if(plugin.gltcCreditLock==null)plugin.gltcCreditLock=new java.lang.Object();return plugin.gltcCreditLock;}
+function _getCreditUnlocked(u){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');if(!f.exists())return 0;try{var b=Files.readAllBytes(f.toPath());var bb=Java.type('java.nio.ByteBuffer');var cb=StandardCharsets.UTF_8.decode(bb.wrap(b));return JSON.parse(cb.toString()).credit||0;}catch(e){return 0;}}
+function _setCreditUnlocked(u,c){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');try{var l=new java.util.ArrayList();l.add(JSON.stringify({credit:c},null,2));Files.write(f.toPath(),l,StandardCharsets.UTF_8);return true;}catch(e){try{Bukkit.getLogger().warning('[GLTC信用点] 写入失败 '+u+': '+e);}catch(e2){}return false;}}
+function _getCredit(u){return Java.synchronized(_creditLock(),function(){return _getCreditUnlocked(u);})();}
+function _setCredit(u,c){return Java.synchronized(_creditLock(),function(){return _setCreditUnlocked(u,c);})();}
+function _trySpendCredit(u,cost){return Java.synchronized(_creditLock(),function(){var cur=_getCreditUnlocked(u);if(cur<cost)return false;return _setCreditUnlocked(u,cur-cost);})();}
 
 // ---- 限购记录系统（每人终身限购） ----
 var LIMIT_DIR = new File(_plugin.getDataFolder().getAbsolutePath() + '/addon_configs/GLTC/玩家属性/限购');
@@ -125,10 +129,9 @@ function hasEnough(player, priceList, multiplier) {
 function removeItems(player, priceList, multiplier) {
     var uuid = player.getUniqueId().toString();
     var cost = calcCreditCost(priceList) * multiplier;
-    var current = _getCredit(uuid);
-    var newCredit = current - cost;
-    _setCredit(uuid, newCredit);
-    _updateCardLore(player.getInventory(), uuid, player.getName(), newCredit);
+    if (!_trySpendCredit(uuid, cost)) return false;
+    _updateCardLore(player.getInventory(), uuid, player.getName(), _getCredit(uuid));
+    return true;
 }
 function canAddItem(player, itemStack, amount) {
     const maxStack = itemStack.getMaxStackSize();
@@ -339,7 +342,10 @@ function ensureListener() {
                 return;
             }
 
-            removeItems(p, config.price, times);
+            if (!removeItems(p, config.price, times)) {
+                p.sendMessage(getFailMessage('', _creditCost));
+                return;
+            }
             giveItems(p, itemProto, totalGive);
             if (config.limit) {
                 _setLimitCount(_uuid, config.id, _bought + times);

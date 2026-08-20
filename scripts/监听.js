@@ -67,8 +67,17 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
     var EntityDamageEvent = Java.type("org.bukkit.event.entity.EntityDamageEvent");
     var PlayerJoinEvent = Java.type("org.bukkit.event.player.PlayerJoinEvent");
 
+    try {
+        if (PLUGIN.gltcMageListener != null) {
+            try { PlayerJoinEvent.getHandlerList().unregister(PLUGIN.gltcMageListener); } catch (eU0) {}
+            try { EntityDamageEvent.getHandlerList().unregister(PLUGIN.gltcMageListener); } catch (eU1) {}
+            PLUGIN.gltcMageListener = null;
+        }
+    } catch (eU) {}
+
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcMageListener = listenerInstance;
 
     Bukkit.getPluginManager().registerEvent(
         PlayerJoinEvent, listenerInstance, EventPriority.MONITOR,

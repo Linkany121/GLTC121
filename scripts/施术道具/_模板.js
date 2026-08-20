@@ -1,6 +1,10 @@
 /**
  * 施术道具模板 —— 复制后改 STAFF_ID，items.yml 绑定 script
  * Graal：本上下文 eval 施术核心一次并缓存；会话走共享 ConcurrentHashMap
+ *
+ * 约定：
+ *   站立右键 → 施术（onAfterCast）
+ *   蹲下右键 → 选术环（始终）+ 可选 onSneakUse 额外技能
  */
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -82,8 +86,9 @@ function onUse(event) {
         return;
     }
     CAST_API.handleStaffUse(player, {
+        // onSneakUse: function(p) { /* 蹲下右键开环时额外触发 */ },
         onAfterCast: function(p, spell) {
-            // ---- 法杖特效 ----
+            // ---- 施术后特效 ----
         }
     });
 }

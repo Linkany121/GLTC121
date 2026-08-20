@@ -259,7 +259,111 @@ function writeStaffMeta(stack, spells, selected) {
     pdc.set(KEY_SPELLS, PersistentDataType.STRING, JSON.stringify(arr));
     pdc.set(KEY_SELECTED, PersistentDataType.INTEGER, toJavaInt(selected));
     stack.setItemMeta(meta);
+    syncStaffSpellLore(stack, arr, arr.length);
     return true;
+}
+
+/** &#RRGGBB / &码 → § 序列（与物品 yml 一致） */
+function colorize(str) {
+    var out = String(str);
+    out = out.replace(/&#([0-9a-fA-F]{6})/g, function (full, h) {
+        var r = "§x";
+        for (var i = 0; i < 6; i++) r += "§" + h.charAt(i);
+        return r;
+    });
+    out = out.replace(/&([0-9a-fk-or])/gi, "§$1");
+    return out;
+}
+
+function stripColor(str) {
+    return String(str).replace(/§x(§[0-9a-fA-F]){6}/g, "").replace(/§./g, "");
+}
+
+var LORE_HEADER_MARK = "已刻录术式";
+var LORE_EMPTY_SLOT = colorize("&f[&7未刻录&f]&f");
+var LORE_SPELL_HEADER = colorize("&f[&e已刻录术式&f]&#e1ccbd：");
+
+function isSpellSlotLorePlain(plain) {
+    if (!plain) return false;
+    if (plain.indexOf("未刻录") >= 0) return true;
+    if (plain.indexOf("已刻录术式") >= 0) return false;
+    return /^\s*\[[^\]]+\]\s*$/.test(plain);
+}
+
+/** 从术式书 lore 抽出带色术式名；失败则纯名 */
+function spellSlotLoreLine(spellId) {
+    if (!spellId) return LORE_EMPTY_SLOT;
+    try {
+        var sf = SoftItemById(spellId);
+        if (sf) {
+            var book = sf.getItem();
+            var bm = book.getItemMeta();
+            if (bm && bm.hasLore()) {
+                var bl = bm.getLore();
+                for (var i = 0; i < bl.size(); i++) {
+                    var line = String(bl.get(i));
+                    if (stripColor(line).indexOf("[术式]") < 0) continue;
+                    var rb = line.lastIndexOf("]");
+                    if (rb >= 0 && rb < line.length - 1) {
+                        return colorize("&f[") + line.substring(rb + 1) + colorize("&f]");
+                    }
+                }
+            }
+        }
+    } catch (e) {}
+    var name = "未知";
+    try { if (SPELL_CFG) name = SPELL_CFG.getSpellName(spellId) || spellId; } catch (e2) { name = String(spellId); }
+    return colorize("&f[&b" + name + "&f]");
+}
+
+/**
+ * 参照辉墨摇篮：在 lore「已刻录术式」标题下写入与槽位数量一致的行。
+ * 无该段时自动追加到 lore 末尾。
+ */
+function syncStaffSpellLore(stack, spells, capacity) {
+    if (!stack || capacity <= 0) return;
+    var meta = stack.getItemMeta();
+    if (!meta) return;
+
+    var old = meta.hasLore() ? meta.getLore() : null;
+    var before = new java.util.ArrayList();
+    var after = new java.util.ArrayList();
+    var phase = 0; // 0 标题前 · 1 跳过旧槽位行 · 2 标题段之后
+    var skipped = 0;
+
+    if (old != null) {
+        for (var i = 0; i < old.size(); i++) {
+            var raw = old.get(i);
+            var plain = stripColor(String(raw));
+            if (phase === 0) {
+                if (plain.indexOf(LORE_HEADER_MARK) >= 0) {
+                    phase = 1;
+                    skipped = 0;
+                    continue;
+                }
+                before.add(raw);
+            } else if (phase === 1) {
+                if (skipped < capacity && isSpellSlotLorePlain(plain)) {
+                    skipped++;
+                    continue;
+                }
+                phase = 2;
+                after.add(raw);
+            } else {
+                after.add(raw);
+            }
+        }
+    }
+
+    var rebuilt = new java.util.ArrayList();
+    var a;
+    for (a = 0; a < before.size(); a++) rebuilt.add(before.get(a));
+    rebuilt.add(LORE_SPELL_HEADER);
+    for (var c = 0; c < capacity; c++) rebuilt.add(spellSlotLoreLine(spells[c] || ""));
+    for (a = 0; a < after.size(); a++) rebuilt.add(after.get(a));
+
+    meta.setLore(rebuilt);
+    stack.setItemMeta(meta);
 }
 
 function refreshGui(inv) {
@@ -279,6 +383,9 @@ function refreshGui(inv) {
     }
 
     var data = readStaffMeta(staff);
+    if (data) {
+        syncStaffSpellLore(staff, data.spells, data.capacity);
+    }
     inv.setItem(STAFF_SLOT, staff);
     var cap = data ? data.capacity : 0;
     var spells = data ? data.spells : [];

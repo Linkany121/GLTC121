@@ -1,7 +1,8 @@
 /**
  * 施术核心（选术环）
  * - 每位玩家独立 runTaskTimer：刷粒子 + 文字跟随（不依赖 Metadata / PLUGIN 自定义字段）
- * - 蹲下右键开关只走法杖 onUse；开环站立右键选槽走 Interact
+ * - 蹲下右键开关选术环；可同时通过 onSneakUse 额外触发法杖技能
+ * - 开环后站立左/右键选槽走 Interact，选中后自动关环
  */
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -72,10 +73,43 @@ var LOOK_MAX_DIST = 5.5;
 var LOOK_MIN_DOT = 0.82;
 
 /**
- * 法术槽整组吸附方位（仅东南西北，不随视角微调连续转）
- * MC 坐标：+Z 南，-Z 北，+X 东，-X 西
- * fx/fz = 面板中心相对玩家的方向；rx/rz = 槽位横向展开方向
+ * 法术槽整组吸附方位：开环瞬间以玩家朝向为「前」，
+ * 本次选术仅在相对的 前/右/后/左 四个正交方向间切换（不再绑死东南西北）
  */
+function normalizeYaw(yawDeg) {
+    return ((Number(yawDeg) % 360) + 360) % 360;
+}
+
+function yawDeltaAbs(a, b) {
+    var d = Math.abs(normalizeYaw(a) - normalizeYaw(b));
+    return d > 180 ? 360 - d : d;
+}
+
+/** Bukkit yaw → 水平朝前/右单位向量 */
+function basis(yawDeg) {
+    var rad = Number(yawDeg) * Math.PI / 180.0;
+    var fx = -Math.sin(rad), fz = Math.cos(rad);
+    return { fx: fx, fz: fz, rx: -fz, rz: fx };
+}
+
+/** 以 baseYaw 为前，生成前/右/后/左四向 */
+function buildRelativeQuads(baseYawDeg) {
+    var names = ["前", "右", "后", "左"];
+    var quads = [];
+    for (var i = 0; i < 4; i++) {
+        var yaw = Number(baseYawDeg) + i * 90;
+        var b = basis(yaw);
+        quads.push({
+            name: names[i],
+            yaw: normalizeYaw(yaw),
+            fx: b.fx, fz: b.fz,
+            rx: b.rx, rz: b.rz
+        });
+    }
+    return quads;
+}
+
+/** 世界东南西北（仅作未捕获朝向时的回退） */
 var CARDINALS = [
     { name: "南", fx: 0, fz: 1, rx: 1, rz: 0 },
     { name: "西", fx: -1, fz: 0, rx: 0, rz: 1 },
@@ -93,11 +127,11 @@ var PARTICLE_TRANSITION = null;
 try { PARTICLE_TRANSITION = Particle.valueOf("DUST_COLOR_TRANSITION"); } catch (ePt) {}
 
 /** 选术环操作冷却（开/关/选槽/左键提示），毫秒；冷却内静默跳过 */
-var RING_ACTION_CD_MS = 200;
+var RING_ACTION_CD_MS = 100;
 /** 同一下右键防双触发（Interact + onUse），毫秒 */
 var CLICK_DEBOUNCE_MS = 250;
 /** 跟随任务周期（tick）：刷粒子 + 更新文字位置；2 = 约每秒 10 次 */
-var RING_TICK_PERIOD = 1;
+var RING_TICK_PERIOD = 3;
 // ======================== 配置结束 ========================
 
 var MAGE_API = null;
@@ -107,6 +141,7 @@ var castCdMap = new java.util.HashMap();
 
 /** 本 eval 上下文内状态（法杖脚本唯一加载施术核心） */
 var _ringOpen = {};          // uuid -> capacity
+var _ringFacing = {};        // uuid -> { baseYaw, quads[] } 开环瞬间锁定的相对四向
 var _ringDisplays = {};      // uuid -> TextDisplay[]
 var _ringTaskIds = {};       // uuid -> taskId
 var _clickDebounce = {};
@@ -343,21 +378,48 @@ function spawnRingParticles(player) {
 }
 
 /**
- * 法术槽：整组聚在一起，方位按视角吸附到东南西北（同扇区内不跟微调视角转）
+ * 法术槽：整组聚在一起，方位按「开环瞬间朝向」吸附到相对前/右/后/左
+ * （同扇区内不跟微调视角转；转身超过约 45° 才切到相邻边）
  * 信息行：另见 infoPanelOrigin，平滑跟随视角
  */
 function yawToCardinal(yawDeg) {
-    var y = ((Number(yawDeg) % 360) + 360) % 360;
-    // Bukkit：0=南 90=西 180=北 270=东；每 90° 一扇，边界在 45/135/225/315
+    var y = normalizeYaw(yawDeg);
     if (y >= 315 || y < 45) return CARDINALS[0];
     if (y < 135) return CARDINALS[1];
     if (y < 225) return CARDINALS[2];
     return CARDINALS[3];
 }
 
+function captureRingFacing(player) {
+    var uuid = String(player.getUniqueId().toString());
+    var baseYaw = Number(player.getLocation().getYaw());
+    _ringFacing[uuid] = {
+        baseYaw: baseYaw,
+        quads: buildRelativeQuads(baseYaw)
+    };
+}
+
+function yawToRingQuad(uuid, yawDeg) {
+    uuid = String(uuid);
+    var facing = _ringFacing[uuid];
+    if (!facing || !facing.quads || !facing.quads.length) return yawToCardinal(yawDeg);
+    var best = facing.quads[0];
+    var bestD = yawDeltaAbs(yawDeg, best.yaw);
+    for (var i = 1; i < facing.quads.length; i++) {
+        var q = facing.quads[i];
+        var d = yawDeltaAbs(yawDeg, q.yaw);
+        if (d < bestD) {
+            bestD = d;
+            best = q;
+        }
+    }
+    return best;
+}
+
 function spellPanelOrigin(player) {
     var loc = player.getLocation();
-    var c = yawToCardinal(loc.getYaw());
+    var uuid = String(player.getUniqueId().toString());
+    var c = yawToRingQuad(uuid, loc.getYaw());
     return {
         x: loc.getX() + c.fx * PANEL_DIST,
         y: loc.getY() + WAIST_OFFSET,
@@ -408,19 +470,34 @@ function entityOf(uuidStr) {
 }
 
 function clearOwnerDisplays(world, ownerUuid) {
-    if (!world) return;
     ownerUuid = String(ownerUuid);
-    try {
-        var it = world.getEntities().iterator();
-        while (it.hasNext()) {
-            var ent = it.next();
+    var ents = _ringDisplays[ownerUuid];
+    if (ents != null) {
+        for (var i = 0; i < ents.length; i++) {
             try {
-                var pdc = ent.getPersistentDataContainer();
-                if (!pdc.has(KEY_RING, PersistentDataType.STRING)) continue;
-                if (String(pdc.get(KEY_OWNER, PersistentDataType.STRING)) === ownerUuid) ent.remove();
+                var ent = ents[i];
+                if (ent != null && !ent.isDead()) ent.remove();
             } catch (e) {}
         }
-    } catch (e2) {}
+        return;
+    }
+    // 兜底：仅在本世界玩家附近扫描（禁止 world.getEntities 全量）
+    if (!world) return;
+    try {
+        var p = getOnline(ownerUuid);
+        var center = p != null ? p.getLocation() : null;
+        if (center == null) return;
+        var nearby = world.getNearbyEntities(center, 24, 16, 24);
+        var it = nearby.iterator();
+        while (it.hasNext()) {
+            var ent2 = it.next();
+            try {
+                var pdc = ent2.getPersistentDataContainer();
+                if (!pdc.has(KEY_RING, PersistentDataType.STRING)) continue;
+                if (String(pdc.get(KEY_OWNER, PersistentDataType.STRING)) === ownerUuid) ent2.remove();
+            } catch (e2) {}
+        }
+    } catch (e3) {}
 }
 
 function getOnline(uuidStr) {
@@ -492,12 +569,6 @@ function buildOffsets(capacity) {
         }
     }
     return offsets;
-}
-
-function basis(yawDeg) {
-    var rad = Number(yawDeg) * Math.PI / 180.0;
-    var fx = -Math.sin(rad), fz = Math.cos(rad);
-    return { fx: fx, fz: fz, rx: -fz, rz: fx };
 }
 
 function slotPos(origin, offsets, i) {
@@ -652,16 +723,21 @@ function closeSpellRingByUuid(uuid) {
     uuid = String(uuid);
     cancelRingTask(uuid);
     delete _ringOpen[uuid];
+    delete _ringFacing[uuid];
+    var cached = _ringDisplays[uuid];
     delete _ringDisplays[uuid];
     delete _lastMovePulse[uuid];
+    if (cached != null) {
+        for (var i = 0; i < cached.length; i++) {
+            try {
+                var ent = cached[i];
+                if (ent != null && !ent.isDead()) ent.remove();
+            } catch (e0) {}
+        }
+        return;
+    }
     var p = getOnline(uuid);
     if (p) clearOwnerDisplays(p.getWorld(), uuid);
-    else {
-        try {
-            var worlds = Bukkit.getWorlds();
-            for (var i = 0; i < worlds.size(); i++) clearOwnerDisplays(worlds.get(i), uuid);
-        } catch (e3) {}
-    }
 }
 
 function closeSpellRing(player) {
@@ -686,6 +762,7 @@ function openSpellRing(player) {
     var uuid = String(player.getUniqueId().toString());
     closeSpellRingByUuid(uuid);
     _ringOpen[uuid] = Number(data.capacity) || 0;
+    captureRingFacing(player);
 
     try {
         rebuildDisplays(player, data);
@@ -698,7 +775,7 @@ function openSpellRing(player) {
         Bukkit.getLogger().warning("[GLTC选术环] 跟随任务未启动，将依赖移动事件刷新");
     }
 
-    player.sendMessage(GLTC_PREFIX + "§a选术环已开启 §7· 看向槽位右键选择 · 蹲下右键关闭");
+    player.sendMessage(GLTC_PREFIX + "§a唤出选术环。");
     return true;
 }
 
@@ -724,7 +801,7 @@ function trySelectLookedSlot(player) {
     if (!data) return true;
     var slot = findLookedSlot(player, data.capacity);
     if (slot < 0) {
-        player.sendMessage(GLTC_PREFIX + "§c请将准星对准术式槽后再右键。");
+        player.sendMessage(GLTC_PREFIX + "§c请将准星对准术式槽后再点击。");
         return true;
     }
     if (setSelectedSpell(player, slot)) {
@@ -741,7 +818,7 @@ function trySelectLookedSlot(player) {
         } catch (e) {
             try { player.playSound(player.getLocation(), "block.note_block.pling", 1.0, 2.0); } catch (e2) {}
         }
-        try { rebuildDisplays(player, data2 || data); } catch (e2) {}
+        closeSpellRing(player);
     }
     return true;
 }
@@ -813,23 +890,32 @@ function tryCastSelected(player, opts) {
 }
 
 /**
- * opts 可带 onAfterCast
+ * opts:
+ *   onAfterCast(player, spell) — 站立施术后回调
+ *   onSneakUse(player)         — 蹲下右键时额外触发（与选术环同时，不替代开环）
  */
 function handleStaffUse(player, opts) {
     if (!player || !(player instanceof Player)) return;
     if (shouldClickDebounce(player)) return;
     if (!requireSingleStaff(player)) return;
+    opts = opts || {};
     var uuid = String(player.getUniqueId().toString());
 
     if (player.isSneaking()) {
+        // 始终开关选术环；有技能则额外触发
         toggleSpellRing(player);
+        if (typeof opts.onSneakUse === "function") {
+            try { opts.onSneakUse(player); } catch (e) {
+                try { Bukkit.getLogger().warning("[GLTC施术] onSneakUse: " + e); } catch (e2) {}
+            }
+        }
         return;
     }
     if (isRingOpen(uuid)) {
         trySelectLookedSlot(player);
         return;
     }
-    tryCastSelected(player, opts || {});
+    tryCastSelected(player, opts);
 }
 
 function handleStaffLeftClick(player) {
@@ -837,9 +923,8 @@ function handleStaffLeftClick(player) {
     if (!isMageStaffItem(player.getInventory().getItemInMainHand())) return false;
     if (!requireSingleStaff(player)) return true;
     if (isRingOpen(String(player.getUniqueId().toString()))) {
-        if (isRingActionOnCd(player)) return true;
-        markRingActionCd(player);
-        player.sendMessage(GLTC_PREFIX + "§c选术中无法施法。§7对准槽位右键选择，蹲下右键关闭。");
+        trySelectLookedSlot(player);
+        return true;
     }
     return true;
 }
@@ -850,7 +935,6 @@ function registerListeners() {
             try { PlayerInteractEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListener); } catch (e0) {}
             try { PlayerQuitEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListener); } catch (e1) {}
             try { PlayerItemHeldEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListener); } catch (e2) {}
-            try { PlayerMoveEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListener); } catch (e3) {}
             PLUGIN.gltcSpellCoreListener = null;
         }
     } catch (e) {}
@@ -864,6 +948,7 @@ function registerListeners() {
         }
         _ringTaskIds = {};
         _ringOpen = {};
+        _ringFacing = {};
         _ringDisplays = {};
     } catch (eR) {}
 
@@ -871,7 +956,7 @@ function registerListeners() {
     var listenerInstance = new ListenerClass();
     try { PLUGIN.gltcSpellCoreListener = listenerInstance; } catch (eL) {}
 
-    // 右键：仅开环站立选槽；蹲下开关只走法杖 onUse（防双提示）
+    // 左键：开环时选槽；右键：开环站立选槽；蹲下右键开关只走法杖 onUse（防双提示）
     Bukkit.getPluginManager().registerEvent(
         PlayerInteractEvent, listenerInstance, EventPriority.HIGH,
         function(l, event) {
@@ -892,7 +977,7 @@ function registerListeners() {
                 }
 
                 if (action !== Action.RIGHT_CLICK_AIR && action !== Action.RIGHT_CLICK_BLOCK) return;
-                if (who.isSneaking()) return; // 开关交给 onUse
+                if (who.isSneaking()) return; // 开环(+可选技能)交给 onUse
 
                 if (isRingOpen(String(who.getUniqueId().toString()))) {
                     event.setCancelled(true);
@@ -901,27 +986,6 @@ function registerListeners() {
             } catch (e) {
                 try { Bukkit.getLogger().warning("[GLTC施术] interact: " + e); } catch (e2) {}
             }
-        }, PLUGIN
-    );
-
-    // 移动/转头时刷新文字跟随（与定时任务互补：站立靠任务刷粒子，转身靠这里跟文字）
-    Bukkit.getPluginManager().registerEvent(
-        PlayerMoveEvent, listenerInstance, EventPriority.MONITOR,
-        function(l, event) {
-            try {
-                var who = event.getPlayer();
-                var uuid = String(who.getUniqueId().toString());
-                if (_ringOpen[uuid] == null) return;
-                var to = event.getTo();
-                var from = event.getFrom();
-                if (to == null) return;
-                if (from.getYaw() === to.getYaw() && from.getPitch() === to.getPitch()
-                    && from.getX() === to.getX() && from.getY() === to.getY() && from.getZ() === to.getZ()) return;
-                var now = Date.now();
-                if (_lastMovePulse[uuid] != null && now - _lastMovePulse[uuid] < 40) return;
-                _lastMovePulse[uuid] = now;
-                tickOneRing(uuid);
-            } catch (e) {}
         }, PLUGIN
     );
 

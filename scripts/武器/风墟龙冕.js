@@ -6,6 +6,7 @@ var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var Player = Java.type("org.bukkit.entity.Player");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -563,6 +564,7 @@ var initFengxuListener = new RunnableImpl({
         if (plugin.fengxuListenerRegistered === true && plugin.fengxuListener != null) {
             try { PlayerInteractEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e) {}
             try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e) {}
+            try { PlayerQuitEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e) {}
         }
         plugin.fengxuListener = fengxuListener;
         plugin.fengxuListenerRegistered = true;
@@ -600,6 +602,21 @@ var initFengxuListener = new RunnableImpl({
                     // 气斩/剑气自身造成的伤害不再次触发气斩
                     if (event.getEntity().hasMetadata(META_SWORD_QI_DAMAGE)) return;
                     tryAirSlash(damager);
+                } catch (e) {}
+            },
+            plugin
+        );
+
+        Bukkit.getPluginManager().registerEvent(
+            PlayerQuitEvent,
+            fengxuListener,
+            EventPriority.MONITOR,
+            function (l, event) {
+                try {
+                    var uuid = event.getPlayer().getUniqueId().toString();
+                    windVeinMap.remove(uuid);
+                    windVeinDecayMap.remove(uuid);
+                    removeWindVeinBar(uuid);
                 } catch (e) {}
             },
             plugin
@@ -654,6 +671,12 @@ function ensureDecayTask() {
 }
 function startWindVeinDecay() {
     // 热重载/重启时先取消旧任务，避免重复任务
+    try {
+        if (plugin.fengxuDecayTaskId != null) {
+            Bukkit.getScheduler().cancelTask(Number(plugin.fengxuDecayTaskId));
+            plugin.fengxuDecayTaskId = null;
+        }
+    } catch (e0) {}
     if (windVeinDecayTask != null) {
         try { windVeinDecayTask.cancel(); } catch (e) {}
         windVeinDecayTask = null;
@@ -724,6 +747,7 @@ function startWindVeinDecay() {
     });
     // 立即启动，每秒执行一次（delay=0，避免5秒空窗期导致风脉先衰减完）
     windVeinDecayTask = new DecayTask().runTaskTimer(plugin, 0, 20);
+    try { plugin.fengxuDecayTaskId = windVeinDecayTask.getTaskId(); } catch (eId) {}
     plugin.getLogger().info("[\u98ce\u9f99\u51a0] \u98ce\u8109\u8870\u51cf\u4efb\u52a1\u5df2\u542f\u52a8");
 }
 var startDecayRunnable = new RunnableImpl({

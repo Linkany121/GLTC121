@@ -18,28 +18,39 @@ var CARD_OWNER_KEY = new NamespacedKey("gltc", "card_owner");
 
 // ---------------- 信用点数据读写 ----------------
 
+function getCreditLock() {
+    if (PLUGIN.gltcCreditLock == null) PLUGIN.gltcCreditLock = new java.lang.Object();
+    return PLUGIN.gltcCreditLock;
+}
+
 function getPlayerCredit(uuid) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    if (!file.exists()) return 0;
-    try {
-        var bytes = Files.readAllBytes(file.toPath());
-        var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var charBuffer = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes));
-        return JSON.parse(charBuffer.toString()).credit || 0;
-    } catch (e) {
-        return 0;
-    }
+    return Java.synchronized(getCreditLock(), function() {
+        var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
+        if (!file.exists()) return 0;
+        try {
+            var bytes = Files.readAllBytes(file.toPath());
+            var ByteBuffer = Java.type("java.nio.ByteBuffer");
+            var charBuffer = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes));
+            return JSON.parse(charBuffer.toString()).credit || 0;
+        } catch (e) {
+            return 0;
+        }
+    })();
 }
 
 function setPlayerCredit(uuid, credit) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    try {
-        var lines = new java.util.ArrayList();
-        lines.add(JSON.stringify({credit: credit}, null, 2));
-        Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
-    } catch (e) {
-        Bukkit.getLogger().warning("[GLTC] 保存信用点失败 uuid=" + uuid + ": " + e);
-    }
+    return Java.synchronized(getCreditLock(), function() {
+        var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
+        try {
+            var lines = new java.util.ArrayList();
+            lines.add(JSON.stringify({credit: credit}, null, 2));
+            Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
+            return true;
+        } catch (e) {
+            Bukkit.getLogger().warning("[GLTC] 保存信用点失败 uuid=" + uuid + ": " + e);
+            return false;
+        }
+    })();
 }
 
 // ---------------- 卡片绑定 ----------------

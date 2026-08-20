@@ -39,6 +39,10 @@ var ITEM_ID = "FKR_咀嚼曾世的晚梦";     // Slimefun 物品 ID（须与 it
 var META_ZHU_LING = "gltc_jiumeng_zhuling";   // 祝灵实体 metadata 标记
 var META_DRAGON = "gltc_jiumeng_dragon";      // 宴死者之龙 metadata 标记
 var META_CHIMING_EXTRA = "gltc_jiumeng_chiming_extra"; // 斥命额外伤害防递归标记
+// Graal 不能可靠给 Java Plugin 挂 JS 字段，任务 ID / 监听器改走 Metadata + 本文件变量
+var META_JIUME_TASKS = "gltc_jiumeng_task_ids";
+var META_JIUME_LISTENER = "gltc_jiumeng_listener";
+var jiumengTaskIds = [];
 
 // ===================================================================
 // 【配置区】按分类调整数值；改完重载脚本即可
@@ -1588,17 +1592,25 @@ var RunnableImpl = Java.extend(Java.type("java.lang.Runnable"));
 
 var initListener = new RunnableImpl({
     run: function () {
-        if (plugin.gltcJiumengRegistered === true && plugin.gltcJiumengListener != null) {
-            try { PlayerInteractEvent.getHandlerList().unregister(plugin.gltcJiumengListener); } catch (e) {}
-            try { PlayerItemHeldEvent.getHandlerList().unregister(plugin.gltcJiumengListener); } catch (e) {}
-            try { EntityDamageEvent.getHandlerList().unregister(plugin.gltcJiumengListener); } catch (e) {}
-            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.gltcJiumengListener); } catch (e) {}
-            try { EntityDeathEvent.getHandlerList().unregister(plugin.gltcJiumengListener); } catch (e) {}
-            try { EntityExplodeEvent.getHandlerList().unregister(plugin.gltcJiumengListener); } catch (e) {}
-            try { EntityChangeBlockEvent.getHandlerList().unregister(plugin.gltcJiumengListener); } catch (e) {}
-        }
-        plugin.gltcJiumengListener = jiumengListener;
-        plugin.gltcJiumengRegistered = true;
+        // 热重载：卸掉上一份监听器（Metadata 可跨 eval 保留引用）
+        try {
+            if (plugin.hasMetadata(META_JIUME_LISTENER)) {
+                var oldL = plugin.getMetadata(META_JIUME_LISTENER).get(0).value();
+                if (oldL != null) {
+                    try { PlayerInteractEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                    try { PlayerItemHeldEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                    try { EntityDamageEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                    try { EntityDamageByEntityEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                    try { EntityDeathEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                    try { EntityExplodeEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                    try { EntityChangeBlockEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                }
+                try { plugin.removeMetadata(META_JIUME_LISTENER, plugin); } catch (eR) {}
+            }
+        } catch (eOld) {}
+        try {
+            plugin.setMetadata(META_JIUME_LISTENER, new FixedMetadataValue(plugin, jiumengListener));
+        } catch (eSet) {}
 
         Bukkit.getPluginManager().registerEvent(
             PlayerInteractEvent, jiumengListener, EventPriority.NORMAL,
@@ -1701,20 +1713,42 @@ Bukkit.getScheduler().runTask(plugin, initListener);
 
 var startTasks = new RunnableImpl({
     run: function () {
+        // 取消上一轮定时任务（本文件变量 + Metadata，避免 Graal 挂 plugin 字段失败）
+        function cancelIdList(ids) {
+            if (ids == null) return;
+            try {
+                for (var i = 0; i < ids.length; i++) {
+                    try { Bukkit.getScheduler().cancelTask(Number(ids[i])); } catch (eC) {}
+                }
+            } catch (e1) {}
+        }
+        cancelIdList(jiumengTaskIds);
+        try {
+            if (plugin.hasMetadata(META_JIUME_TASKS)) {
+                cancelIdList(plugin.getMetadata(META_JIUME_TASKS).get(0).value());
+                plugin.removeMetadata(META_JIUME_TASKS, plugin);
+            }
+        } catch (e0) {}
+        jiumengTaskIds = [];
+
         var ChargeTask = Java.extend(BukkitRunnable, {
             run: function () { try { tickChargeBars(); } catch (e) {} }
         });
-        new ChargeTask().runTaskTimer(plugin, TASK_CHARGE_PERIOD, TASK_CHARGE_PERIOD);
+        jiumengTaskIds.push(new ChargeTask().runTaskTimer(plugin, TASK_CHARGE_PERIOD, TASK_CHARGE_PERIOD).getTaskId());
 
         var DecayTask = Java.extend(BukkitRunnable, {
             run: function () { try { tickChimingDecay(); } catch (e) {} }
         });
-        new DecayTask().runTaskTimer(plugin, TASK_CHIMING_DECAY_PERIOD, TASK_CHIMING_DECAY_PERIOD);
+        jiumengTaskIds.push(new DecayTask().runTaskTimer(plugin, TASK_CHIMING_DECAY_PERIOD, TASK_CHIMING_DECAY_PERIOD).getTaskId());
 
         var RingTask = Java.extend(BukkitRunnable, {
             run: function () { try { tickRingDisplay(); } catch (e) {} }
         });
-        new RingTask().runTaskTimer(plugin, TASK_RING_PERIOD, TASK_RING_PERIOD);
+        jiumengTaskIds.push(new RingTask().runTaskTimer(plugin, TASK_RING_PERIOD, TASK_RING_PERIOD).getTaskId());
+
+        try {
+            plugin.setMetadata(META_JIUME_TASKS, new FixedMetadataValue(plugin, jiumengTaskIds));
+        } catch (eMeta) {}
     }
 });
 Bukkit.getScheduler().runTask(plugin, startTasks);

@@ -1,22 +1,21 @@
 /**
  * ============================================================
- *  GLTC 术士装备加成表（仅菜单饰品）—— 只认粘液物品 ID
+ *  GLTC 术士装备加成表（仅菜单组件）—— 只认粘液物品 ID
  * ============================================================
  *
  * 【菜单倒数第二行】36~44
- *   潜能(36) | 蓝玻(37) | 强化×3(38-40) | 辅助×4(41-44)
+ *   潜能激发(36) | 蓝玻(37)
+ *   | 核心心区(38) | 生控中枢(39) | 粒术中转(40)   ← 三类互不通用
+ *   | 术式辅助×4(41-44)                            ← 四槽互通
  *
  * 【判定规则】
- *   只检查物品的粘液 ID 是否在下方 GEAR_REGISTRY 中登记。
+ *   只检查物品的粘液 ID 是否在下方 GEAR_REGISTRY 中登记，
+ *   且 entry.category 与槽位 category 一致。
  *   不读 PDC、不读 lore、不看材质。
  *
  * 【新增】
  *   1. items.yml 做好物品，记下 ID
  *   2. 在 GEAR_REGISTRY 加一条（category + bonuses）
- *
- * 【修改】改 bonuses  → 【删除】删掉该 ID 整条
- *
- * 【法杖】不在本文件。见 scripts/施术道具/登记.js 与各法杖 js
  *
  * bonuses 可用键：
  *   particlePower, pituitaryCapacity, cardiovascular, particleRefraction,
@@ -25,34 +24,84 @@
  */
 
 var EQUIP_SLOT_DEFS = [
-    { key: "potential", gui: 36, category: "potential", label: "潜能模块" },
-    { key: "enhance_1", gui: 38, category: "enhance",   label: "强化组件 · I" },
-    { key: "enhance_2", gui: 39, category: "enhance",   label: "强化组件 · II" },
-    { key: "enhance_3", gui: 40, category: "enhance",   label: "强化组件 · III" },
-    { key: "assist_1",  gui: 41, category: "assist",    label: "术式辅助 · I" },
-    { key: "assist_2",  gui: 42, category: "assist",    label: "术式辅助 · II" },
-    { key: "assist_3",  gui: 43, category: "assist",    label: "术式辅助 · III" },
-    { key: "assist_4",  gui: 44, category: "assist",    label: "术式辅助 · IV" }
+    {
+        key: "potential",
+        gui: 36,
+        category: "potential",
+        label: "潜能激发模组",
+        skullHash: "2933ccaaeefa83a61f5f3fc9430a708d577890960709c7b9c66f2150bd523561"
+    },
+    {
+        key: "core_heart",
+        gui: 38,
+        category: "core_heart",
+        label: "核心心区组件",
+        skullHash: "22e32d66699544433a14f8e5a6d482dc9bc5b34ea2f31fd91144001ed3bfdf2f"
+    },
+    {
+        key: "bio_hub",
+        gui: 39,
+        category: "bio_hub",
+        label: "生控中枢组件",
+        skullHash: "ecf682be108d1c9d14b54de18f0bf4f48eb4c39a51ef657501da7fbec3102145"
+    },
+    {
+        key: "particle_hub",
+        gui: 40,
+        category: "particle_hub",
+        label: "粒术中转组件",
+        skullHash: "6c34d12f7ac939b1151d12146d0239ef0188e403ee1966d3db199e664ff38283"
+    },
+    {
+        key: "assist_1",
+        gui: 41,
+        category: "assist",
+        label: "术式辅助组件 · I",
+        skullHash: "f340d50d7d1293ba16d23c6d07ab066cdc1575c68bca69e96f0bb6d1ce1bf1ba"
+    },
+    {
+        key: "assist_2",
+        gui: 42,
+        category: "assist",
+        label: "术式辅助组件 · II",
+        skullHash: "f340d50d7d1293ba16d23c6d07ab066cdc1575c68bca69e96f0bb6d1ce1bf1ba"
+    },
+    {
+        key: "assist_3",
+        gui: 43,
+        category: "assist",
+        label: "术式辅助组件 · III",
+        skullHash: "f340d50d7d1293ba16d23c6d07ab066cdc1575c68bca69e96f0bb6d1ce1bf1ba"
+    },
+    {
+        key: "assist_4",
+        gui: 44,
+        category: "assist",
+        label: "术式辅助组件 · IV",
+        skullHash: "f340d50d7d1293ba16d23c6d07ab066cdc1575c68bca69e96f0bb6d1ce1bf1ba"
+    }
 ];
 
 var SEPARATOR_GUI_SLOT = 37;
 
 var CATEGORY_NAMES = {
-    potential: "潜能模块",
-    enhance: "强化组件",
-    assist: "术式辅助工具"
+    potential: "潜能激发模组",
+    core_heart: "核心心区组件",
+    bio_hub: "生控中枢组件",
+    particle_hub: "粒术中转组件",
+    assist: "术式辅助组件"
 };
 
-// -------------------- 饰品登记（粘液 ID → 配置）--------------------
+// -------------------- 组件登记（粘液 ID → 配置）--------------------
 var GEAR_REGISTRY = {
     // "VASA_示例潜能": {
     //     category: "potential",
-    //     name: "示例潜能模块",
+    //     name: "示例潜能激发模组",
     //     bonuses: { particlePower: 0.3, pituitaryCapacity: 5 }
     // },
 
     "VASA_测试戒指": {
-        category: "enhance",
+        category: "particle_hub",
         name: "测试强化",
         bonuses: {
             particlePower: 0.1,

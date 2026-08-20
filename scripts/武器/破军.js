@@ -8,6 +8,7 @@ var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var Player = Java.type("org.bukkit.entity.Player");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -438,6 +439,12 @@ function dealCrushDamage(player) {
 // ===================================================================
 var bannerTask = null;
 function startBannerTask() {
+    try {
+        if (plugin.pojunBannerTaskId != null) {
+            Bukkit.getScheduler().cancelTask(Number(plugin.pojunBannerTaskId));
+            plugin.pojunBannerTaskId = null;
+        }
+    } catch (e0) {}
     if (bannerTask != null) {
         try { bannerTask.cancel(); } catch (e) {}
         bannerTask = null;
@@ -535,7 +542,8 @@ function startBannerTask() {
             }
         }
     });
-    bannerTask = new BannerTask().runTaskTimer(plugin, 0, 1);
+    bannerTask = new BannerTask().runTaskTimer(plugin, 0, 3);
+    try { plugin.pojunBannerTaskId = bannerTask.getTaskId(); } catch (eId) {}
 }
 
 // ===================================================================
@@ -543,6 +551,12 @@ function startBannerTask() {
 // ===================================================================
 var heavyEdgeTask = null;
 function startHeavyEdgeDecay() {
+    try {
+        if (plugin.pojunHeavyEdgeTaskId != null) {
+            Bukkit.getScheduler().cancelTask(Number(plugin.pojunHeavyEdgeTaskId));
+            plugin.pojunHeavyEdgeTaskId = null;
+        }
+    } catch (e0) {}
     if (heavyEdgeTask != null) {
         try { heavyEdgeTask.cancel(); } catch (e) {}
         heavyEdgeTask = null;
@@ -587,6 +601,7 @@ function startHeavyEdgeDecay() {
         }
     });
     heavyEdgeTask = new DecayTask().runTaskTimer(plugin, 0, 20);
+    try { plugin.pojunHeavyEdgeTaskId = heavyEdgeTask.getTaskId(); } catch (eId) {}
 }
 
 // ===================================================================
@@ -638,6 +653,7 @@ var initPojunListener = new RunnableImpl({
         if (plugin.pojunListenerRegistered === true && plugin.pojunListener != null) {
             try { PlayerInteractEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e) {}
             try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e) {}
+            try { PlayerQuitEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e) {}
         }
         plugin.pojunListener = pojunListener;
         plugin.pojunListenerRegistered = true;
@@ -674,6 +690,20 @@ var initPojunListener = new RunnableImpl({
                     if (!(target instanceof LivingEntity)) return;
                     ignoreArmor(event);
                     onHit(damager, target);
+                } catch (e) {}
+            },
+            plugin
+        );
+
+        Bukkit.getPluginManager().registerEvent(
+            PlayerQuitEvent,
+            pojunListener,
+            EventPriority.MONITOR,
+            function (l, event) {
+                try {
+                    var uuid = event.getPlayer().getUniqueId().toString();
+                    heavyEdgeMap.remove(uuid);
+                    heavyEdgeTimeMap.remove(uuid);
                 } catch (e) {}
             },
             plugin

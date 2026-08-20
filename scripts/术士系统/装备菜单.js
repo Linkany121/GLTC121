@@ -1,6 +1,6 @@
 ﻿/**
  * GLTC 术士装备菜单
- * 布局：上方数值/加点 · 倒数第二行装备 · 右下角 GLI
+ * 布局：上方数值/加点 · 倒数第二行装备 · 右下角 当前粒子+GLI
  */
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -24,11 +24,11 @@ var MENU_ITEM_ID = "VASA_驭粒终端";
 var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
 
 /**
- * 数值区（整体左移一格；潜能在各自行最右）：
- *  9 等级  10 粒子强度  11 容量  12 心血管  13 折射  14 当前粒子  ···  17 术士潜能
- *  18 最终减伤  19~24 原版白值六项  ···  26 体能潜能
- *  35 重置所有潜能（体能潜能正下方）
- *  53 粒子浓度 GLI
+ * 数值区布局：
+ *  8 重置潜能（右上角）
+ *  9 等级  10 粒子强度  11 容量  12 心血管  13 折射  14 最终减伤  ···  17 术士潜能
+ *  18~23 原版白值六项  ···  26 体能潜能
+ *  52 当前粒子  53 粒子浓度 GLI
  */
 var STAT_SLOTS = {
     level: 9,
@@ -36,17 +36,17 @@ var STAT_SLOTS = {
     capacity: 11,
     cardio: 12,
     refraction: 13,
-    mana: 14,
+    finalDR: 14,
     magePts: 17,
+    melee: 18,
+    maxHealth: 19,
+    armor: 20,
+    toughness: 21,
+    speed: 22,
+    reach: 23,
     bodyPts: 26,
-    resetPts: 35,
-    finalDR: 18,
-    melee: 19,
-    maxHealth: 20,
-    armor: 21,
-    toughness: 22,
-    speed: 23,
-    reach: 24,
+    resetPts: 8,
+    mana: 52,
     gli: 53
 };
 
@@ -56,15 +56,15 @@ var MAGE_CLICK = {
     11: "pituitaryCapacity",
     12: "cardiovascular",
     13: "particleRefraction",
-    18: "finalDamageReduction"
+    14: "finalDamageReduction"
 };
 var BODY_CLICK = {
-    19: "meleeDamage",
-    20: "maxHealth",
-    21: "armor",
-    22: "toughness",
-    23: "speed",
-    24: "reach"
+    18: "meleeDamage",
+    19: "maxHealth",
+    20: "armor",
+    21: "toughness",
+    22: "speed",
+    23: "reach"
 };
 
 var activeInventories = new java.util.HashSet();
@@ -130,6 +130,143 @@ function pane(mat, name, loreArr) {
     return item;
 }
 
+/**
+ * Graal 下 JS 字符串没有 getBytes；纹理 JSON 为纯 ASCII，按码点转 byte[] 即可。
+ */
+function toUtf8Bytes(str) {
+    str = String(str);
+    var arr = [];
+    for (var i = 0; i < str.length; i++) {
+        arr.push(str.charCodeAt(i) & 0xff);
+    }
+    return Java.to(arr, "byte[]");
+}
+
+/** 用材质 hash 生成玩家头（Paper 1.21 兼容；失败再回退反射/NMS） */
+function skullFromHash(hash) {
+    if (hash == null || String(hash).length < 8) return null;
+    var hashStr = String(hash).replace(/^http:\/\/textures\.minecraft\.net\/texture\//, "");
+    var json = '{"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/' + hashStr + '"}}}';
+    var b64 = java.util.Base64.getEncoder().encodeToString(toUtf8Bytes(json));
+    var uid = java.util.UUID.nameUUIDFromBytes(toUtf8Bytes("gltc-slot-" + hashStr));
+    try {
+        var head = new ItemStack(Material.PLAYER_HEAD, 1);
+        var meta = head.getItemMeta();
+        var profile = null;
+        try { profile = Bukkit.createProfile(uid, "GLTC"); } catch (e0) {
+            try { profile = Bukkit.createPlayerProfile(uid, "GLTC"); } catch (e1) {}
+        }
+        if (profile != null) {
+            var ProfilePropertyClass = null;
+            try { ProfilePropertyClass = Java.type("org.bukkit.profile.ProfileProperty"); } catch (e2) {
+                try { ProfilePropertyClass = Java.type("com.destroystokyo.paper.profile.ProfileProperty"); } catch (e3) {}
+            }
+            if (ProfilePropertyClass != null) {
+                var property = null;
+                try { property = new ProfilePropertyClass("textures", b64, ""); } catch (e4) {
+                    try { property = new ProfilePropertyClass("textures", b64); } catch (e5) {}
+                }
+                if (property != null) {
+                    try {
+                        profile.getClass().getMethod("setProperty", ProfilePropertyClass).invoke(profile, property);
+                    } catch (e6) {
+                        try { profile.setProperty(property); } catch (e7) {}
+                    }
+                    try {
+                        meta.getClass().getMethod("setPlayerProfile", Java.type("org.bukkit.profile.PlayerProfile"))
+                            .invoke(meta, profile);
+                    } catch (e8) {
+                        try { meta.setPlayerProfile(profile); } catch (e9) {
+                            try { meta.setOwnerProfile(profile); } catch (e10) {}
+                        }
+                    }
+                    head.setItemMeta(meta);
+                    return head;
+                }
+            }
+        }
+    } catch (eA) {}
+
+    // 方案 B：GameProfile 写入 SkullMeta.profile
+    try {
+        var headB = new ItemStack(Material.PLAYER_HEAD, 1);
+        var metaB = headB.getItemMeta();
+        var GameProfile = Java.type("com.mojang.authlib.GameProfile");
+        var Property = Java.type("com.mojang.authlib.properties.Property");
+        var gp = new GameProfile(uid, "GLTC");
+        gp.getProperties().put("textures", new Property("textures", b64));
+        var cls = metaB.getClass();
+        var fields = ["profile", "playerProfile", "serializedProfile"];
+        for (var fi = 0; fi < fields.length; fi++) {
+            try {
+                var field = cls.getDeclaredField(fields[fi]);
+                field.setAccessible(true);
+                field.set(metaB, gp);
+                headB.setItemMeta(metaB);
+                return headB;
+            } catch (eF) {}
+        }
+        // 沿父类再找一次
+        try {
+            var f2 = cls.getSuperclass().getDeclaredField("profile");
+            f2.setAccessible(true);
+            f2.set(metaB, gp);
+            headB.setItemMeta(metaB);
+            return headB;
+        } catch (eF2) {}
+    } catch (eB) {}
+
+    // 方案 C：1.21 DataComponents.PROFILE
+    try {
+        var headC = new ItemStack(Material.PLAYER_HEAD, 1);
+        var CraftItemStack = Java.type("org.bukkit.craftbukkit.inventory.CraftItemStack");
+        var nmsItem = CraftItemStack.asNMSCopy(headC);
+        var DataComponents = Java.type("net.minecraft.core.component.DataComponents");
+        var ResolvableProfile = Java.type("net.minecraft.world.item.component.ResolvableProfile");
+        var GameProfileC = Java.type("com.mojang.authlib.GameProfile");
+        var PropertyC = Java.type("com.mojang.authlib.properties.Property");
+        var gpC = new GameProfileC(uid, "GLTC");
+        gpC.getProperties().put("textures", new PropertyC("textures", b64));
+        var resolvable = null;
+        try { resolvable = new ResolvableProfile(gpC); } catch (eR) {
+            try { resolvable = ResolvableProfile.createResolved(gpC); } catch (eR2) {}
+        }
+        if (resolvable != null) {
+            nmsItem.set(DataComponents.PROFILE, resolvable);
+            return CraftItemStack.asBukkitCopy(nmsItem);
+        }
+    } catch (eC) {}
+
+    try {
+        Bukkit.getLogger().warning("[GLTC术士] 空槽头颅生成失败 hash=" + hashStr.substring(0, 12) + "...");
+    } catch (eLog) {}
+    return null;
+}
+
+function buildEmptySlot(slotDef) {
+    var name = "§5" + slotDef.label;
+    var loreArr = [
+        "§7类型：§f" + categoryDisplayName(slotDef.category),
+        "§e左键拿起对应类型组件后点此装备",
+        "§e空手点击已装备槽可卸下"
+    ];
+    var hash = slotDef ? slotDef.skullHash : null;
+    var skull = hash ? skullFromHash(hash) : null;
+    if (skull != null) {
+        try {
+            var meta = skull.getItemMeta();
+            if (meta != null) {
+                meta.setDisplayName(name);
+                meta.setLore(java.util.Arrays.asList(loreArr));
+                skull.setItemMeta(meta);
+            }
+        } catch (eMeta) {}
+        return skull;
+    }
+    // 最后兜底仍给头颅外形，避免再变黑曜石
+    return pane(Material.PLAYER_HEAD, name, loreArr);
+}
+
 function formatPct(v) {
     return (Math.round(v * 1000) / 10).toFixed(1) + "%";
 }
@@ -138,36 +275,28 @@ function formatNum(v) {
     return String(Math.round(v * 1000) / 1000);
 }
 
-function buildEmptySlot(slotDef) {
-    return pane(Material.OBSIDIAN, "§5" + slotDef.label, [
-        "§7类型：§f" + categoryDisplayName(slotDef.category),
-        "§e左键拿起对应类型饰品后点此装备",
-        "§e空手点击已装备槽可卸下"
-    ]);
-}
-
 function buildSeparator() {
     return pane(Material.BLUE_STAINED_GLASS_PANE, "§9分隔", [
-        "§7左侧：§b潜能模块",
-        "§7右侧：§d强化组件 §7/ §a术式辅助"
+        "§7-",
+        "§7-"
     ]);
 }
 
 function refreshStatIcons(inv, player) {
     var total = MAGE_API.getTotalStats(player, true);
     var gli = MAGE_API.getGLI();
-    var tipMage = "§e左键消耗 §d1 术士潜能 §e加点";
-    var tipBody = "§e左键消耗 §a1 体能潜能 §e加点";
+    var tipMage = "§e左键消耗 §d1 术士潜能 §e进行强化";
+    var tipBody = "§e左键消耗 §a1 体能潜能 §e进行强化";
 
     inv.setItem(STAT_SLOTS.level, pane(Material.EXPERIENCE_BOTTLE, "§d术士等级 §f" + total.mageLevel, [
         "§7驭粒熟练：§f" + total.proficiency,
-        "§8升级获得术士潜能与体能潜能"
+        "§8术士等级提升时获得潜能"
     ]));
     inv.setItem(STAT_SLOTS.particlePower, pane(Material.AMETHYST_SHARD, "§b粒子强度 §f" + formatNum(total.particlePower), [
         "§7最终伤害 = 强度 × 术式系数 × GLI", tipMage, "§8每点 +0.1"
     ]));
     inv.setItem(STAT_SLOTS.capacity, pane(Material.GLASS_BOTTLE, "§b松垂体容量 §f" + formatNum(total.pituitaryCapacity), [
-        "§7施术消耗粒子", tipMage, "§8每点 +6"
+        "§7决定粒子容量上限，施术消耗粒子", tipMage, "§8每点 +6"
     ]));
     inv.setItem(STAT_SLOTS.cardio, pane(Material.REDSTONE, "§c心血管强度 §f" + formatPct(total.cardiovascular), [
         "§7冷却 = 术式冷却 × (1 - 本值)", tipMage, "§8每点 +1%"
@@ -176,19 +305,18 @@ function refreshStatIcons(inv, player) {
         "§7减少受到的粒子伤害", tipMage, "§8每点 +1%"
     ]));
     inv.setItem(STAT_SLOTS.mana, pane(Material.LAPIS_LAZULI, "§9当前粒子 §f" + formatNum(total.currentParticles) + " §7/ §f" + formatNum(total.pituitaryCapacity), [
-        "§7内存缓存，退出/定时落盘",
-        "§8不写入术士数值主文件"
+        "§7收松垂体容量影响，能通过引导术式与道具补充"
     ]));
     inv.setItem(STAT_SLOTS.magePts, pane(Material.PURPLE_DYE, "§d术士潜能 §f" + total.magePotential, [
         "§7用于：强度/容量/心血管/折射/最终减伤",
-        "§8升级按 4,4,12,4,4,12,4,12 获得"
+        "§8术士等级提升时能获得。"
     ]));
     inv.setItem(STAT_SLOTS.bodyPts, pane(Material.LIME_DYE, "§a体能潜能 §f" + total.bodyPotential, [
         "§7用于：近战/血/防/韧/速/手长",
-        "§8升级按 4,4,12,4,4,12,4,12 获得"
+        "§8术士等级提升时能获得。"
     ]));
     inv.setItem(STAT_SLOTS.resetPts, pane(Material.BARRIER, "§c重置所有潜能", [
-        "§7将已分配点数全部退回",
+        "§7将已分配潜能全部退回",
         "§7术士潜能 / 体能潜能各自返还",
         "§e左键确认重置"
     ]));
@@ -198,15 +326,27 @@ function refreshStatIcons(inv, player) {
         "§c不影响脉冲伤害",
         tipMage, "§8每点 +1%"
     ]));
-    inv.setItem(STAT_SLOTS.melee, pane(Material.IRON_SWORD, "§f近战伤害 §f+" + formatNum(total.meleeDamage), [tipBody, "§8每点 +2"]));
-    inv.setItem(STAT_SLOTS.maxHealth, pane(Material.GOLDEN_APPLE, "§f血量白值 §f+" + formatNum(total.maxHealth), [tipBody, "§8每点 +10"]));
-    inv.setItem(STAT_SLOTS.armor, pane(Material.IRON_CHESTPLATE, "§f防御白值 §f+" + formatNum(total.armor), [tipBody, "§8每点 +1"]));
-    inv.setItem(STAT_SLOTS.toughness, pane(Material.NETHERITE_CHESTPLATE, "§f韧性白值 §f+" + formatNum(total.toughness), [tipBody, "§8每点 +0.5"]));
-    inv.setItem(STAT_SLOTS.speed, pane(Material.SUGAR, "§f速度白值 §f+" + formatNum(total.speed), [tipBody, "§8每点 +0.01"]));
-    inv.setItem(STAT_SLOTS.reach, pane(Material.STICK, "§f手长白值 §f+" + formatNum(total.reach), [tipBody, "§8每点 +0.2"]));
+    inv.setItem(STAT_SLOTS.melee, pane(Material.IRON_SWORD, "§f筋力解放 §f+" + formatNum(total.meleeDamage), [
+        "§7提升近战伤害白值", tipBody, "§8每点 +2"
+    ]));
+    inv.setItem(STAT_SLOTS.maxHealth, pane(Material.GOLDEN_APPLE, "§f肌脂提升 §f+" + formatNum(total.maxHealth), [
+        "§7提升血量白值", tipBody, "§8每点 +10"
+    ]));
+    inv.setItem(STAT_SLOTS.armor, pane(Material.IRON_CHESTPLATE, "§f骨骼结构 §f+" + formatNum(total.armor), [
+        "§7提升防御值白值", tipBody, "§8每点 +1"
+    ]));
+    inv.setItem(STAT_SLOTS.toughness, pane(Material.NETHERITE_CHESTPLATE, "§f体态掌控 §f+" + formatNum(total.toughness), [
+        "§7提升韧性白值", tipBody, "§8每点 +0.5"
+    ]));
+    inv.setItem(STAT_SLOTS.speed, pane(Material.SUGAR, "§f心肺强化 §f+" + formatNum(total.speed), [
+        "§7提升速度白值", tipBody, "§8每点 +0.01"
+    ]));
+    inv.setItem(STAT_SLOTS.reach, pane(Material.STICK, "§f体态协调 §f+" + formatNum(total.reach), [
+        "§7提升手长白值", tipBody, "§8每点 +0.2"
+    ]));
 
     inv.setItem(STAT_SLOTS.gli, pane(Material.END_CRYSTAL, "§d粒子浓度 GLI §f" + formatNum(gli), [
-        "§7服主配置，玩家不可提升",
+        "§7管理员可配置，无法提升",
         "§8ParticleConcentration"
     ]));
 }
@@ -354,7 +494,7 @@ function registerListeners() {
                         return;
                     }
                     if (cursor.getAmount() !== 1) {
-                        player.sendMessage(GLTC_PREFIX + "§c请将饰品数量分离为 1 后再装备。");
+                        player.sendMessage(GLTC_PREFIX + "§c请将组件数量分离为 1 后再装备。");
                         return;
                     }
                     if (equippedB64) {

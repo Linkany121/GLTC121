@@ -1,10 +1,16 @@
-var SIT_DAMAGE_MULT = 1.6;
-var ABILITY_POWER_DEFAULT = 10;
-var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
-var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
-var DAMAGE_NOTIFY_DEFAULT = "chat";
-var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
-var COOLDOWN_MS = 500;
+// ===================================================================
+// 通古斯制式步枪 · 可调配置
+// 最终伤害 = 系数 × 异能强度(SIT)；改完重载脚本生效
+// ===================================================================
+var SIT_DAMAGE_MULT = 1.6;             // 单发伤害系数（×SIT）
+var ABILITY_POWER_DEFAULT = 10;        // 异能强度默认值（配置缺失时回退）
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment"; // 异能强度读取的配置键
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";   // 伤害提示方式配置键
+var DAMAGE_NOTIFY_DEFAULT = "chat";    // 伤害提示默认：chat / actionbar / none
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f"; // 伤害提示前缀
+var COOLDOWN_MS = 500;                 // 射击冷却（毫秒）
+var RANGE = 40;                        // 射程（格）
+
 function getAbilityPower() {
     try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
 }
@@ -50,7 +56,6 @@ function dealSitDamage(target, player, item, sitMult) {
     notifyAbilityDamage(player, item, dmg);
     return dmg;
 }
-var RANGE = 40;
 var cdMap = new java.util.HashMap();
 var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
@@ -64,7 +69,8 @@ var _cdCleanup = Java.extend(BukkitRunnable, {
         }
     }
 });
-new _cdCleanup().runTaskTimer(plugin, 400, 400);
+try{if(plugin.gltcGunCdTask_通古斯制式步枪!=null){org.bukkit.Bukkit.getScheduler().cancelTask(plugin.gltcGunCdTask_通古斯制式步枪);plugin.gltcGunCdTask_通古斯制式步枪=null;}}catch(_e){}
+plugin.gltcGunCdTask_通古斯制式步枪 = new _cdCleanup().runTaskTimer(plugin, 400, 400).getTaskId();
 var Particle = org.bukkit.Particle;
 var Location = org.bukkit.Location;
 var DustOptions = org.bukkit.Particle.DustOptions;

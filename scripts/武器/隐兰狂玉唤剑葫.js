@@ -18,6 +18,7 @@ var UUID = Java.type("java.util.UUID");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
+var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var Player = Java.type("org.bukkit.entity.Player");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -340,18 +341,38 @@ function updateXinTingBar(uuid, player, stacks) {
         bar.setColor(BarColor.RED);
         bar.setProgress(1.0);
         bar.setVisible(true);
+        startXinTingBarTicker();
     } catch (e) {
         plugin.getLogger().warning("[隐兰狂玉唤剑葫] 心霆BossBar异常: " + e);
     }
 }
 
-// 每 tick 刷新心霆 BossBar：层数模式下显示倒计时进度，状态模式下显示状态持续倒计时
+// 每 tick 刷新心霆 BossBar：仅在有 Bar 时运行；清空后自动停止
+function stopXinTingBarTicker() {
+    try {
+        if (plugin.xinTingBarTaskId != null) {
+            Bukkit.getScheduler().cancelTask(Number(plugin.xinTingBarTaskId));
+            plugin.xinTingBarTaskId = null;
+        }
+    } catch (e) {}
+    plugin.xinTingBarTickerRegistered = false;
+}
 function startXinTingBarTicker() {
     if (plugin.xinTingBarTickerRegistered) return;
+    try {
+        if (plugin.xinTingBarTaskId != null) {
+            Bukkit.getScheduler().cancelTask(Number(plugin.xinTingBarTaskId));
+            plugin.xinTingBarTaskId = null;
+        }
+    } catch (e0) {}
     plugin.xinTingBarTickerRegistered = true;
     var Ticker = Java.extend(BukkitRunnable, {
         run: function() {
             try {
+                if (xinTingBarMap.isEmpty()) {
+                    stopXinTingBarTicker();
+                    return;
+                }
                 var uuids = new java.util.HashSet(xinTingBarMap.keySet());
                 var it = uuids.iterator();
                 while (it.hasNext()) {
@@ -386,15 +407,17 @@ function startXinTingBarTicker() {
                         xinTingDecayTickMap.put(uuid, decayTick + 1);
                     }
                 }
+                if (xinTingBarMap.isEmpty()) stopXinTingBarTicker();
             } catch (e) {}
         }
     });
-    new Ticker().runTaskTimer(plugin, 0, 1);
+    plugin.xinTingBarTaskId = new Ticker().runTaskTimer(plugin, 0, 1).getTaskId();
 }
 function removeXinTingBar(uuid) {
     try {
         var bar = xinTingBarMap.remove(uuid);
         if (bar != null) { bar.removeAll(); bar.setVisible(false); }
+        if (xinTingBarMap.isEmpty()) stopXinTingBarTicker();
     } catch (e) {}
 }
 
@@ -419,7 +442,12 @@ function addXinTingStack(player) {
 // 心霆层数递减：每 3 秒减少一层，直到归零（获得层数不会重置倒计时）
 // ===================================================================
 function startXinTingDecay() {
-    if (plugin.xinTingDecayTaskRegistered) return;
+    try {
+        if (plugin.xinTingDecayTaskId != null) {
+            Bukkit.getScheduler().cancelTask(Number(plugin.xinTingDecayTaskId));
+            plugin.xinTingDecayTaskId = null;
+        }
+    } catch (e0) {}
     plugin.xinTingDecayTaskRegistered = true;
     var DecayTask = Java.extend(BukkitRunnable, {
         run: function() {
@@ -447,7 +475,7 @@ function startXinTingDecay() {
             } catch (e) {}
         }
     });
-    new DecayTask().runTaskTimer(plugin, XINTING_DECAY_TICKS, XINTING_DECAY_TICKS);
+    plugin.xinTingDecayTaskId = new DecayTask().runTaskTimer(plugin, XINTING_DECAY_TICKS, XINTING_DECAY_TICKS).getTaskId();
 }
 
 function triggerXinTingState(player) {
@@ -475,6 +503,7 @@ function triggerXinTingState(player) {
     stateBar.setTitle(fmtMsg(MSG_XINTING_BAR_STATE, {secs: 10}));
     stateBar.setProgress(1.0);
     stateBar.setVisible(true);
+    startXinTingBarTicker();
     player.sendTitle(
         MSG_XINTING_TITLE,
         MSG_XINTING_SUBTITLE,
@@ -863,6 +892,7 @@ var initListener = new RunnableImpl({
         // 热重载时先注销旧监听器
         if (plugin.huanjianhuListenerRegistered === true && plugin.huanjianhuListener != null) {
             try { PlayerInteractEvent.getHandlerList().unregister(plugin.huanjianhuListener); } catch (e) {}
+            try { PlayerQuitEvent.getHandlerList().unregister(plugin.huanjianhuListener); } catch (e2) {}
         }
         plugin.huanjianhuListener = huanjianhuListener;
         plugin.huanjianhuListenerRegistered = true;
@@ -907,11 +937,28 @@ var initListener = new RunnableImpl({
             },
             plugin
         );
+
+        Bukkit.getPluginManager().registerEvent(
+            PlayerQuitEvent,
+            huanjianhuListener,
+            EventPriority.MONITOR,
+            function (l, event) {
+                try {
+                    var uuid = event.getPlayer().getUniqueId().toString();
+                    xinTingStacksMap.remove(uuid);
+                    xinTingStateMap.remove(uuid);
+                    xinTingDecayTickMap.remove(uuid);
+                    leftClickCdMap.remove(uuid);
+                    removeXinTingBar(uuid);
+                } catch (e) {}
+            },
+            plugin
+        );
     }
 });
 Bukkit.getScheduler().runTask(plugin, initListener);
 Bukkit.getScheduler().runTask(plugin, new RunnableImpl({ run: startXinTingDecay }));
-Bukkit.getScheduler().runTask(plugin, new RunnableImpl({ run: startXinTingBarTicker }));
+// BossBar 刷新任务按需启动（有层数/状态时），不在加载时常驻
 
 // ===================================================================
 // 右键入口（onUse）：施展焰眸

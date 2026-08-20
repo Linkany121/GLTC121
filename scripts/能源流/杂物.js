@@ -10,6 +10,7 @@ const CATEGORIES = [
 ];
 
 const MAIN_TITLE = '§x§7§7§f§7§f§f协§x§6§0§f§a§d§a议§x§4§9§f§d§b§5内§x§6§3§f§f§9§3容§x§b§0§f§f§7§5：§x§f§c§f§f§5§7杂物';
+const SHOP_LISTENER_KEY = 'gltcEnergyShop_杂物';
 
 const BORDER_SLOTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 51, 52, 53];
 const PAGE_SIZE = 28;
@@ -78,7 +79,7 @@ const SlimefunItem = Java.type('io.github.thebusybiscuit.slimefun4.api.items.Sli
 const Listener = Java.type('org.bukkit.event.Listener');
 
 // ---- 信用点系统 ----
-var File = java.io.File;var Files = java.nio.file.Files;var StandardCharsets = java.nio.charset.StandardCharsets;var NamespacedKey = Java.type('org.bukkit.NamespacedKey');var PersistentDataType = Java.type('org.bukkit.persistence.PersistentDataType');var _plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;var DATA_DIR = new File(_plugin.getDataFolder().getAbsolutePath() + '/addon_configs/GLTC/玩家属性/信用点');if (!DATA_DIR.exists()) DATA_DIR.mkdirs();var CARD_OWNER_KEY = new NamespacedKey('gltc', 'card_owner');var SF_ITEM_KEY = new NamespacedKey('slimefun', 'slimefun_item');var CARD_ID = 'GLTC_银行卡';var EXCHANGE_RATES = {'AL_A1':1,'AL_A2':1,'AL_A3':1,'AL_A4':1,'AL_A5':1,'AL_A6':1,'AL_B1':2,'TSTL':2,'TSSY':2,'TSG':2,'TSHH':3,'TSYY':3,'TSBD':3,'TSTLS':3,'TSND':3,'TSJJ':3,'TSGD':3,'TSXT':3,'TSTJ':4,'TSDBG':4,'TSBTL':4,'TSJLD':4,'TSYM':4,'TSLD':4,'TSYD':4,'TSDD':4,'TSPJD':5,'TSCH':5,'TSSKD':5,'TSLKS':5,'TSYMY':5,'TSDJL':5,'TSGWHS':5,'TSTHYY':5};function _getSlimefunId(s){if(!s||s.getType()===Material.AIR)return null;try{var m=s.getItemMeta();if(m){var p=m.getPersistentDataContainer();if(p.has(SF_ITEM_KEY,PersistentDataType.STRING))return p.get(SF_ITEM_KEY,PersistentDataType.STRING);}}catch(e){}var sf=SlimefunItem.getByItem(s);return sf?sf.getId():null;}function _getCredit(u){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');if(!f.exists())return 0;try{var b=Files.readAllBytes(f.toPath());var bb=Java.type('java.nio.ByteBuffer');var cb=StandardCharsets.UTF_8.decode(bb.wrap(b));return JSON.parse(cb.toString()).credit||0;}catch(e){return 0;}}function _setCredit(u,c){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');try{var l=new java.util.ArrayList();l.add(JSON.stringify({credit:c},null,2));Files.write(f.toPath(),l,StandardCharsets.UTF_8);}catch(e){}}function _findCard(inv,uuid){for(var i=0;i<inv.getSize();i++){var s=inv.getItem(i);if(!s||s.getType()===Material.AIR)continue;var id=_getSlimefunId(s);if(!id||id!==CARD_ID)continue;var m=s.getItemMeta();if(!m)continue;var p=m.getPersistentDataContainer();if(p.has(CARD_OWNER_KEY,PersistentDataType.STRING)&&p.get(CARD_OWNER_KEY,PersistentDataType.STRING)===uuid)return true;}return false;}function _updateCardLore(inv,uuid,name,credit){for(var i=0;i<inv.getSize();i++){var s=inv.getItem(i);if(!s||s.getType()===Material.AIR)continue;var id=_getSlimefunId(s);if(!id||id!==CARD_ID)continue;var m=s.getItemMeta();if(!m)continue;var p=m.getPersistentDataContainer();if(p.has(CARD_OWNER_KEY,PersistentDataType.STRING)&&p.get(CARD_OWNER_KEY,PersistentDataType.STRING)===uuid){var lore=m.getLore();if(lore&&lore.size()>=6){lore.set(4,'§f[§e凭证持有者§f]§b '+name);lore.set(5,'§f[§e信用点余额§f]§b '+credit+'△');m.setLore(lore);s.setItemMeta(m);}}}}function calcCreditCost(pl){var t=0;for(var i=0;i<pl.length;i++){t+=(pl[i].amount*(EXCHANGE_RATES[pl[i].id]||0));}return t;}
+var File = java.io.File;var Files = java.nio.file.Files;var StandardCharsets = java.nio.charset.StandardCharsets;var NamespacedKey = Java.type('org.bukkit.NamespacedKey');var PersistentDataType = Java.type('org.bukkit.persistence.PersistentDataType');var _plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;var DATA_DIR = new File(_plugin.getDataFolder().getAbsolutePath() + '/addon_configs/GLTC/玩家属性/信用点');if (!DATA_DIR.exists()) DATA_DIR.mkdirs();var CARD_OWNER_KEY = new NamespacedKey('gltc', 'card_owner');var SF_ITEM_KEY = new NamespacedKey('slimefun', 'slimefun_item');var CARD_ID = 'GLTC_银行卡';var EXCHANGE_RATES = {'AL_A1':1,'AL_A2':1,'AL_A3':1,'AL_A4':1,'AL_A5':1,'AL_A6':1,'AL_B1':2,'TSTL':2,'TSSY':2,'TSG':2,'TSHH':3,'TSYY':3,'TSBD':3,'TSTLS':3,'TSND':3,'TSJJ':3,'TSGD':3,'TSXT':3,'TSTJ':4,'TSDBG':4,'TSBTL':4,'TSJLD':4,'TSYM':4,'TSLD':4,'TSYD':4,'TSDD':4,'TSPJD':5,'TSCH':5,'TSSKD':5,'TSLKS':5,'TSYMY':5,'TSDJL':5,'TSGWHS':5,'TSTHYY':5};function _getSlimefunId(s){if(!s||s.getType()===Material.AIR)return null;try{var m=s.getItemMeta();if(m){var p=m.getPersistentDataContainer();if(p.has(SF_ITEM_KEY,PersistentDataType.STRING))return p.get(SF_ITEM_KEY,PersistentDataType.STRING);}}catch(e){}var sf=SlimefunItem.getByItem(s);return sf?sf.getId():null;}function _creditLock(){if(plugin.gltcCreditLock==null)plugin.gltcCreditLock=new java.lang.Object();return plugin.gltcCreditLock;}function _getCreditUnlocked(u){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');if(!f.exists())return 0;try{var b=Files.readAllBytes(f.toPath());var bb=Java.type('java.nio.ByteBuffer');var cb=StandardCharsets.UTF_8.decode(bb.wrap(b));return JSON.parse(cb.toString()).credit||0;}catch(e){return 0;}}function _setCreditUnlocked(u,c){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');try{var l=new java.util.ArrayList();l.add(JSON.stringify({credit:c},null,2));Files.write(f.toPath(),l,StandardCharsets.UTF_8);return true;}catch(e){try{Java.type('org.bukkit.Bukkit').getLogger().warning('[GLTC信用点] 写入失败 '+u+': '+e);}catch(e2){}return false;}}function _getCredit(u){return Java.synchronized(_creditLock(),function(){return _getCreditUnlocked(u);})();}function _setCredit(u,c){return Java.synchronized(_creditLock(),function(){return _setCreditUnlocked(u,c);})();}function _trySpendCredit(u,cost){return Java.synchronized(_creditLock(),function(){var cur=_getCreditUnlocked(u);if(cur<cost)return false;return _setCreditUnlocked(u,cur-cost);})();}function _findCard(inv,uuid){for(var i=0;i<inv.getSize();i++){var s=inv.getItem(i);if(!s||s.getType()===Material.AIR)continue;var id=_getSlimefunId(s);if(!id||id!==CARD_ID)continue;var m=s.getItemMeta();if(!m)continue;var p=m.getPersistentDataContainer();if(p.has(CARD_OWNER_KEY,PersistentDataType.STRING)&&p.get(CARD_OWNER_KEY,PersistentDataType.STRING)===uuid)return true;}return false;}function _updateCardLore(inv,uuid,name,credit){for(var i=0;i<inv.getSize();i++){var s=inv.getItem(i);if(!s||s.getType()===Material.AIR)continue;var id=_getSlimefunId(s);if(!id||id!==CARD_ID)continue;var m=s.getItemMeta();if(!m)continue;var p=m.getPersistentDataContainer();if(p.has(CARD_OWNER_KEY,PersistentDataType.STRING)&&p.get(CARD_OWNER_KEY,PersistentDataType.STRING)===uuid){var lore=m.getLore();if(lore&&lore.size()>=6){lore.set(4,'§f[§e凭证持有者§f]§b '+name);lore.set(5,'§f[§e信用点余额§f]§b '+credit+'△');m.setLore(lore);s.setItemMeta(m);}}}}function calcCreditCost(pl){var t=0;for(var i=0;i<pl.length;i++){t+=(pl[i].amount*(EXCHANGE_RATES[pl[i].id]||0));}return t;}
 
 const BATCH_MULTIPLIER = 10;
 const COOLDOWN_MAP = new java.util.HashMap();
@@ -112,10 +113,9 @@ function hasEnough(player, priceList, multiplier, batchMul) {
 function removeItems(player, priceList, multiplier, batchMul) {
     var uuid = player.getUniqueId().toString();
     var cost = calcCreditCost(priceList) * multiplier * (batchMul || 1);
-    var current = _getCredit(uuid);
-    var newCredit = current - cost;
-    _setCredit(uuid, newCredit);
-    _updateCardLore(player.getInventory(), uuid, player.getName(), newCredit);
+    if (!_trySpendCredit(uuid, cost)) return false;
+    _updateCardLore(player.getInventory(), uuid, player.getName(), _getCredit(uuid));
+    return true;
 }
 function canAddItem(player, itemStack, amount) {
     const maxStack = itemStack.getMaxStackSize();
@@ -245,11 +245,12 @@ let registered = false;
 function ensureListener() {
     if (registered) return;
     const DragEvent = Java.type('org.bukkit.event.inventory.InventoryDragEvent');
-    if (plugin.lengshang_gj_qhgui) {
-        ClickEvent.getHandlerList().unregister(plugin.lengshang_gj_qhgui);
-        CloseEvent.getHandlerList().unregister(plugin.lengshang_gj_qhgui);
-        DragEvent.getHandlerList().unregister(plugin.lengshang_gj_qhgui);
-        plugin.lengshang_gj_qhgui = null;
+    var _oldShopL = plugin[SHOP_LISTENER_KEY];
+    if (_oldShopL) {
+        ClickEvent.getHandlerList().unregister(_oldShopL);
+        CloseEvent.getHandlerList().unregister(_oldShopL);
+        DragEvent.getHandlerList().unregister(_oldShopL);
+        plugin[SHOP_LISTENER_KEY] = null;
     }
     const L = Java.extend(Listener, {});
     const listener = new L();
@@ -326,7 +327,10 @@ function ensureListener() {
                 return;
             }
 
-            removeItems(p, config.price, times, _batchMul);
+            if (!removeItems(p, config.price, times, _batchMul)) {
+                p.sendMessage(getFailMessage('', _creditCost));
+                return;
+            }
             giveItems(p, itemProto, totalGive);
             p.sendMessage(getBuyMessage(config.price, times, totalGive, config.id, _uuid, _batchMul));
             setCooldown(p);
@@ -341,7 +345,7 @@ function ensureListener() {
             ClickEvent.getHandlerList().unregister(listener);
             CloseEvent.getHandlerList().unregister(listener);
             DragEvent.getHandlerList().unregister(listener);
-            plugin.lengshang_gj_qhgui = null; registered = false;
+            plugin[SHOP_LISTENER_KEY] = null; registered = false;
         }
     }, plugin);
 
@@ -352,7 +356,7 @@ function ensureListener() {
         const itSlots = e.getRawSlots().iterator();
         while (itSlots.hasNext()) if (itSlots.next() < topSize) { e.setCancelled(true); return; }
     }, plugin);
-    plugin.lengshang_gj_qhgui = listener; registered = true;
+    plugin[SHOP_LISTENER_KEY] = listener; registered = true;
 }
 
 function openMenu(p, inv) { PAGE_SWITCHING.add(p); p.openInventory(inv); PAGE_SWITCHING.remove(p); openPlayers.add(p); ensureListener(); }

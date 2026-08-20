@@ -10,6 +10,7 @@ const CATEGORIES = [
 ];
 
 const MAIN_TITLE = '§x§7§7§f§7§f§f协§x§6§0§f§a§d§a议§x§4§9§f§d§b§5内§x§6§3§f§f§9§3容§x§b§0§f§f§7§5：§x§f§c§f§f§5§7原版粘液科技';
+const SHOP_LISTENER_KEY = 'gltcEnergyShop_粘液科技';
 
 const BORDER_SLOTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 17, 18, 26, 27, 35, 36, 44, 45, 46, 47, 51, 52, 53];
 const PAGE_SIZE = 28;
@@ -247,11 +248,12 @@ let registered = false;
 function ensureListener() {
     if (registered) return;
     const DragEvent = Java.type('org.bukkit.event.inventory.InventoryDragEvent');
-    if (plugin.lengshang_gj_qhgui) {
-        ClickEvent.getHandlerList().unregister(plugin.lengshang_gj_qhgui);
-        CloseEvent.getHandlerList().unregister(plugin.lengshang_gj_qhgui);
-        DragEvent.getHandlerList().unregister(plugin.lengshang_gj_qhgui);
-        plugin.lengshang_gj_qhgui = null;
+    var _oldShopL = plugin[SHOP_LISTENER_KEY];
+    if (_oldShopL) {
+        ClickEvent.getHandlerList().unregister(_oldShopL);
+        CloseEvent.getHandlerList().unregister(_oldShopL);
+        DragEvent.getHandlerList().unregister(_oldShopL);
+        plugin[SHOP_LISTENER_KEY] = null;
     }
     const L = Java.extend(Listener, {});
     const listener = new L();
@@ -355,7 +357,7 @@ function ensureListener() {
             ClickEvent.getHandlerList().unregister(listener);
             CloseEvent.getHandlerList().unregister(listener);
             DragEvent.getHandlerList().unregister(listener);
-            plugin.lengshang_gj_qhgui = null; registered = false;
+            plugin[SHOP_LISTENER_KEY] = null; registered = false;
         }
     }, plugin);
 
@@ -366,7 +368,7 @@ function ensureListener() {
         const itSlots = e.getRawSlots().iterator();
         while (itSlots.hasNext()) if (itSlots.next() < topSize) { e.setCancelled(true); return; }
     }, plugin);
-    plugin.lengshang_gj_qhgui = listener; registered = true;
+    plugin[SHOP_LISTENER_KEY] = listener; registered = true;
 }
 
 function openMenu(p, inv) { PAGE_SWITCHING.add(p); p.openInventory(inv); PAGE_SWITCHING.remove(p); openPlayers.add(p); ensureListener(); }

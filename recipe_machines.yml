@@ -1206,6 +1206,11 @@ TAChx1:
           amount: 1
           material_type: slimefun
           material: al_xt远征舰
+        10:
+          chance: 40
+          amount: 1
+          material_type: slimefun
+          material: al_xt环夜谷
 
 TAChx2:
   item_group: A_C2
@@ -1296,6 +1301,11 @@ TAChx2:
           amount: 1
           material_type: slimefun
           material: al_xt远征舰
+        10:
+          chance: 40
+          amount: 1
+          material_type: slimefun
+          material: al_xt环夜谷
 
 TACbz1:
   item_group: A_C2
@@ -1487,6 +1497,25 @@ TACbz1:
           chance: 10
           material_type: slimefun
           material: ntskey3
+    vasa:
+      seconds: 30
+      input:
+        1:
+          material_type: slimefun
+          material: al_xt环夜谷
+      output:
+        1:
+          chance: 60
+          material_type: slimefun
+          material: ntvasa1
+        2:
+          chance: 30
+          material_type: slimefun
+          material: ntvasa2
+        3:
+          chance: 10
+          material_type: slimefun
+          material: ntvasa3
 
 TACbz2:
   item_group: A_C2
@@ -1677,6 +1706,25 @@ TACbz2:
           chance: 10
           material_type: slimefun
           material: ntskey3
+    vasa:
+      seconds: 30
+      input:
+        1:
+          material_type: slimefun
+          material: al_xt环夜谷
+      output:
+        1:
+          chance: 60
+          material_type: slimefun
+          material: ntvasa1
+        2:
+          chance: 30
+          material_type: slimefun
+          material: ntvasa2
+        3:
+          chance: 10
+          material_type: slimefun
+          material: ntvasa3
 
 ########################
 #霆石机器
@@ -22160,6 +22208,31 @@ FKR_锻造锤:
         1:
           material_type: slimefun
           material: FKR_ASPL
+          amount: 1
+    jmwm:
+      seconds: 3
+      input:
+        1:
+          material_type: slimefun
+          material: FKR_特殊模板
+          amount: 1
+          noConsume: true
+        2:
+          material_type: slimefun
+          material: TSgj5
+          amount: 64
+        3:
+          material_type: slimefun
+          material: lsyq4
+          amount: 16
+        4:
+          material_type: slimefun
+          material: lscs3
+          amount: 32
+      output:
+        1:
+          material_type: slimefun
+          material: FKR_咀嚼曾世的晚梦
           amount: 1
 
 FKR_零件灌钮组装车床:

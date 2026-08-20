@@ -351,6 +351,107 @@ B_B1:
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e机器'
   parent: B_A
 
+B_ZW1:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: gray_stained_glass_pane
+    name: ''
+  parent: B_A
+
+B_ZW2:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: gray_stained_glass_pane
+    name: ''
+  parent: B_A
+
+B_ZW3:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: gray_stained_glass_pane
+    name: ''
+  parent: B_A
+
+#环夜谷巅峰术士学会 · 流派
+MA_1:
+  lateInit: false
+  type: sub
+  tier: 1
+  item:
+    material: bookshelf
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e焱招宗传流派'
+    lore:
+    - '&#fff5b3来源于古焱招起一直流传下的术式，他们喜好阴阳平衡、与自然相伴。'
+    - '  &#ffc24b驱&#ffb447恶&#ffa544斩&#ff9740邪&#ff883c，&#ff7a39大&#ff6b35炎&#ff5d32雷&#ff4e2e法&#ff402a，&#ff3127出&#ff2323！'
+  parent: B_A
+MA_2:
+  lateInit: false
+  type: sub
+  tier: 2
+  item:
+    material: bookshelf
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e拓尔奥沓之金流派'
+    lore:
+    - '&#fff5b3他们将术式与驭粒称为神赐的礼物，他们乐于见到简单而高效的招式。'
+    - '  &#ff7c44睁&#ff8645开&#ff8f46你&#ff9946那&#ffa247炽&#ffac48热&#ffb549的&#ffbf4a瞳&#ffc84b，&#fed04b随&#fdd64b我&#fbdc4b们&#f9e24b共&#f8e74b立&#f6ed4b与&#f4f34b此&#f3f94b门&#f1ff4b。'
+  parent: B_A
+MA_3:
+  lateInit: false
+  type: sub
+  tier: 3
+  item:
+    material: bookshelf
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e沃土奥法流派'
+    lore:
+    - '&#fff5b3生活在沃土的人从不居于条条框框，平生最爱研究用最简单的方式施展最华丽的术式。'
+    - '  &#2bff80咆&#34ff76哮&#3dff6c于&#45fe61无&#4efe57尽&#57fe4d花&#60fe43丛&#68fd38间&#71fd2e的&#7ffd2d天&#8dfe2b灵&#9bfe2a，&#a9fe28我&#b6fe27召&#c4ff25唤&#d2ff24你&#e0ff22！'
+  parent: B_A
+MA_4:
+  lateInit: false
+  type: sub
+  tier: 4
+  item:
+    material: bookshelf
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e环夜谷标准流派'
+    lore:
+    - '&#fff5b3环夜谷的术士学者专精于所有流派的术式，他们的术式集合了各流派的优点与独特之处。'
+    - '  &#2b33ff四&#2a40ff目&#2a4eff咲&#295bff先&#2968ff，&#2875ff四&#2783ff瞳&#2790ff交&#269dff叠&#2d9cff，&#3b8dff四&#497eff重&#576eff古&#665fff镜&#7450ff共&#8241ff照&#9031ff天&#9e22ff。'
+  parent: B_A
+MA_5:
+  lateInit: false
+  type: sub
+  tier: 5
+  item:
+    material: bookshelf
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e特殊/无流派'
+    lore:
+    - '&#fff5b3有些术式的来源早已失传，但可能仍然强大或独特，从而保留到了现在。'
+    - '  &#4c9eff持&#5593ff剑&#5e88ff，&#677dff赠&#7072ff曾&#7967ff徒&#825cff步&#8b51ff于&#974cfc纯&#a64cf5白&#b54cee荒&#c44ce8地&#d34ce1的&#e14cda众&#f04cd4生&#ff4ccd。'
+  parent: B_A
+
+B_C0:
+  lateInit: false
+  type: sub
+  tier: 1
+  item:
+    material: magenta_wool
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e物品'
+  parent: B_A
+
+B_C1:
+  lateInit: false
+  type: sub
+  tier: 1
+  item:
+    material: magenta_concrete
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e机器'
+  parent: B_A
 
 
 

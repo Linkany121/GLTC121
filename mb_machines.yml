@@ -174,7 +174,7 @@ ATO_GT:
          material_type: slimefun
          material: GLTC_能源连接器2
          amount: 16
-    AL_电线4: #
+    AL_银行卡: #
       input:
         1:
           material: iron_ingot

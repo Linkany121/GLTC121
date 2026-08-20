@@ -767,6 +767,27 @@ al_xt远征舰:
           material: AL_xt1
           amount: 1
 
+al_xt环夜谷:
+  lateInit: false
+  item_group: A_C1
+  item:
+    name: "&#4a9dff噬&#4981ff空&#4865ff星图"
+    material: BC_星图_环夜谷
+    modelId: 1210389
+    material_type: saveditem
+    glow: true
+    lore:
+    - '&b归属&9：&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会'
+    - '&#fff5b3记录着噬空星座坐标的星图。'
+    - '&7此星图为第二阶段星图。'
+  amount: 1
+  recipe_type: PF_TAC_2
+  recipe:
+        1:
+          material_type: slimefun
+          material: AL_xt1
+          amount: 1
+
 ################################################################
 #蓝图
 ################################################################
@@ -1225,6 +1246,63 @@ ntskey3:
         1:
           material_type: slimefun
           material: al_xt远征舰
+          amount: 1
+
+##VASA小蓝图
+ntvasa1:
+  lateInit: false
+  item_group: A_nt
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &e常规蓝图"
+    material: paper
+    modelId: 1210390
+    glow: true
+    lore:
+    - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
+    - '&#fff5b3属于&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会&#fff5b3的常规技术蓝图。'
+  recipe_type: PF_TAC_3
+  recipe:
+        1:
+          material_type: slimefun
+          material: al_xt环夜谷
+          amount: 1
+
+##VASA大蓝图
+ntvasa2:
+  lateInit: false
+  item_group: A_nt
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &e机密蓝图"
+    material: map
+    modelId: 1210391
+    glow: true
+    lore:
+    - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
+    - '&#fff5b3属于&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会&#fff5b3的机密技术蓝图。'
+  recipe_type: PF_TAC_3
+  recipe:
+        1:
+          material_type: slimefun
+          material: al_xt环夜谷
+          amount: 1
+
+##VASA超大蓝图
+ntvasa3:
+  lateInit: false
+  item_group: A_nt
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &e独特蓝图"
+    material: explorer_pottery_sherd
+    modelId: 1210392
+    glow: true
+    lore:
+    - '&b归属&9：&#5300ffG&#5f00ffL&#6b00ffT&#7700ffC&#8200ff联&#8e00ff合&#9a00ff协&#a600ff会'
+    - '&#fff5b3属于&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会&#fff5b3的专有技术蓝图。'
+  recipe_type: PF_TAC_3
+  recipe:
+        1:
+          material_type: slimefun
+          material: al_xt环夜谷
           amount: 1
 
 ################################################################
@@ -4570,9 +4648,10 @@ FKR_风墟龙冕:
     - '  &#fff96a&o我&#f3fa6f&o曾&#e8fa73&o仰&#dcfb78&o望&#d0fc7d&o，&#c5fc81&o巍&#b9fd86&o渭&#adfd8a&o飓&#a2fe8f&o风&#96ff94&o。&o &o &#8aff99&o我&#7dffa0&o曾&#70ffa6&o坚&#63ffad&o守&#56ffb3&o，&#49ffba&o无&#3dffc0&o尽&#30ffc7&o群&#23ffcd&o山&#16ffd4&o。'
     - '&f[&#96bed6序列&f] &f异能武器 第三'
     - '&f[&#96d6a7参数&f] &f再装填0.8秒'
-    - '&f[&#96d6a7特效&f] &f每次左键释放一次气斩造成造成 &c4x&#54ccff&lSIT&c伤害 &f并击飞，如果命中则增加一层&b[风脉]&f。'
+    - '&f[&#96d6a7特效&f] &f每次左键释放一次气斩造成造成 &c4x&#54ccff&lSIT&c伤害 &f并击飞，命中时增加一层&b[风脉]&f。'
     - '&f[&#96d6a7特效&f] &f当&b[风脉]&f大于3时，右键可释放3道竖直气斩强力的击飞并造成造成 &c12x&#54ccff&lSIT&c伤害 &f与失明。'
-    - '&f[&#96d6a7特效&f] &f&b[风脉]&f每五秒减少一层，增加重置计时，叠满时自身获得5秒加速。'
+    - '&f[&#96d6a7特效&f] &f&b[风脉]&f每五秒减少一层，增加重置计时；每次获得风脉获得5秒速度2，叠满解锁时获得12秒速度2（时长可叠加）。'
+    - '&f[&#96d6a7特效&f] &f蹲下右键可自由切换 飓风/樱花 粒子特效（不影响伤害）。'
   script: 武器/风墟龙冕
   recipe_type: PF_DZC
   recipe:
@@ -4735,7 +4814,23 @@ FKR_咀嚼曾世的晚梦:
   script: 武器/咀梦
   recipe_type: PF_DZC
   recipe:
-
+        1:
+          material_type: slimefun
+          material: FKR_特殊模板
+          amount: 1
+          noConsume: true
+        2:
+          material_type: slimefun
+          material: TSgj5
+          amount: 64
+        3:
+          material_type: slimefun
+          material: lsyq4
+          amount: 16
+        4:
+          material_type: slimefun
+          material: lscs3
+          amount: 32
 
 #################################################################
 #UMPV
@@ -5030,7 +5125,13 @@ UMPV_活泼肥料:
           amount: 1
 
 ################################################################
+################################################################
 #第二阶段
+################################################################
+################################################################
+
+################################################################
+#skey舰体
 ################################################################
 
 skey介绍0:
@@ -7240,6 +7341,192 @@ skey_芯盘3:
       material: skey_交界谐振屏障液
       amount: 8
   amount: 1
+
+################################################################
+#环夜谷
+################################################################
+
+VASA介绍0:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会"
+    material: BOOK
+    modelId: 1210393
+    glow: true
+    lore:
+    - '&b星座&9：&#4a9dff噬&#4981ff空&#4865ff座'
+    - '&#fff5b3环夜谷是已知的历史最为悠久、术士培养体系最优渥的民间学术团体，'
+    - '&#fff5b3在数万年间，他们数次优化术式构成体系与涵粒子转化流程，并无偿公开。'
+    - '&#fff5b3在大崩溃来临之际，几乎全部的环夜谷术士都在各处抢险救灾，为文明燃尽最后的余热。'
+    - '&#fff5b3他们的技术以粒子操控为核心，并且大多数机械仍以辅助人的驭粒力锻炼与术式操控为核心，'
+    - '&#fff5b3通过环夜谷的器械设施，你也能流畅而写意地操控粒子，成为术士。'
+  recipe_type: NULL
+  amount: 1
+
+VASA介绍01:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会"
+    material: BOOK
+    modelId: 1210393
+    glow: true
+    lore:
+    - '&b星座&9：&#4a9dff噬&#4981ff空&#4865ff座'
+    - '&#fff5b3在本部作品中，术士的设定如同寻常一样：'
+    - '&#fff5b3术士是一种职业或能施术的智慧生物的统称，通过类松果体与类松垂体结构来吸收、转化、存储粒子，'
+    - '&#fff5b3并通过脑后部、小脑与脊椎进行引导与操控粒子的活动。'
+    - '&#fff5b3粒子物理法则的星系中，一切物质都由粒子构成，而被智慧生物制造或影响的粒子统称为涵粒子。'
+    - '&#fff5b3涵粒子能组成单式：最基础和简单的粒子操作流程，而数个单式能组成一个基本式（一环术式），2个一环术式构成二环术式，以此类推。'
+    - '&#fff5b3例如，五环43目术式·牛逼直升机，是2个四环术式嵌套，共由43个单式组成的术式。'
+    - '&#fff5b3而术式根据种类与用途，也有不同的类别，在此不过多赘述。'
+    - '&#fff5b3（将术式想象成一个数学题，只要智力正常并且经过相关学习就能施展，无需太强的天赋，也并非有些作品中的特殊血统、超能力一般的先天能力。）'
+  recipe_type: NULL
+  amount: 1
+
+VASA介绍02:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会"
+    material: BOOK
+    modelId: 1210393
+    glow: true
+    lore:
+    - '&b星座&9：&#4a9dff噬&#4981ff空&#4865ff座'
+    - '&#fff5b3在本部作品中，玩家可用的术式体系如下：'
+    - '&#fff5b3术士等级：共8个等级，每个等级对应可释放的术式环数（八级术士可额外释放9级术式）。'
+    - '&#fff5b3驭粒熟练：能通过制作相应的道具与设施，直接或间接提升，熟练度满后通过考核提升术士等级。'
+    - '&#fff5b3——————————'
+    - '&#fff5b3粒子强度：数值，提升术式的最终伤害修正。'
+    - '&#fff5b3松垂体容量：数值，提升粒子的可存储上限，施术将消耗粒子。'
+    - '&#fff5b3心血管系统强度：百分比，影响术式的冷却时间。'
+    - '&#fff5b3粒子折射：百分比，减少自己受到的粒子伤害。'
+    - '&#fff5b3——————————'
+    - '&#fff5b3可提升的原版数值：近战伤害白值，血量白值，防御白值，韧性白值，速度白值，手长白值，最终减伤百分比。'
+    - '&#fff5b3——————————'
+    - '&#fff5b3所有术式能造成的伤害类型：'
+    - '&#fff5b3物理伤害：火焰、雷电等术式造成，使用原版的[近战伤害]模型，受到原版防御、韧性与保护等级修正。'
+    - '&#fff5b3粒子伤害：常规术式造成，使用原版的[坚守者音波]模型，忽略护甲、韧性与保护，受到粒子折射百分比修正。'
+    - '&#fff5b3脉冲伤害：特殊术式或高环术式反噬造成，将直接扣除血量（带击杀归因），忽略常规减伤。'
+    - '&#fff5b3——————————'
+    - '&#fff5b3注：粒子浓度（GLI）无法增加，默认为1，可由服主在配置文件中更改，影响术式的最终伤害修正（0.01~100）。'
+    - '&#fff5b3注：异能强度（SIT）无法增加。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_驭粒终端:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#a2deff此&#99ccff岸&#8fbaff雪&#86a8ff™&#7d96ff智&#8288ff能&#977fff监&#ac75ff控&#c16cff终&#d662ff端"
+    material: ender_eye
+    modelId: 1210394
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3一个能作用于视网膜的分析接口；'
+    - '&#fff5b3右键打开术士中心，能够查看自己的详细数据与特殊装备。'
+    - '&#fff5b3环夜谷荣誉出品，此终端被开发的原意为让分子物理法则星系的人也能施术。'
+    - '&f[&e!&f]&#e1ccbd左键拿起饰品后，点击黑曜石槽即可装备。'
+  script: 术士系统/装备菜单
+  recipe_type: NULL
+  amount: 1
+
+VASA_测试戒指:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#cc5eff测&#b372ff试&#9986ff强&#809aff化"
+    material: gold_nugget
+    modelId: 1210395
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3测试用强化组件；只能装入强化组件槽。'
+    - '&f[&#96d6a7类型&f]&#fff5b3强化组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1 · 松垂体容量 +1'
+    - '&8登记于 装备加成.js · 正式饰品实装后可移除。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_木质法杖:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#b9876a表&#bd8961演&#c08a58用&#c38c4f戏&#c78d46法&#cb8f3d短&#ce9034棍"
+    material: stick
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3入门施术用具。法杖不提供属性加成，'
+    - '&#fff5b3仅承载术式存储与施术时的特殊效果。'
+    - '&f[&#96d6a7存储&f]&#fff5b3术式槽位 §e2§7（等级下限）'
+    - '&f[&#96d6a7特效&f]&#fff5b3施术后脚下小型蒸汽爆炸（装饰）'
+    - '&f[&e!&f]&#e1ccbd必须手持本杖才能施术。'
+    - '&f[&e!&f]&#e1ccbd站立右键施术 · 蹲下右键开关选术环。'
+    - '&f[&e!&f]&#e1ccbd选术环：看向槽位后右键确认；切换主手自动关闭。'
+  script: 施术道具/木质法杖
+  recipe_type: NULL
+  amount: 1
+
+VASA_火球术:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#ff6b2e火&#ff8533球&#ffa338术 &#e8c48a·&#fff5b3术式刻录"
+    material: enchanted_book
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&f[&#96d6a7类型&f]&#fff5b3术式刻录载体'
+    - '&f[&#96d6a7术式&f]&#ff6b2e火球术'
+    - '&f[&#96d6a7系数&f]&#fff5b31.0 §7· 单发火球'
+    - '&f[&#96d6a7能耗&f]&#fff5b33 粒子'
+    - '&f[&e!&f]&#e1ccbd在术式承载转换仪中写入法杖。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_水箭:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#4db8ff水&#70c8ff箭 &#e8c48a·&#fff5b3术式刻录"
+    material: enchanted_book
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&f[&#96d6a7类型&f]&#fff5b3术式刻录载体'
+    - '&f[&#96d6a7术式&f]&#4db8ff水箭'
+    - '&f[&#96d6a7系数&f]&#fff5b30.3 §7· 持续1秒 / 每0.2秒'
+    - '&f[&#96d6a7能耗&f]&#fff5b34 粒子'
+    - '&f[&e!&f]&#e1ccbd在术式承载转换仪中写入法杖。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_身躯附魔:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#ffe066身&#ffd84d躯&#ffd033附&#ffc81a魔 &#e8c48a·&#fff5b3术式刻录"
+    material: enchanted_book
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&f[&#96d6a7类型&f]&#fff5b3术式刻录载体'
+    - '&f[&#96d6a7术式&f]&#ffe066身躯附魔'
+    - '&f[&#96d6a7效果&f]&#fff5b33秒内近战额外 §e0.5§f 系数'
+    - '&f[&#96d6a7能耗&f]&#fff5b35 粒子'
+    - '&f[&e!&f]&#e1ccbd在术式承载转换仪中写入法杖。'
+  recipe_type: NULL
+  amount: 1
+
+
+
+
+
+
 
 ################################################################
 #咆哮

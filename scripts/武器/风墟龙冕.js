@@ -46,6 +46,7 @@ var AIR_SLASH_LEVITATION_TICKS  = 10;    // 1秒飘浮
 var AIR_SLASH_LEVITATION_LEVEL  = 5;     // 飘浮 IV（amplifier=3）
 // 普通气斩粒子密度
 var AIR_SLASH_PARTICLE_GAP       = 0.3;  // 剑气线粒子间距（格），越小越密
+var AIR_SLASH_CHERRY_PARTICLE_GAP = 0.1;  // 樱花模式下小气斩粒子间距
 var AIR_SLASH_CLOUD_COUNT        = 1;    // 每个点的 CLOUD 粒子数量
 var AIR_SLASH_CLOUD_OFFSET       = 0.08; // CLOUD 粒子散布偏移
 var AIR_SLASH_END_ROD_INTERVAL   = 1.5;    // 每隔 N 个点生成一个 END_ROD
@@ -72,8 +73,9 @@ var VERTICAL_END_ROD_OFFSET     = 0.02; // END_ROD 粒子散布偏移
 
 // === 风脉系统参数 ===
 var WIND_VEIN_MAX          = 3;     // 风脉最大层数
-var SPEED_DURATION_TICKS   = 120;   // 速度 II 持续5秒
-var SPEED_LEVEL            = 2;     // 速度 II（amplifier=1）
+var SPEED_DURATION_TICKS   = 100;   // 每次获得风脉：速度 II 持续5秒
+var SPEED_UNLOCK_TICKS     = 240;   // 解锁大型气斩：速度 II 持续12秒
+var SPEED_AMPLIFIER        = 1;     // 速度 II（amplifier=1）
 var WIND_VEIN_DECAY_MS     = 5000;  // 风脉每5秒减少一层
 
 // === 击退参数 ===
@@ -87,12 +89,20 @@ var MSG_VERTICAL = "§x§f§f§8§c§4§b§l我§x§f§f§9§9§4§a§l曾§x§f
 // === 气斩角度（轮流） ===
 var AIR_SLASH_ANGLES = [0, 40, -40];
 
+// === 樱花粒子（蹲下右键切换） ===
+var CHERRY = (function () {
+    try { return Particle.valueOf("CHERRY_LEAVES"); } catch (e) {}
+    try { return Particle.valueOf("FALLING_SPORE_BLOSSOM"); } catch (e2) {}
+    return Particle.CLOUD;
+})();
+
 // === 状态映射 ===
 var angleIndexMap    = new java.util.HashMap();  // UUID -> 角度索引
 var windVeinMap      = new java.util.HashMap();  // UUID -> 风脉层数
 var windVeinDecayMap = new java.util.HashMap();  // UUID -> 上次风脉衰减时间(ms)
 var windVeinBarMap   = new java.util.HashMap();  // UUID -> BossBar（风脉倒计时显示）
 var leftClickCdMap   = new java.util.HashMap();  // UUID -> 上次左键时间(ms)
+var cherryModeMap    = new java.util.HashMap();  // UUID -> 是否使用樱花粒子
 
 function getAbilityPower() {
     try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
@@ -169,14 +179,53 @@ function isHoldingItem(player) {
     return sfItem != null && sfItem.getId() === ITEM_ID;
 }
 
+function isCherryMode(uuid) {
+    return cherryModeMap.containsKey(uuid) && cherryModeMap.get(uuid) === true;
+}
+
+/** 按当前粒子模式生成特效；樱花模式下每个粒子带随机 x/y 偏移 */
+function spawnWeaponParticle(world, loc, particle, count, dx, dy, dz, speed, cherry) {
+    try {
+        if (cherry) {
+            for (var i = 0; i < count; i++) {
+                var ox = (Math.random() * 2 - 1) * 0.3;
+                var oy = (Math.random() * 2 - 1) * 0.3;
+                world.spawnParticle(CHERRY, loc.clone().add(ox, oy, 0), 1, 0, 0, 0, speed);
+            }
+        } else {
+            world.spawnParticle(particle, loc, count, dx, dy, dz, speed);
+        }
+    } catch (e) {}
+}
+
 // ===================================================================
-// 右键：释放竖直剑气（风脉>=4时可用）
+// 右键：释放竖直剑气（风脉满层可用）；蹲下右键切换樱花粒子
 // ===================================================================
 function onUse(event) {
     var player = event.getPlayer();
     if (!isHoldingItem(player)) return;
 
     var uuid = player.getUniqueId().toString();
+
+    // 蹲下右键：切换全部特效粒子为樱花 / 恢复默认
+    if (player.isSneaking()) {
+        var enabled = !isCherryMode(uuid);
+        cherryModeMap.put(uuid, enabled);
+        if (enabled) {
+            player.sendActionBar("\u00a7d[\u6a31\u82b1] \u00a7f\u7c92\u5b50\u7279\u6548\u5df2\u5207\u6362\u4e3a\u6a31\u82b1");
+            try {
+                player.getWorld().spawnParticle(CHERRY, player.getLocation().add(0, 1.2, 0), 24, 0.45, 0.5, 0.45, 0.02);
+                player.getWorld().playSound(player.getLocation(), "block.cherry_leaves.place", 1.0, 1.2);
+            } catch (eFx) {}
+        } else {
+            player.sendActionBar("\u00a7b[\u98ce\u589f] \u00a7f\u7c92\u5b50\u7279\u6548\u5df2\u6062\u590d\u9ed8\u8ba4");
+            try {
+                player.getWorld().playSound(player.getLocation(), "block.fire.extinguish", 0.7, 1.6);
+            } catch (eFx2) {}
+        }
+        return;
+    }
+
     var stacks = windVeinMap.containsKey(uuid) ? windVeinMap.get(uuid) : 0;
 
     if (stacks < WIND_VEIN_MAX) {
@@ -213,8 +262,24 @@ function tryAirSlash(player) {
 }
 
 // ===================================================================
-// 风脉结算：命中瞬间立即执行（+1层，满层给予速度2）
+// 风脉结算：命中瞬间立即执行（+1层；每次给速度，时长可叠加）
 // ===================================================================
+/** 叠加速度：时长累加；已有更高等级时只加时间、不降级 */
+function applyStackedSpeed(player, addTicks, amplifier) {
+    if (TYPE_SPEED == null || player == null || addTicks <= 0) return;
+    try {
+        var cur = player.getPotionEffect(TYPE_SPEED);
+        var baseTicks = (cur != null) ? cur.getDuration() : 0;
+        var curAmp = (cur != null) ? cur.getAmplifier() : -1;
+        // 已有更高级加速：保留高等级，只叠加时间
+        var finalAmp = (curAmp > amplifier) ? curAmp : amplifier;
+        var finalTicks = baseTicks + addTicks;
+        player.addPotionEffect(new PotionEffect(
+            TYPE_SPEED, finalTicks, finalAmp, false, true, true
+        ), true);
+    } catch (e) {}
+}
+
 function awardWindVein(player) {
     try {
         if (!player.isOnline()) return;
@@ -234,13 +299,12 @@ function awardWindVein(player) {
         // 同步更新 BossBar 显示（重置后剩余为满 5 秒），层数仅由 BossBar 展示
         updateWindVeinBar(uuid, player, stacks, 5);
 
+        // 每次获得风脉：5秒速度2；解锁大型气斩时：12秒速度2（时长叠加）
+        var speedTicks = (stacks >= WIND_VEIN_MAX) ? SPEED_UNLOCK_TICKS : SPEED_DURATION_TICKS;
+        applyStackedSpeed(player, speedTicks, SPEED_AMPLIFIER);
+
         if (stacks >= WIND_VEIN_MAX) {
-            // 风脉满：给予速度2，可释放竖直剑气
-            if (TYPE_SPEED != null) {
-                player.addPotionEffect(new PotionEffect(
-                    TYPE_SPEED, SPEED_DURATION_TICKS, SPEED_LEVEL, false, true, true
-                ));
-            }
+            // 风脉满：可释放竖直剑气
             player.sendActionBar("\u00a7x\u00a74\u00a7b\u00a7f\u00a7f\u00a7c\u00a79\u98ce\u00a7x\u00a74\u00a7a\u00a7f\u00a7b\u00a7c\u00a7f\u8109\u00a7x\u00a74\u00a79\u00a7f\u00a77\u00a7d\u00a75\u6ee1\u00a7x\u00a74\u00a79\u00a7f\u00a74\u00a7d\u00a7b\u6ea2\u00a7x\u00a74\u00a78\u00a7f\u00a70\u00a7e\u00a71\uff0c\u00a7x\u00a74\u00a77\u00a7e\u00a7c\u00a7e\u00a77\u5347\u00a7x\u00a74\u00a76\u00a7e\u00a78\u00a7e\u00a7d\u9f99\u00a7x\u00a74\u00a76\u00a7e\u00a75\u00a7f\u00a73\u89e3\u00a7x\u00a74\u00a75\u00a7e\u00a71\u00a7f\u00a79\u653e\u00a7x\u00a74\u00a74\u00a7d\u00a7d\u00a7f\u00a7f\uff01");
             player.sendMessage(MSG_UNLOCK);
             player.getWorld().playSound(player.getLocation(), "block.beacon.power_select", 1.2, 1.5);
@@ -257,6 +321,7 @@ function releaseAirSlash(player, angleDeg) {
     var world = player.getWorld();
     var eyeLoc = player.getEyeLocation();
     var dir = eyeLoc.getDirection().normalize();
+    var cherry = isCherryMode(player.getUniqueId().toString());
 
     // 构建局部坐标系
     var worldUp = new Vector(0, 1, 0);
@@ -292,8 +357,8 @@ function releaseAirSlash(player, angleDeg) {
                 // 方块阻挡检测
                 if (isBlockBlocking(center.getBlock())) {
                     // 撞击粒子
-                    world.spawnParticle(Particle.CLOUD, center, 15, 0.5, 0.5, 0.5, 0.05);
-                    world.spawnParticle(Particle.POOF, center, 10, 0.3, 0.3, 0.3, 0.03);
+                    spawnWeaponParticle(world, center, Particle.CLOUD, 15, 0.5, 0.5, 0.5, 0.05, cherry);
+                    spawnWeaponParticle(world, center, Particle.POOF, 10, 0.3, 0.3, 0.3, 0.03, cherry);
                     taskRef.cancel();
                     return;
                 }
@@ -304,14 +369,15 @@ function releaseAirSlash(player, angleDeg) {
                     (AIR_SLASH_HALF_LENGTH_MAX - AIR_SLASH_HALF_LENGTH_START) * grow;
 
                 // 沿剑气线生成白色蒸汽粒子（一条线，线长递增，密度由参数控制）
-                var totalSteps = Math.round(halfLength * 2 / AIR_SLASH_PARTICLE_GAP);
+                var particleGap = cherry ? AIR_SLASH_CHERRY_PARTICLE_GAP : AIR_SLASH_PARTICLE_GAP;
+                var totalSteps = Math.round(halfLength * 2 / particleGap);
                 for (var pi = 0; pi <= totalSteps; pi++) {
-                    var pLoc = center.clone().add(slashDir.clone().multiply(-halfLength + pi * AIR_SLASH_PARTICLE_GAP));
-                    world.spawnParticle(Particle.CLOUD, pLoc, AIR_SLASH_CLOUD_COUNT,
-                        AIR_SLASH_CLOUD_OFFSET, AIR_SLASH_CLOUD_OFFSET, AIR_SLASH_CLOUD_OFFSET, 0.0);
+                    var pLoc = center.clone().add(slashDir.clone().multiply(-halfLength + pi * particleGap));
+                    spawnWeaponParticle(world, pLoc, Particle.CLOUD, AIR_SLASH_CLOUD_COUNT,
+                        AIR_SLASH_CLOUD_OFFSET, AIR_SLASH_CLOUD_OFFSET, AIR_SLASH_CLOUD_OFFSET, 0.0, cherry);
                     if (pi % AIR_SLASH_END_ROD_INTERVAL === 0) {
-                        world.spawnParticle(Particle.END_ROD, pLoc, AIR_SLASH_END_ROD_COUNT,
-                            0.02, 0.02, 0.02, 0.0);
+                        spawnWeaponParticle(world, pLoc, Particle.END_ROD, AIR_SLASH_END_ROD_COUNT,
+                            0.02, 0.02, 0.02, 0.0, cherry);
                     }
                 }
 
@@ -352,7 +418,7 @@ function releaseAirSlash(player, angleDeg) {
                         ));
                     }
                     // 命中粒子
-                    world.spawnParticle(Particle.CLOUD, entLoc, 8, 0.3, 0.3, 0.3, 0.03);
+                    spawnWeaponParticle(world, entLoc, Particle.CLOUD, 8, 0.3, 0.3, 0.3, 0.03, cherry);
                     // 命中瞬间结算风脉（每次气斩最多+1层）
                     if (!state.veinAwarded) {
                         state.veinAwarded = true;
@@ -405,6 +471,7 @@ function fireVerticalBeam(world, start, dir, player) {
     var state = { distance: 0 };
     var hitEntities = new java.util.HashSet();
     var taskRef = null;
+    var cherry = isCherryMode(player.getUniqueId().toString());
 
     var BeamTask = Java.extend(BukkitRunnable, {
         run: function() {
@@ -418,8 +485,8 @@ function fireVerticalBeam(world, start, dir, player) {
 
                 // 方块阻挡检测
                 if (isBlockBlocking(center.getBlock())) {
-                    world.spawnParticle(Particle.CLOUD, center, 20, 0.8, 1.0, 0.8, 0.05);
-                    world.spawnParticle(Particle.POOF, center, 15, 0.5, 0.5, 0.5, 0.03);
+                    spawnWeaponParticle(world, center, Particle.CLOUD, 20, 0.8, 1.0, 0.8, 0.05, cherry);
+                    spawnWeaponParticle(world, center, Particle.POOF, 15, 0.5, 0.5, 0.5, 0.03, cherry);
                     taskRef.cancel();
                     return;
                 }
@@ -432,10 +499,10 @@ function fireVerticalBeam(world, start, dir, player) {
                 // 竖直粒子线（密度由参数控制）
                 for (var h = -halfHeight; h <= halfHeight; h += VERTICAL_PARTICLE_GAP) {
                     var pLoc = center.clone().add(0, h, 0);
-                    world.spawnParticle(Particle.CLOUD, pLoc, VERTICAL_CLOUD_COUNT,
-                        VERTICAL_CLOUD_OFFSET, VERTICAL_CLOUD_OFFSET, VERTICAL_CLOUD_OFFSET, 0.0);
-                    world.spawnParticle(Particle.END_ROD, pLoc, VERTICAL_END_ROD_COUNT,
-                        VERTICAL_END_ROD_OFFSET, VERTICAL_END_ROD_OFFSET, VERTICAL_END_ROD_OFFSET, 0.0);
+                    spawnWeaponParticle(world, pLoc, Particle.CLOUD, VERTICAL_CLOUD_COUNT,
+                        VERTICAL_CLOUD_OFFSET, VERTICAL_CLOUD_OFFSET, VERTICAL_CLOUD_OFFSET, 0.0, cherry);
+                    spawnWeaponParticle(world, pLoc, Particle.END_ROD, VERTICAL_END_ROD_COUNT,
+                        VERTICAL_END_ROD_OFFSET, VERTICAL_END_ROD_OFFSET, VERTICAL_END_ROD_OFFSET, 0.0, cherry);
                 }
 
                 // 实体碰撞检测（高度随当前剑气尺寸变化）
@@ -470,8 +537,8 @@ function fireVerticalBeam(world, start, dir, player) {
                     }
                     // 命中爆发粒子
                     var entLoc = ent.getLocation().add(0, ent.getHeight() / 2, 0);
-                    world.spawnParticle(Particle.CLOUD, entLoc, 15, 0.5, 0.5, 0.5, 0.05);
-                    world.spawnParticle(Particle.END_ROD, entLoc, 8, 0.3, 0.3, 0.3, 0.03);
+                    spawnWeaponParticle(world, entLoc, Particle.CLOUD, 15, 0.5, 0.5, 0.5, 0.05, cherry);
+                    spawnWeaponParticle(world, entLoc, Particle.END_ROD, 8, 0.3, 0.3, 0.3, 0.03, cherry);
                     world.playSound(entLoc, "entity.player.attack.sweep", 1.0, 0.8);
                 }
 

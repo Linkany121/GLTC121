@@ -42,49 +42,87 @@ var PULSE_META = "gltc_pulse_hit";
 var GEAR_CFG = null;
 var STAFF_CFG = null;
 
+var JString = Java.type("java.lang.String");
+
+/** ConcurrentHashMap 键统一为 java.lang.String，避免 Graal JS string 与 Java String 分裂 */
+function cacheKey(uuid) {
+    return JString.valueOf(String(uuid));
+}
+
 /**
- * 跨脚本 eval 上下文共享缓存（挂 Plugin Metadata）。
- * 否则驭粒终端 / 调控终端各自 eval 核心会各有一份缓存，潜能显示不一致。
+ * 跨脚本 eval 上下文共享缓存。
+ * 固定字段名挂 Plugin；同时写 Metadata 作兜底；两边都读，防止双 Map。
  */
-function sharedConcurrentMap(metaKey) {
+function sharedConcurrentMap(metaKey, preferredField) {
+    var field = preferredField || ("gltc_map_" + String(metaKey).replace(/[^a-zA-Z0-9_]/g, "_"));
+    var fromField = null;
+    var fromMeta = null;
+    try { if (PLUGIN[field] != null) fromField = PLUGIN[field]; } catch (e0) {}
     try {
         if (PLUGIN.hasMetadata(metaKey)) {
-            var old = PLUGIN.getMetadata(metaKey).get(0).value();
-            if (old != null) return old;
+            fromMeta = PLUGIN.getMetadata(metaKey).get(0).value();
         }
-    } catch (e0) {}
-    var map = new java.util.concurrent.ConcurrentHashMap();
-    try {
-        PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, map));
     } catch (e1) {}
+
+    // 已有两边不一致时，以 Field 为准并回写 Meta
+    if (fromField != null) {
+        try { PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, fromField)); } catch (e2) {}
+        return fromField;
+    }
+    if (fromMeta != null) {
+        try { PLUGIN[field] = fromMeta; } catch (e3) {}
+        return fromMeta;
+    }
+
+    var map = new java.util.concurrent.ConcurrentHashMap();
+    try { PLUGIN[field] = map; } catch (e4) {}
+    try { PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, map)); } catch (e5) {}
     return map;
 }
 
-var particleCache = sharedConcurrentMap("gltc_shared_particle_cache");
+/** 粒子量：专用固定字段，所有核心 eval 必须命中同一张表 */
+var particleCache = sharedConcurrentMap("gltc_shared_particle_cache", "gltcParticleCache");
 /** 存 JSON 字符串，避免 Graal 跨上下文传 JS 对象 */
-var statsDataCache = sharedConcurrentMap("gltc_shared_stats_json_cache");
-var equipBonusCache = sharedConcurrentMap("gltc_shared_equip_bonus_json_cache");
+var statsDataCache = sharedConcurrentMap("gltc_shared_stats_json_cache", "gltcStatsJsonCache");
+var equipBonusCache = sharedConcurrentMap("gltc_shared_equip_bonus_json_cache", "gltcEquipBonusCache");
 
 // 升级时术士潜能/体能潜能获得量（1~8级）
-var LEVEL_POTENTIAL = [0, 4, 4, 12, 4, 4, 12, 4, 12];
+var LEVEL_POTENTIAL = [0, 8, 4, 4, 10, 4, 4, 10, 12];
 
-// 术士潜能加点（每点）
-var MAGE_POINT_OPTIONS = {
-    particlePower: { label: "粒子强度", per: 0.1 },
-    pituitaryCapacity: { label: "松垂体容量", per: 6 },
-    cardiovascular: { label: "心血管强度", per: 0.01 },
-    particleRefraction: { label: "粒子折射", per: 0.01 },
-    finalDamageReduction: { label: "最终减伤", per: 0.01 }
+/**
+ * 全局硬顶（潜能 + 组件汇总后钳制）
+ * 百分比用 0~1；白值用绝对数
+ */
+var HARD_CAPS = {
+    cardiovascular: 0.99,
+    particleRefraction: 0.95,
+    finalDamageReduction: 0.90,
+    armor: 100,
+    toughness: 50
 };
 
-// 体能潜能加点（每点）
+/**
+ * 术士潜能加点
+ * per：每点增益；maxPoints：潜能自身可投入上限（缺省=无上限）
+ */
+var MAGE_POINT_OPTIONS = {
+    particlePower: { label: "粒子强度", per: 0.1 },
+    pituitaryCapacity: { label: "松垂体容量", per: 8 },
+    cardiovascular: { label: "心血管强度", per: 0.02, maxPoints: 20 },
+    particleRefraction: { label: "粒子折射", per: 0.03, maxPoints: 20 },
+    finalDamageReduction: { label: "最终减伤", per: 0.02, maxPoints: 24 }
+};
+
+/**
+ * 体能潜能加点
+ */
 var BODY_POINT_OPTIONS = {
-    meleeDamage: { label: "近战伤害白值", per: 2 },
-    maxHealth: { label: "血量白值", per: 10 },
-    armor: { label: "防御白值", per: 1 },
-    toughness: { label: "韧性白值", per: 0.5 },
-    speed: { label: "速度白值", per: 0.01 },
-    reach: { label: "手长白值", per: 0.2 }
+    meleeDamage: { label: "近战伤害白值", per: 1 },
+    maxHealth: { label: "血量白值", per: 8 },
+    armor: { label: "防御白值", per: 2, maxPoints: 15 },
+    toughness: { label: "韧性白值", per: 0.5, maxPoints: 20 },
+    speed: { label: "速度白值", per: 0.01, maxPoints: 32 },
+    reach: { label: "手长白值", per: 0.1 }
 };
 
 var ATTR_MOD_UUID = {
@@ -207,9 +245,9 @@ function statsFile(uuid) { return new File(STATS_DIR.getAbsolutePath() + "/" + u
 function gearFile(uuid) { return new File(GEAR_DIR.getAbsolutePath() + "/" + uuid + ".json"); }
 
 function invalidatePlayerCache(uuid) {
-    uuid = String(uuid);
-    try { statsDataCache.remove(uuid); } catch (e0) {}
-    try { equipBonusCache.remove(uuid); } catch (e1) {}
+    var key = cacheKey(uuid);
+    try { statsDataCache.remove(key); } catch (e0) {}
+    try { equipBonusCache.remove(key); } catch (e1) {}
 }
 
 function clonePlainObject(obj) {
@@ -220,17 +258,18 @@ function clonePlainObject(obj) {
 }
 
 function cacheGetStatsJson(uuid) {
+    var key = cacheKey(uuid);
     try {
-        if (!statsDataCache.containsKey(uuid)) return null;
-        return JSON.parse(String(statsDataCache.get(uuid)));
+        if (!statsDataCache.containsKey(key)) return null;
+        return JSON.parse(String(statsDataCache.get(key)));
     } catch (e) {
-        try { statsDataCache.remove(uuid); } catch (e2) {}
+        try { statsDataCache.remove(key); } catch (e2) {}
         return null;
     }
 }
 
 function cachePutStatsJson(uuid, data) {
-    try { statsDataCache.put(uuid, JSON.stringify(data)); } catch (e) {}
+    try { statsDataCache.put(cacheKey(uuid), JSON.stringify(data)); } catch (e) {}
 }
 
 function getPlayerStats(uuid) {
@@ -271,7 +310,7 @@ function savePlayerStats(uuid, data) {
     if (ok) {
         cachePutStatsJson(uuid, copy);
     } else {
-        try { statsDataCache.remove(uuid); } catch (e) {}
+        try { statsDataCache.remove(cacheKey(uuid)); } catch (e) {}
     }
     return ok;
 }
@@ -290,15 +329,29 @@ function getPlayerGear(uuid) {
 function savePlayerGear(uuid, data) {
     uuid = String(uuid);
     var ok = writeJsonFile(gearFile(uuid), data);
-    try { equipBonusCache.remove(uuid); } catch (e) {}
+    try { equipBonusCache.remove(cacheKey(uuid)); } catch (e) {}
     return ok;
 }
 
-/** 缓存未命中时按容量回满（纯内存，不落盘） */
+/** 由数值+装备汇总松垂体容量（不触碰粒子缓存） */
+function resolvePituitaryCapacity(uuid) {
+    uuid = String(uuid);
+    try {
+        var base = getPlayerStats(uuid);
+        var equip = getEquipmentBonuses(uuid);
+        return sumStat(base, equip, emptyBonuses(), "pituitaryCapacity");
+    } catch (e) {
+        return 10;
+    }
+}
+
+/** 缓存未命中时按真实容量回满（纯内存，不落盘） */
 function ensureParticleLoaded(uuid, capHint) {
-    if (particleCache.containsKey(uuid)) return particleCache.get(uuid);
-    var v = capHint != null ? Number(capHint) || 0 : 10;
-    particleCache.put(uuid, v);
+    var key = cacheKey(uuid);
+    if (particleCache.containsKey(key)) return Number(particleCache.get(key)) || 0;
+    var v = capHint != null ? Number(capHint) || 0 : resolvePituitaryCapacity(String(uuid));
+    // 勿用 Double.valueOf：Graal 对 Integer 会撞 String/double 重载
+    particleCache.put(key, v * 1.0);
     return v;
 }
 
@@ -307,13 +360,34 @@ function getCurrentParticles(uuid) {
 }
 
 function setCurrentParticles(uuid, value) {
+    var key = cacheKey(uuid);
     var v = Math.max(0, Number(value) || 0);
-    particleCache.put(uuid, v);
+    particleCache.put(key, v * 1.0);
     return v;
 }
 
+/**
+ * 直接增加粒子数量，不做其它校验；无法超过当前松垂体容量。
+ * @returns 实际增加量
+ */
+function addParticles(player, amount) {
+    amount = Number(amount) || 0;
+    if (!(amount > 0) || !player) return 0;
+    var uuid = String(player.getUniqueId().toString());
+    var cap = resolvePituitaryCapacity(uuid);
+    var cur = ensureParticleLoaded(uuid, cap);
+    if (cur > cap) {
+        cur = cap;
+        setCurrentParticles(uuid, cur);
+    }
+    var next = Math.min(cap, cur + amount);
+    var gain = next - cur;
+    if (gain > 0) setCurrentParticles(uuid, next);
+    return gain;
+}
+
 function clearParticleCache(uuid) {
-    try { particleCache.remove(String(uuid)); } catch (e) {}
+    try { particleCache.remove(cacheKey(uuid)); } catch (e) {}
     invalidatePlayerCache(uuid);
 }
 
@@ -403,12 +477,13 @@ function canEquipInSlot(stack, slotIndex) {
 
 function getEquipmentBonuses(uuid) {
     uuid = String(uuid);
+    var key = cacheKey(uuid);
     try {
-        if (equipBonusCache.containsKey(uuid)) {
-            return JSON.parse(String(equipBonusCache.get(uuid)));
+        if (equipBonusCache.containsKey(key)) {
+            return JSON.parse(String(equipBonusCache.get(key)));
         }
     } catch (e0) {
-        try { equipBonusCache.remove(uuid); } catch (e1) {}
+        try { equipBonusCache.remove(key); } catch (e1) {}
     }
 
     loadGearConfig();
@@ -420,7 +495,7 @@ function getEquipmentBonuses(uuid) {
         var item = itemFromBase64(gear.slots[i]);
         if (item) mergeBonus(total, getBonusesFromGearId(getSlimefunId(item)));
     }
-    try { equipBonusCache.put(uuid, JSON.stringify(total)); } catch (e2) {}
+    try { equipBonusCache.put(key, JSON.stringify(total)); } catch (e2) {}
     return total;
 }
 
@@ -429,10 +504,42 @@ function getStaffBonuses(player) {
     return emptyBonuses();
 }
 
-function clamp01(v) {
-    if (v < 0) return 0;
-    if (v > 0.95) return 0.95;
+function clampHard(statKey, v) {
+    v = Number(v);
+    if (!isFinite(v) || v < 0) v = 0;
+    var cap = HARD_CAPS[statKey];
+    if (cap != null && v > cap) return cap;
     return v;
+}
+
+/** @deprecated 兼容旧调用；默认按 95% 折射顶 */
+function clamp01(v) {
+    return clampHard("particleRefraction", v);
+}
+
+function sumStat(base, equip, staff, key) {
+    return Number(base[key] || 0) + Number((equip && equip[key]) || 0) + Number((staff && staff[key]) || 0);
+}
+
+function buildTotalStatsObject(base, equip, staff, cur) {
+    return {
+        mageLevel: base.mageLevel || 0,
+        proficiency: base.proficiency || 0,
+        magePotential: base.magePotential || 0,
+        bodyPotential: base.bodyPotential || 0,
+        particlePower: sumStat(base, equip, staff, "particlePower"),
+        pituitaryCapacity: sumStat(base, equip, staff, "pituitaryCapacity"),
+        cardiovascular: clampHard("cardiovascular", sumStat(base, equip, staff, "cardiovascular")),
+        particleRefraction: clampHard("particleRefraction", sumStat(base, equip, staff, "particleRefraction")),
+        meleeDamage: sumStat(base, equip, staff, "meleeDamage"),
+        maxHealth: sumStat(base, equip, staff, "maxHealth"),
+        armor: clampHard("armor", sumStat(base, equip, staff, "armor")),
+        toughness: clampHard("toughness", sumStat(base, equip, staff, "toughness")),
+        speed: sumStat(base, equip, staff, "speed"),
+        reach: sumStat(base, equip, staff, "reach"),
+        finalDamageReduction: clampHard("finalDamageReduction", sumStat(base, equip, staff, "finalDamageReduction")),
+        currentParticles: cur
+    };
 }
 
 function getTotalStats(player, includeStaff) {
@@ -442,31 +549,14 @@ function getTotalStats(player, includeStaff) {
     // includeStaff 参数保留兼容；法杖不再加数值
     var staff = emptyBonuses();
 
-    var pituitaryCapacity = (base.pituitaryCapacity || 0) + equip.pituitaryCapacity + staff.pituitaryCapacity;
+    var pituitaryCapacity = sumStat(base, equip, staff, "pituitaryCapacity");
     var cur = ensureParticleLoaded(uuid, pituitaryCapacity);
     if (cur > pituitaryCapacity) {
         cur = pituitaryCapacity;
         setCurrentParticles(uuid, cur);
     }
 
-    return {
-        mageLevel: base.mageLevel || 0,
-        proficiency: base.proficiency || 0,
-        magePotential: base.magePotential || 0,
-        bodyPotential: base.bodyPotential || 0,
-        particlePower: (base.particlePower || 0) + equip.particlePower + staff.particlePower,
-        pituitaryCapacity: pituitaryCapacity,
-        cardiovascular: clamp01((base.cardiovascular || 0) + equip.cardiovascular + staff.cardiovascular),
-        particleRefraction: clamp01((base.particleRefraction || 0) + equip.particleRefraction + staff.particleRefraction),
-        meleeDamage: (base.meleeDamage || 0) + equip.meleeDamage + staff.meleeDamage,
-        maxHealth: (base.maxHealth || 0) + equip.maxHealth + staff.maxHealth,
-        armor: (base.armor || 0) + equip.armor + staff.armor,
-        toughness: (base.toughness || 0) + equip.toughness + staff.toughness,
-        speed: (base.speed || 0) + equip.speed + staff.speed,
-        reach: (base.reach || 0) + equip.reach + staff.reach,
-        finalDamageReduction: clamp01((base.finalDamageReduction || 0) + equip.finalDamageReduction + staff.finalDamageReduction),
-        currentParticles: cur
-    };
+    return buildTotalStatsObject(base, equip, staff, cur);
 }
 
 function getGLI() {
@@ -481,8 +571,17 @@ function calcSpellDamage(player, spellCoefficient) {
 }
 
 function calcSpellCooldownMs(player, baseCooldownMs) {
-    var stats = getTotalStats(player, true);
-    return Math.max(50, Math.floor(baseCooldownMs * Math.max(0.01, 1 - (stats.cardiovascular || 0))));
+    var base = Math.max(0, Number(baseCooldownMs) || 0);
+    var cardio = 0;
+    try {
+        var stats = getTotalStats(player, true);
+        cardio = clampHard("cardiovascular", Number(stats.cardiovascular) || 0);
+    } catch (e) {
+        cardio = 0;
+    }
+    // 硬顶 99% → 冷却至少保留 1%
+    var mult = Math.max(0.01, 1 - cardio);
+    return Math.max(50, Math.floor(base * mult));
 }
 
 function canAffordSpell(player, cost) {
@@ -544,31 +643,35 @@ function ensureSpentMaps(data) {
     }
 }
 
-/** 消耗 1 点潜能加属性。pool: "mage" | "body" */
-function spendPotential(player, pool, statKey) {
+/** 消耗 1 点潜能加属性（只改 data，不写盘） pool: "mage" | "body" */
+function spendPotentialOnData(data, pool, statKey) {
     var table = pool === "body" ? BODY_POINT_OPTIONS : MAGE_POINT_OPTIONS;
     if (!table[statKey]) return { ok: false, msg: "无效属性" };
-    var uuid = player.getUniqueId().toString();
-    var data = getPlayerStats(uuid);
     ensureSpentMaps(data);
     var field = pool === "body" ? "bodyPotential" : "magePotential";
     var spentField = pool === "body" ? "bodySpent" : "mageSpent";
     if ((data[field] || 0) < 1) return { ok: false, msg: "潜能点不足" };
-    data[field] -= 1;
-    data[statKey] = (data[statKey] || 0) + table[statKey].per;
-    if (statKey === "cardiovascular" || statKey === "particleRefraction" || statKey === "finalDamageReduction") {
-        data[statKey] = clamp01(data[statKey]);
+
+    var opt = table[statKey];
+    var spentNow = Number(data[spentField][statKey]) || 0;
+    var maxPts = opt.maxPoints;
+    if (maxPts != null && spentNow >= maxPts) {
+        return { ok: false, msg: opt.label + " 潜能已达上限（" + maxPts + " 点）" };
     }
-    data[spentField][statKey] = (data[spentField][statKey] || 0) + 1;
-    savePlayerStats(uuid, data);
-    applyMageAttributes(player);
-    return { ok: true, msg: table[statKey].label + " +" + table[statKey].per, left: data[field] };
+
+    data[field] -= 1;
+    data[statKey] = (Number(data[statKey]) || 0) + opt.per;
+    data[spentField][statKey] = spentNow + 1;
+
+    var shown = opt.per;
+    if (statKey === "cardiovascular" || statKey === "particleRefraction" || statKey === "finalDamageReduction") {
+        shown = (Math.round(opt.per * 1000) / 10) + "%";
+    }
+    return { ok: true, msg: opt.label + " +" + shown, left: data[field] };
 }
 
-/** 重置全部已分配潜能，点数退回对应池 */
-function resetAllPotentials(player) {
-    var uuid = player.getUniqueId().toString();
-    var data = getPlayerStats(uuid);
+/** 重置已分配潜能到 data（只改 data，不写盘） */
+function resetAllPotentialsOnData(data) {
     ensureSpentMaps(data);
     var refundMage = 0;
     var refundBody = 0;
@@ -589,9 +692,43 @@ function resetAllPotentials(player) {
     }
     data.magePotential = (data.magePotential || 0) + refundMage;
     data.bodyPotential = (data.bodyPotential || 0) + refundBody;
+    return { ok: true, mage: refundMage, body: refundBody, mageLeft: data.magePotential, bodyLeft: data.bodyPotential };
+}
+
+/** 消耗 1 点潜能加属性。pool: "mage" | "body" */
+function spendPotential(player, pool, statKey) {
+    var uuid = player.getUniqueId().toString();
+    var data = getPlayerStats(uuid);
+    var r = spendPotentialOnData(data, pool, statKey);
+    if (!r.ok) return r;
     savePlayerStats(uuid, data);
     applyMageAttributes(player);
-    return { ok: true, mage: refundMage, body: refundBody, mageLeft: data.magePotential, bodyLeft: data.bodyPotential };
+    return r;
+}
+
+/** 重置全部已分配潜能，点数退回对应池 */
+function resetAllPotentials(player) {
+    var uuid = player.getUniqueId().toString();
+    var data = getPlayerStats(uuid);
+    var r = resetAllPotentialsOnData(data);
+    if (!r.ok) return r;
+    savePlayerStats(uuid, data);
+    applyMageAttributes(player);
+    return r;
+}
+
+/** 用指定 base 数值汇总最终面板（装备加成仍读实时装备） */
+function getTotalStatsFromBase(player, base) {
+    var uuid = player.getUniqueId().toString();
+    var equip = getEquipmentBonuses(uuid);
+    var staff = emptyBonuses();
+    var pituitaryCapacity = sumStat(base, equip, staff, "pituitaryCapacity");
+    var cur = ensureParticleLoaded(uuid, pituitaryCapacity);
+    if (cur > pituitaryCapacity) {
+        cur = pituitaryCapacity;
+        setCurrentParticles(uuid, cur);
+    }
+    return buildTotalStatsObject(base, equip, staff, cur);
 }
 
 /** 管理员：调整术士等级（0~8），不自动发放潜能 */
@@ -684,8 +821,11 @@ function clearMageModifier(inst, uuid) {
 }
 
 function addMageModifier(inst, uuid, name, amount) {
-    if (!inst || !amount) return;
+    if (!inst) return;
+    // 先清旧修正；amount 为 0 时只清除不添加（修复重置潜能后速度等仍残留）
     clearMageModifier(inst, uuid);
+    amount = Number(amount) || 0;
+    if (!amount) return;
     try {
         inst.addModifier(new AttributeModifier(uuid, name, amount, AttributeModifier.Operation.ADD_NUMBER));
     } catch (e) {
@@ -768,12 +908,13 @@ function isPulseDamage(entity) {
     );
 })();
 
-({
+var MAGE_API_EXPORT = {
     getPlayerStats: getPlayerStats,
     savePlayerStats: savePlayerStats,
     getPlayerGear: getPlayerGear,
     savePlayerGear: savePlayerGear,
     getTotalStats: getTotalStats,
+    getTotalStatsFromBase: getTotalStatsFromBase,
     invalidatePlayerCache: invalidatePlayerCache,
     getGLI: getGLI,
     calcSpellDamage: calcSpellDamage,
@@ -783,12 +924,16 @@ function isPulseDamage(entity) {
     refillParticlesToCap: refillParticlesToCap,
     getCurrentParticles: getCurrentParticles,
     setCurrentParticles: setCurrentParticles,
+    addParticles: addParticles,
+    resolvePituitaryCapacity: resolvePituitaryCapacity,
     clearParticleCache: clearParticleCache,
     flushParticle: flushParticle,
     applyMageAttributes: applyMageAttributes,
     tryLevelUp: tryLevelUp,
     spendPotential: spendPotential,
+    spendPotentialOnData: spendPotentialOnData,
     resetAllPotentials: resetAllPotentials,
+    resetAllPotentialsOnData: resetAllPotentialsOnData,
     adminAdjustLevel: adminAdjustLevel,
     adminAdjustPotential: adminAdjustPotential,
     adminResetAllData: adminResetAllData,
@@ -796,6 +941,8 @@ function isPulseDamage(entity) {
     MAGE_POINT_OPTIONS: MAGE_POINT_OPTIONS,
     BODY_POINT_OPTIONS: BODY_POINT_OPTIONS,
     LEVEL_POTENTIAL: LEVEL_POTENTIAL,
+    HARD_CAPS: HARD_CAPS,
+    clampHard: clampHard,
     dealPulseDamage: dealPulseDamage,
     isPulseDamage: isPulseDamage,
     isMageAccessory: isMageAccessory,
@@ -804,7 +951,11 @@ function isPulseDamage(entity) {
     itemToBase64: itemToBase64,
     itemFromBase64: itemFromBase64,
     getSlimefunId: getSlimefunId,
+    getEquipmentBonuses: getEquipmentBonuses,
+    ensureSpentMaps: ensureSpentMaps,
     getGearConfig: function() { loadGearConfig(); return GEAR_CFG; },
     getStaffConfig: function() { loadStaffConfig(); return STAFF_CFG; },
     equipSlotCount: equipSlotCount
-});
+};
+try { PLUGIN.gltcMageApi = MAGE_API_EXPORT; } catch (eApi) {}
+MAGE_API_EXPORT;

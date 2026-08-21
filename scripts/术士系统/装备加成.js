@@ -36,7 +36,7 @@ var EQUIP_SLOT_DEFS = [
         gui: 38,
         category: "core_heart",
         label: "核心心区组件",
-        skullHash: "22e32d66699544433a14f8e5a6d482dc9bc5b34ea2f31fd91144001ed3bfdf2f"
+        skullHash: "f78d374329d3add928b778b587509c082b8d286aef42309d8f69e6ba2967f908"
     },
     {
         key: "bio_hub",

@@ -351,6 +351,7 @@ B_B1:
     name: '&#6f7dffS&#96a0ffe&#bec4ffk&#e5e7fft&#ffffffh&#ffffffi&#ffffffy&#ffffff远&#f0f0f0征&#d9d9d9星&#c3c3c3航&#acacac舰 &e机器'
   parent: B_A
 
+#占位
 B_ZW1:
   lateInit: false
   type: sub
@@ -359,7 +360,6 @@ B_ZW1:
     material: gray_stained_glass_pane
     name: ''
   parent: B_A
-
 B_ZW2:
   lateInit: false
   type: sub
@@ -368,7 +368,6 @@ B_ZW2:
     material: gray_stained_glass_pane
     name: ''
   parent: B_A
-
 B_ZW3:
   lateInit: false
   type: sub
@@ -378,7 +377,36 @@ B_ZW3:
     name: ''
   parent: B_A
 
+#环夜谷
+
+B_C0:
+  lateInit: false
+  type: sub
+  tier: 1
+  item:
+    material: magenta_wool
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e物品'
+  parent: B_A
+
+B_C1:
+  lateInit: false
+  type: sub
+  tier: 1
+  item:
+    material: magenta_concrete
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e机器'
+  parent: B_A
+
 #环夜谷巅峰术士学会 · 流派
+B_ZW4:
+  lateInit: false
+  type: sub
+  tier: 0
+  item:
+    material: gray_stained_glass_pane
+    name: ''
+  parent: B_A
+
 MA_1:
   lateInit: false
   type: sub
@@ -435,25 +463,14 @@ MA_5:
     - '  &#4c9eff持&#5593ff剑&#5e88ff，&#677dff赠&#7072ff曾&#7967ff徒&#825cff步&#8b51ff于&#974cfc纯&#a64cf5白&#b54cee荒&#c44ce8地&#d34ce1的&#e14cda众&#f04cd4生&#ff4ccd。'
   parent: B_A
 
-B_C0:
+B_ZW5:
   lateInit: false
   type: sub
-  tier: 1
+  tier: 0
   item:
-    material: magenta_wool
-    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e物品'
+    material: gray_stained_glass_pane
+    name: ''
   parent: B_A
-
-B_C1:
-  lateInit: false
-  type: sub
-  tier: 1
-  item:
-    material: magenta_concrete
-    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e机器'
-  parent: B_A
-
-
 
 
 #咆哮

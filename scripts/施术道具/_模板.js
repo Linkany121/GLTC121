@@ -3,8 +3,9 @@
  * Graal：本上下文 eval 施术核心一次并缓存；会话走共享 ConcurrentHashMap
  *
  * 约定：
- *   站立右键 → 施术（onAfterCast）
- *   蹲下右键 → 选术环（始终）+ 可选 onSneakUse 额外技能
+ *   站立右键 → 施术（onAfterCast）；开环时选槽
+ *   站立左键 → 开环时选槽 / 术式左键钩子
+ *   蹲下右键 → 开关选术环；唤出成功时同时 onSneakUse（护身技），绝不施术
  */
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -69,6 +70,19 @@ function loadCastApi() {
 
 loadCastApi();
 
+function registerHooks() {
+    if (!loadCastApi()) return;
+    try {
+        if (typeof CAST_API.registerStaffHooks === "function") {
+            CAST_API.registerStaffHooks(STAFF_ID, {
+                // onSneakUse: function(p) { /* 唤出选术环时护身技 */ },
+                onAfterCast: function(p, spell) {}
+            });
+        }
+    } catch (e) {}
+}
+registerHooks();
+
 function onUse(event) {
     var player;
     try { player = event.getPlayer(); } catch (e) { return; }
@@ -86,7 +100,7 @@ function onUse(event) {
         return;
     }
     CAST_API.handleStaffUse(player, {
-        // onSneakUse: function(p) { /* 蹲下右键开环时额外触发 */ },
+        // onSneakUse: function(p) { /* 仅唤出选术环时触发护身技 */ },
         onAfterCast: function(p, spell) {
             // ---- 施术后特效 ----
         }

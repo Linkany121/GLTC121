@@ -39,6 +39,15 @@ var _listenerRegistered = false;
 var MAGE_API = null;
 
 function loadMageCore() {
+    try {
+        if (PLUGIN.gltcMageApi != null
+            && typeof PLUGIN.gltcMageApi.savePlayerStats === "function"
+            && typeof PLUGIN.gltcMageApi.getPlayerStats === "function"
+            && typeof PLUGIN.gltcMageApi.getCurrentParticles === "function") {
+            MAGE_API = PLUGIN.gltcMageApi;
+            return true;
+        }
+    } catch (e0) {}
     if (MAGE_API && typeof MAGE_API.savePlayerStats === "function" && typeof MAGE_API.getPlayerStats === "function") return true;
     var candidates = [
         new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js"),
@@ -61,6 +70,7 @@ function loadMageCore() {
             var exported = (0, eval)(code);
             if (exported && typeof exported.savePlayerStats === "function") {
                 MAGE_API = exported;
+                try { PLUGIN.gltcMageApi = exported; } catch (eSet) {}
                 return true;
             }
         } catch (e2) {
@@ -209,6 +219,9 @@ function commitSession(player, session) {
     if (session.resetAll) {
         var rr = MAGE_API.adminResetAllData(player);
         if (rr.ok) {
+            try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+            try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
+            try { MAGE_API.refillParticlesToCap(player); } catch (e2) {}
             player.sendMessage(GLTC_PREFIX + "§c已重置并写入全部术士数据"
                 + (rr.returned > 0 ? (" §7(归还装备 §e" + rr.returned + " §7件)") : ""));
         } else {
@@ -216,9 +229,11 @@ function commitSession(player, session) {
         }
         return;
     }
+    try { MAGE_API.invalidatePlayerCache(uuid); } catch (e3) {}
     var ok = MAGE_API.savePlayerStats(uuid, session.stats);
-    try { MAGE_API.applyMageAttributes(player); } catch (e) {}
-    if (ok) player.sendMessage(GLTC_PREFIX + "§a调控数据已写入存档。");
+    try { MAGE_API.applyMageAttributes(player); } catch (e4) {}
+    try { MAGE_API.refillParticlesToCap(player); } catch (e5) {}
+    if (ok) player.sendMessage(GLTC_PREFIX + "§a调控数据已写入并存档生效。");
     else player.sendMessage(GLTC_PREFIX + "§c写入存档失败。");
 }
 

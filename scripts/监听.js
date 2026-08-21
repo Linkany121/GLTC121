@@ -85,7 +85,10 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
             try {
                 var p = event.getPlayer();
                 Bukkit.getScheduler().runTaskLater(PLUGIN, function() {
-                    try { MAGE_API.applyMageAttributes(p); } catch (e) {}
+                    try {
+                        var api = PLUGIN.gltcMageApi != null ? PLUGIN.gltcMageApi : MAGE_API;
+                        if (api && typeof api.applyMageAttributes === "function") api.applyMageAttributes(p);
+                    } catch (e) {}
                 }, 20);
             } catch (e2) {}
         }, PLUGIN
@@ -98,10 +101,12 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
             var entity = event.getEntity();
             if (!(entity instanceof Player)) return;
             try {
+                var api = PLUGIN.gltcMageApi != null ? PLUGIN.gltcMageApi : MAGE_API;
+                if (!api) return;
                 // 脉冲伤害：不吃粒子折射、不吃最终减伤
-                if (MAGE_API.isPulseDamage && MAGE_API.isPulseDamage(entity)) return;
+                if (api.isPulseDamage && api.isPulseDamage(entity)) return;
 
-                var stats = MAGE_API.getTotalStats(entity, false);
+                var stats = api.getTotalStats(entity, false);
                 var dmg = event.getDamage();
 
                 var cause = event.getCause();
@@ -111,9 +116,9 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
                     if (refract > 0) dmg = dmg * (1 - Math.min(0.95, refract));
                 }
 
-                // 最终减伤：普通 + 粒子 都吃；脉冲已在上方跳过
+                // 最终减伤：普通 + 粒子 都吃；脉冲已在上方跳过；硬顶 90%
                 var fdr = stats.finalDamageReduction || 0;
-                if (fdr > 0) dmg = dmg * (1 - Math.min(0.95, fdr));
+                if (fdr > 0) dmg = dmg * (1 - Math.min(0.90, fdr));
 
                 if (dmg < 0) dmg = 0;
                 event.setDamage(dmg);

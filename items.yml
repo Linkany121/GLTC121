@@ -7407,9 +7407,10 @@ VASA介绍02:
     - '&#fff5b3可提升的原版数值：近战伤害白值，血量白值，防御白值，韧性白值，速度白值，手长白值，最终减伤百分比。'
     - '&#fff5b3——————————'
     - '&#fff5b3所有术式能造成的伤害类型：'
-    - '&#fff5b3物理伤害：火焰、雷电等术式造成，使用原版的[近战伤害]模型，受到原版防御、韧性与保护等级修正。'
-    - '&#fff5b3粒子伤害：常规术式造成，使用原版的[坚守者音波]模型，忽略护甲、韧性与保护，受到粒子折射百分比修正。'
-    - '&#fff5b3脉冲伤害：特殊术式或高环术式反噬造成，将直接扣除血量（带击杀归因），忽略常规减伤。'
+    - '&#c58876物&#c3816c理&#c17962伤&#bf7158害&#fff5b3：火焰、雷电等术式造成，使用原版的[&c近战伤害&#fff5b3]模型，受到原版防御、韧性与保护等级修正。'
+    - '&#ad7ace粒&#ab70cc子&#a866ca伤&#a55cc8害&#fff5b3：常规术式造成，使用原版的[&b坚守者尖啸&#fff5b3]模型，忽略护甲、韧性与保护，受到粒子折射百分比修正。'
+    - '&#d06d8f脉&#d16586冲&#d15c7c伤&#d15472害&#fff5b3：特殊术式或高环术式反噬造成，将直接&4扣除血量&#fff5b3，忽略常规减伤。'
+    - '&f术式伤害：  &b系数  &f*  &d粒子强度  &f*  &cGLI  &f/  &e受击者防御系数'
     - '&#fff5b3——————————'
     - '&#fff5b3注：粒子浓度（GLI）无法增加，默认为1，可由服主在配置文件中更改，影响术式的最终伤害修正（0.01~100）。'
     - '&#fff5b3注：异能强度（SIT）无法增加。'
@@ -7438,16 +7439,15 @@ VASA_彼岸钢调控终端:
   lateInit: false
   item_group: B_C0
   item:
-    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#ff6b6b彼&#ff5252岸&#e63946钢&#c9184a™&#a4161a智&#8d0e1f能&#ff8fa3调&#ffb3c1控&#ffe5ec终&#ffffff端"
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#ffe4e4彼&#ffb7b7岸&#ff8b8b钢&#ff5e5e™&#da3f3f领&#b51f1f域&#900000管&#a70000控&#be0000终&#d50000端"
     material: nether_star
     glow: true
     lore:
     - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&#fff5b3管理员专用调控接口；仅对自己的术士档案生效。'
-    - '&#fff5b3可增减术士等级、术士/体能潜能点数，'
-    - '&#fff5b3以及一键重置全部术士数据。'
+    - '&#fff5b3造型独特的小东西，你是怎么看到的...？'
+    - '&#fff5b3可增减术士等级、术士/体能潜能点数，和重置全部术士数据。'
+    - '&#fff5b3仅限管理员使用，如果需要控制其他玩家的数据请自行前往配置文件中。'
     - '&f[&#96d6a7权限&f]&#fff5b3OP · gltc.admin · vasa.admin'
-    - '&f[&e!&f]&#e1ccbd右键打开面板；非管理员无法使用。'
   script: 术士系统/调控终端
   recipe_type: NULL
   amount: 1
@@ -7466,7 +7466,6 @@ VASA_测试戒指:
     - '&f[&#96d6a7类型&f]&#fff5b3粒术中转组件'
     - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1 · 松垂体容量 +1'
 
-
 VASA_木质法杖:
   lateInit: false
   item_group: B_C0
@@ -7476,13 +7475,11 @@ VASA_木质法杖:
     glow: true
     lore:
     - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&#fff5b3入门施术用具。法杖不提供属性加成，'
-    - '&#fff5b3仅承载术式存储与施术时的特殊效果。'
-    - '&f[&#96d6a7存储&f]&#fff5b3术式槽位 §e2§7（等级下限）'
-    - '&f[&#96d6a7特效&f]&#fff5b3施术后脚下小型蒸汽爆炸（装饰）'
-    - '&f[&e!&f]&#e1ccbd必须手持本杖才能施术。'
-    - '&f[&e!&f]&#e1ccbd站立右键施术 · 蹲下右键开关选术环。'
-    - '&f[&e!&f]&#e1ccbd选术环：看向槽位后左键或右键确认，选中后自动关闭；切换主手也会关闭。'
+    - '&#fff5b3一根集成了小型粒子引导组件的棍子；'
+    - '&#fff5b3施术时需要频繁排放热量废气，聊胜于无吧。'
+    - '&f[&#96bed6术士序列&f] &f施术道具 第四'
+    - '&f[&#96d6a7术式槽位&f]&#fff5b3 §e六枚'
+    - '&f[&#96d6a7特效&f]&#fff5b3施法时排放蒸汽，冷却0秒。'
     - '&f[&e已刻录术式&f]&#e1ccbd：'
     - '&f[&7未刻录&f]&f'
     - '&f[&7未刻录&f]&f'
@@ -7502,13 +7499,10 @@ VASA_辉墨摇篮:
     - '&#fff5b3一把构造独特，成分奇异的仪式用剑；'
     - '&#fff5b3每次挥舞，仿佛有光影水墨流转其上，朦胧间无法看清。'
     - '&#fff5b3此剑为焱招博物馆的特殊藏品的仿制版本，不仿制外形，而是模仿功能。'
-    - '&f[&#96bed6术士序列&f] &f法杖 第四'
+    - '&f[&#96bed6术士序列&f] &f施术道具 第四'
     - '&f[&#96d6a7术式槽位&f]&#fff5b3 §e六枚'
-    - '&f[&#96d6a7特效&f]&#fff5b3蹲下右键时，释放&f[&7光影废墟&f]，冷却60秒。'
-    - '&f[&7光影废墟&f]&#fff5b3获得短暂抗性提升1与速度2，并召唤3只&f[&f墨角石像&f]。'
-    - '&f[&f墨角石像&f]&#fff5b3以不同速度冲向敌人，分别造成：'
-    - '&#fff5b3光影爆发：大范围的&#fda5ff 5&#f79ff3倍&#f199e7粒&#ea93dc子&#e48dd0修&#de88c4正&#d882b8的&#d27cac脉&#cb76a1冲&#c57095伤&#bf6a89害 &f；'
-    - '&#fff5b3墨涌：小范围的&#fda5ff 2&#f79ff3倍&#f199e7粒&#ea93dc子&#e48dd0修&#de88c4正&#d882b8的&#d27cac脉&#cb76a1冲&#c57095伤&#bf6a89害 &f。'
+    - '&f[&#96d6a7特效&f]&#fff5b3蹲下右键时，释放&f[&7光影废墟&f]，冷却30秒。'
+    - '&f[&7光影废墟&f]&#fff5b3自身获得5秒抗性提升1与速度2，造成&#d894bd 10&#d78ab1倍&#d681a6系&#d5779a数&#d46d8e的&#d46382脉&#d35a77冲&#d2506b伤&#d1465f害 &f。'
     - '&f[&e已刻录术式&f]&#e1ccbd'
     - '&f[&7未刻录&f]&f'
     - '&f[&7未刻录&f]&f'
@@ -7522,58 +7516,110 @@ VASA_辉墨摇篮:
 
 VASA_火球术:
   lateInit: false
-  item_group: B_C0
+  item_group: MA_4
   item:
-    name: "&#ff6b2e火&#ff8533球&#ffa338术 &#e8c48a·&#fff5b3术式刻录"
-    material: enchanted_book
+    name: "&#a075fd术&#b067fe式&#c159fe载&#d14bff体 丨 &#ff6b2e火&#ff8533球&#ffa338术"
+    material: blue_shulker_box
     glow: true
     lore:
-    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&f[&#96d6a7类型&f]&#fff5b3术式刻录载体'
-    - '&f[&#96d6a7术式&f]&#ff6b2e火球术'
-    - '&f[&#96d6a7系数&f]&#fff5b31.0 §7· 单发火球'
-    - '&f[&#96d6a7能耗&f]&#fff5b33 粒子'
-    - '&f[&e!&f]&#e1ccbd在术式承载转换仪中写入法杖。'
+    - '&f[&#d696d0流派&f]&#fff5b3 环夜谷标准流派'
+    - '&f[&#96bed6环数&f]&#fff5b3 1环'
+    - '&f[&#96d6a7效果&f]&#fff5b3 释放1个快速飞行的火球'
+    - '&f[&#96d6a7伤害&f]&#fff5b3&#d8b0a7 1&#d4a69c倍&#d09d91系&#cb9386数&#c7897c的&#c37f71物&#bf7666理&#ba6c5b伤&#b66250害 &f'
+    - '&f[&#96d6a7能耗&f]&#fff5b3 1 粒子'
+    - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'
+    - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
   recipe_type: NULL
   amount: 1
 
-VASA_水箭:
+VASA_送花:
+  lateInit: false
+  item_group: MA_3
+  item:
+    name: "&#a075fd术&#b067fe式&#c159fe载&#d14bff体 丨 &#ff7eb0送&#ff9ac0花"
+    material: lime_shulker_box
+    glow: true
+    lore:
+    - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
+    - '&f[&#96bed6环数&f]&#fff5b3 1环'
+    - '&f[&#96d6a7效果&f]&#fff5b3 构造花朵并发射，伤害接触的敌人'
+    - '&f[&#96d6a7伤害&f]&#fff5b3 1.2 倍粒子伤害'
+    - '&f[&#96d6a7能耗&f]&#fff5b3 1 粒子'
+    - '&f[&#96d6a7冷却&f]&#fff5b3 1 秒'
+    - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_微风花流:
+  lateInit: false
+  item_group: MA_3
+  item:
+    name: "&#a075fd术&#b067fe式&#c159fe载&#d14bff体 丨 &#9ad8ff微&#7ec8ff风&#62b8ff花&#46a8ff流"
+    material: lime_shulker_box
+    glow: true
+    lore:
+    - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
+    - '&f[&#96bed6环数&f]&#fff5b3 2环'
+    - '&f[&#96d6a7效果&f]&#fff5b3 发射3朵颜色随机的郁金香，使接触的敌人失明并受到伤害'
+    - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
+    - '&f[&#96d6a7能耗&f]&#fff5b3 3 粒子'
+    - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'
+    - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_庇护脉络:
+  lateInit: false
+  item_group: MA_3
+  item:
+    name: "&#a075fd术&#b067fe式&#c159fe载&#d14bff体 丨 &#7CFC00庇&#9ACD32护&#ADFF2F脉&#C0FF3E络"
+    material: lime_shulker_box
+    glow: true
+    lore:
+    - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
+    - '&f[&#96bed6环数&f]&#fff5b3 3环'
+    - '&f[&#96d6a7效果&f]&#fff5b3 召唤一圈活性涵粒子，持续5秒，每秒随机增益并推伤敌人'
+    - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
+    - '&f[&#96d6a7能耗&f]&#fff5b3 10 粒子'
+    - '&f[&#96d6a7冷却&f]&#fff5b3 16 秒'
+    - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_花如画卷:
+  lateInit: false
+  item_group: MA_3
+  item:
+    name: "&#a075fd术&#b067fe式&#c159fe载&#d14bff体 丨 &#FF69B4花&#FF85C0如&#FFA0CC画&#FFB6D9卷"
+    material: lime_shulker_box
+    glow: true
+    lore:
+    - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
+    - '&f[&#96bed6环数&f]&#fff5b3 4环'
+    - '&f[&#96d6a7效果&f]&#fff5b3 右键环绕召唤花朵，左键投出并自动追踪敌人'
+    - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
+    - '&f[&#96d6a7能耗&f]&#fff5b3 16 粒子'
+    - '&f[&#96d6a7冷却&f]&#fff5b3 12 秒'
+    - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
+  recipe_type: NULL
+  amount: 1
+
+VASA_粒子补充剂:
   lateInit: false
   item_group: B_C0
   item:
-    name: "&#4db8ff水&#70c8ff箭 &#e8c48a·&#fff5b3术式刻录"
-    material: enchanted_book
+    name: "&#9ad8ff涵&#7ec8ff粒&#62b8ff子&#46a8ff补&#2a98ff充&#0e88ff剂"
+    material: honey_bottle
     glow: true
     lore:
     - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&f[&#96d6a7类型&f]&#fff5b3术式刻录载体'
-    - '&f[&#96d6a7术式&f]&#4db8ff水箭'
-    - '&f[&#96d6a7系数&f]&#fff5b30.3 §7· 持续1秒 / 每0.2秒'
-    - '&f[&#96d6a7能耗&f]&#fff5b34 粒子'
-    - '&f[&e!&f]&#e1ccbd在术式承载转换仪中写入法杖。'
+    - '&f[&#96d6a7类型&f]&#fff5b3消耗品'
+    - '&f[&#96d6a7效果&f]&#fff5b3右键使用，回复 §b20 §f粒子'
+    - '&f[&#96d6a7上限&f]&#fff5b3不超过松垂体容量'
+    - '&f[&e!&f]&#e1ccbd粒子已满时不会消耗。'
+  script: 道具工具/粒子补充剂
   recipe_type: NULL
   amount: 1
-
-VASA_身躯附魔:
-  lateInit: false
-  item_group: B_C0
-  item:
-    name: "&#ffe066身&#ffd84d躯&#ffd033附&#ffc81a魔 &#e8c48a·&#fff5b3术式刻录"
-    material: enchanted_book
-    glow: true
-    lore:
-    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&f[&#96d6a7类型&f]&#fff5b3术式刻录载体'
-    - '&f[&#96d6a7术式&f]&#ffe066身躯附魔'
-    - '&f[&#96d6a7效果&f]&#fff5b33秒内近战额外 §e0.5§f 系数'
-    - '&f[&#96d6a7能耗&f]&#fff5b35 粒子'
-    - '&f[&e!&f]&#e1ccbd在术式承载转换仪中写入法杖。'
-  recipe_type: NULL
-  amount: 1
-
-
-
-
 
 
 

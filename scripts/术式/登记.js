@@ -16,8 +16,10 @@ var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 /** 在此追加新术式文件名（相对 scripts/，不含路径前缀重复） */
 var SPELL_FILES = [
     "术式/火球术.js",
-    "术式/水箭.js",
-    "术式/身躯附魔.js"
+    "术式/送花.js",
+    "术式/微风花流.js",
+    "术式/庇护脉络.js",
+    "术式/花如画卷.js"
 ];
 
 var SPELL_REGISTRY = {};

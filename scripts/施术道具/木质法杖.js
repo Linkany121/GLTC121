@@ -47,8 +47,13 @@ function findCoreFile() {
 }
 
 function loadCastApi() {
-    // 每次确保拿到最新核心（脚本热更后旧缓存会失效）
-    if (CAST_API && typeof CAST_API.handleStaffUse === "function") return true;
+    // 始终优先复用全局单例，避免木质/辉墨各自 eval 出两套选术环状态
+    try {
+        if (PLUGIN.gltcCastApi != null && typeof PLUGIN.gltcCastApi.handleStaffUse === "function") {
+            CAST_API = PLUGIN.gltcCastApi;
+            return true;
+        }
+    } catch (e0) {}
 
     var file = findCoreFile();
     if (!file) return false;
@@ -57,6 +62,7 @@ function loadCastApi() {
         var exported = (0, eval)(code);
         if (exported && typeof exported.handleStaffUse === "function") {
             CAST_API = exported;
+            try { PLUGIN.gltcCastApi = exported; } catch (e1) {}
             return true;
         }
     } catch (e2) {
@@ -82,6 +88,16 @@ function playSteamBurst(player) {
     } catch (e3) {}
 }
 
+function registerHooks() {
+    if (!loadCastApi()) return;
+    try {
+        CAST_API.registerStaffHooks(STAFF_ID, {
+            onAfterCast: function(p) { playSteamBurst(p); }
+        });
+    } catch (e) {}
+}
+registerHooks();
+
 function onUse(event) {
     var player;
     try { player = event.getPlayer(); } catch (e) { return; }
@@ -98,6 +114,7 @@ function onUse(event) {
         player.sendMessage(GLTC_PREFIX + "§c施术核心加载失败。");
         return;
     }
+    // 兜底：交互监听已处理时会被 debounce 吞掉
     CAST_API.handleStaffUse(player, {
         onAfterCast: function(p) { playSteamBurst(p); }
     });

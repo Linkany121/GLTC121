@@ -748,7 +748,6 @@ function startWindVeinDecay() {
     // 立即启动，每秒执行一次（delay=0，避免5秒空窗期导致风脉先衰减完）
     windVeinDecayTask = new DecayTask().runTaskTimer(plugin, 0, 20);
     try { plugin.fengxuDecayTaskId = windVeinDecayTask.getTaskId(); } catch (eId) {}
-    plugin.getLogger().info("[\u98ce\u9f99\u51a0] \u98ce\u8109\u8870\u51cf\u4efb\u52a1\u5df2\u542f\u52a8");
 }
 var startDecayRunnable = new RunnableImpl({
     run: function() { startWindVeinDecay(); }

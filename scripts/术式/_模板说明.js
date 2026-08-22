@@ -1,15 +1,30 @@
 /**
- * 术式脚本模板 —— 复制为「术式/你的术式.js」，再在 术式/登记.js 的 SPELL_FILES 中追加路径
- * items.yml 做同 ID 附魔书（book:true 时）；流派用 groups 如 MA_4（环夜谷标准流派）
+ * 术式脚本模板 —— 复制为「术式/流派_环数_名称.js」，再在 术式/登记.js 的 SPELL_FILES 追加
  *
- * 施术前提：手持已登记施术道具；经「术式承载转换仪」写入法杖
- * 最终伤害 = mageApi.calcSpellDamage(player, 系数)
- * 粒子由施术核心在 cast 前扣除，并自动播报：消耗 x粒子 使用 x环术式 xxx
- * 物理伤害请用 UTIL.dealPhysicalSpellDamage（会播报实际最终伤害）
+ * 完整 AI 生成规范（架构铁律、会话 API、检查清单、常见错误）：
+ *   scripts/_AI术式与施术道具生成指南.js
  *
- * 等级 vs 环数（施术核心统一处理）：
- *   等级 > 环数 → 粒子消耗 ×0.5（取整，最低 1）
- *   等级 < 环数 → 侵蚀 = 环数 - 等级；粒子 × 侵蚀；自伤侵蚀 ×20% 最大生命
+ * 命名：环夜谷_1_火球术.js 、 沃土_4_花如画卷.js
+ * items.yml：book:true 时做同 ID 附魔书；groups 挂流派组
+ *
+ * ── 导出必填 ──
+ *   id, name, ring, cost, cooldownMs, cast
+ *   book?, school?
+ *
+ * ── 伤害 ──
+ *   mageApi.calcSpellDamage(player, 系数)
+ *   UTIL.dealPhysicalSpellDamage / dealParticleSpellDamage / dealPulseSpellDamage
+ *
+ * ── 有状态术式（环绕/持续/左键二段）──
+ *   api.begin → onClear 清实体与任务
+ *   api.registerActiveLeftClick(player, SPELL_ID, Java Runnable)  ← 勿用跨上下文 JS 函数
+ *   api.consumeSpellSignal(player, SPELL_ID, "lclick")  ← 环绕 tick 兜底
+ *   api.registerDirectClearHook(SPELL_ID, fn)  ← PLUGIN 痕迹兜底
+ *   api.end(player, token, false)
+ *
+ * ── 参考 ──
+ *   瞬时：沃土_1_送花.js | 多段：沃土_2_微风花流.js
+ *   持续：沃土_3_庇护脉络.js | 二段：沃土_4_花如画卷.js | 物理：环夜谷_1_火球术.js
  */
 
 /*
@@ -22,7 +37,7 @@
     book: true,
     cast: function(player, mageApi) {
         var dmg = mageApi.calcSpellDamage(player, 1.0);
-        // UTIL.dealPhysicalSpellDamage(target, dmg, player, { ring: 1, name: "示例术式" });
+        // UTIL.dealParticleSpellDamage(target, dmg, player, { ring: 1, name: "示例术式" });
         return true;
     }
 });

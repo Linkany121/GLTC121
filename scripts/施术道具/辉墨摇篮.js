@@ -1,5 +1,5 @@
 /**
- * VASA 辉墨摇篮 —— 序列4 法杖
+ * VASA 辉墨摇篮 —— 序列4 施术道具
  * - 站立右键：施术
  * - 蹲下右键：唤出选术环时释放光影废墟（护身）；已开环时再蹲下右键只关环
  *
@@ -24,11 +24,19 @@ var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
 
 var STAFF_ID = "VASA_辉墨摇篮";
+var ABILITY_NAME = "光影废墟";
 var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
+/** 与术式提示同色：常规 &#fff5b3 / 名称 &#62c6ff / 伤害数值 §c */
+var C_MSG = "§x§f§f§f§5§b§3";
+var C_SPELL = "§x§6§2§c§6§f§f";
+var C_DMG = "§c";
+/** A.yml 播报 · 脉冲伤害（gltcAnnounceSpellHit 不可用时回退） */
+var C_PULSE_DMG = "§x§e§a§7§2§c§9脉§x§e§5§6§5§a§1冲§x§d§f§5§7§7§a伤§x§d§a§4§a§5§2害";
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 
 var CAST_API = null;
 var MAGE_API = null;
+var SPELL_UTIL = null;
 
 // ---- 数值 ----
 var ABILITY_CD_MS = 30000;         // 水墨爆开冷却 30 秒
@@ -76,6 +84,12 @@ function markAbilityCd(uuid) {
     cdMap[uuid] = nowMs();
 }
 
+function formatDamage(n) {
+    var v = Math.round(Number(n) * 10) / 10;
+    if (v === Math.floor(v)) return String(Math.floor(v));
+    return String(v);
+}
+
 function findScriptFile(rel) {
     var candidates = [
         new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/" + rel),
@@ -110,13 +124,24 @@ function evalExport(rel) {
     }
 }
 
-function loadCastApi() {
+function ensureCoreListeners() {
     try {
-        if (PLUGIN.gltcCastApi != null && typeof PLUGIN.gltcCastApi.handleStaffUse === "function") {
-            CAST_API = PLUGIN.gltcCastApi;
-            return true;
+        if (CAST_API && typeof CAST_API.ensureListeners === "function") {
+            var needForce = false;
+            try {
+                if (PLUGIN.gltcSpellCoreListener == null) needForce = true;
+                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 11) needForce = true;
+            } catch (eV) {}
+            CAST_API.ensureListeners(needForce);
         }
-    } catch (e0) {}
+    } catch (e) {}
+}
+
+/** 始终在本上下文 eval；禁止直接拿他上下文的 PLUGIN.gltcCastApi 当函数用 */
+function loadCastApi(forceReload) {
+    if (!forceReload && CAST_API && typeof CAST_API.handleStaffUse === "function") {
+        return true;
+    }
     var exported = evalExport("施术道具/施术核心.js");
     if (exported && typeof exported.handleStaffUse === "function") {
         CAST_API = exported;
@@ -143,8 +168,23 @@ function loadMageApi() {
     return false;
 }
 
-loadCastApi();
+function loadSpellUtil() {
+    if (SPELL_UTIL && typeof SPELL_UTIL.dealPulseSpellDamage === "function") return true;
+    try {
+        if (PLUGIN.gltcAnnounceSpellHit != null && PLUGIN.gltcSpellSessionApi != null) {
+            // 工具已加载过：再 eval 一次拿到 dealPulse（导出对象）
+        }
+    } catch (e0) {}
+    var exported = evalExport("术式/_工具.js");
+    if (exported && typeof exported.dealPulseSpellDamage === "function") {
+        SPELL_UTIL = exported;
+        return true;
+    }
+    return false;
+}
+
 loadMageApi();
+loadSpellUtil();
 
 function isThisStaff(item) {
     if (!item || item.getType() === Material.AIR) return false;
@@ -436,6 +476,8 @@ function applyKnockback(ent, center) {
 
 function pulseAoE(center, radius, amount, attacker) {
     if (!loadMageApi() || amount <= 0) return;
+    loadSpellUtil();
+    var spellInfo = { name: ABILITY_NAME, kind: "ability" };
     var world = center.getWorld();
     var list = world.getNearbyEntities(center, radius, radius, radius);
     var it = list.iterator();
@@ -451,7 +493,23 @@ function pulseAoE(center, radius, amount, attacker) {
             } catch (e2) {}
         }
         if (center.distance(ent.getLocation()) > radius) continue;
-        try { MAGE_API.dealPulseDamage(ent, amount, attacker); } catch (e3) {}
+        if (SPELL_UTIL && typeof SPELL_UTIL.dealPulseSpellDamage === "function") {
+            SPELL_UTIL.dealPulseSpellDamage(ent, amount, attacker, spellInfo, MAGE_API);
+        } else {
+            try { MAGE_API.dealPulseDamage(ent, amount, attacker); } catch (e3) {}
+            try {
+                if (attacker != null && attacker instanceof Player && typeof PLUGIN.gltcAnnounceSpellHit === "function") {
+                    PLUGIN.gltcAnnounceSpellHit(attacker, {
+                        name: ABILITY_NAME,
+                        kind: "ability",
+                        damageType: "pulse"
+                    }, amount);
+                } else if (attacker != null && attacker instanceof Player) {
+                    attacker.sendMessage(GLTC_PREFIX + C_SPELL + ABILITY_NAME
+                        + C_MSG + " 造成了 " + C_DMG + formatDamage(amount) + " " + C_PULSE_DMG);
+                }
+            } catch (eMsg) {}
+        }
         applyKnockback(ent, center);
     }
 }
@@ -508,13 +566,13 @@ function playInkExpand(world, center) {
 function activateInkBlast(player) {
     var uuid = String(player.getUniqueId().toString());
     if (isAbilityOnCd(uuid)) {
+        // 冷却只走 ActionBar，不刷聊天（避免与选术环提示叠成两条）
         var left = cdLeftSec(uuid);
         try { player.sendActionBar("§8光影废墟冷却中… §e" + left + "§7s"); } catch (eA) {}
-        player.sendMessage(GLTC_PREFIX + "§c光影废墟冷却中，剩余 §e" + left + " §c秒");
         return;
     }
     if (player.getInventory().getItemInMainHand().getAmount() !== 1) {
-        player.sendMessage(GLTC_PREFIX + "§c请将法杖数量分离为 §e1 §c后再使用。");
+        player.sendMessage(GLTC_PREFIX + C_MSG + "请将施术道具数量分离为 §e1 " + C_MSG + "后再使用。");
         return;
     }
 
@@ -537,39 +595,141 @@ function activateInkBlast(player) {
     playInkExpand(world, center);
 
     var dmg = BLAST_MULT * particleMod(player);
-    pulseAoE(center, BLAST_RADIUS, dmg, player);
-
-    player.sendMessage(GLTC_PREFIX + "§7光影废墟 §8(冷却 " + Math.floor(ABILITY_CD_MS / 1000) + "s)");
-}
-
-function registerHooks() {
-    if (!loadCastApi()) return;
+    // 与术式同款释放提示（护身技无粒子消耗）
     try {
-        CAST_API.registerStaffHooks(STAFF_ID, {
-            onSneakUse: function (p) { activateInkBlast(p); },
-            onAfterCast: function () {}
-        });
-    } catch (e) {}
+        player.sendMessage(GLTC_PREFIX + C_MSG + "使用 " + C_SPELL + ABILITY_NAME);
+    } catch (eCast) {}
+    pulseAoE(center, BLAST_RADIUS, dmg, player);
 }
-registerHooks();
 
+/**
+ * 护身不走跨上下文 JS 回调（Graal 经常调不动 / 炸脚本）。
+ * 施术核心开环成功时会写 metadata token；本脚本在本上下文监听 Interact 领取。
+ */
+var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
+var Action = Java.type("org.bukkit.event.block.Action");
+var EventPriority = Java.type("org.bukkit.event.EventPriority");
+var Listener = Java.type("org.bukkit.event.Listener");
+var EquipmentSlot = Java.type("org.bukkit.inventory.EquipmentSlot");
+var META_ABILITY_TOKEN = "gltc_staff_sneak_ability_token";
+var ABILITY_TOKEN_TTL_MS = 800;
+
+function takeAbilityToken(player) {
+    try {
+        if (!player.hasMetadata(META_ABILITY_TOKEN)) return false;
+        var mv = player.getMetadata(META_ABILITY_TOKEN).get(0);
+        var ts = 0;
+        try { ts = Number(mv.asDouble()); } catch (e0) {
+            try { ts = Number(mv.value()); } catch (e1) {}
+        }
+        try { player.removeMetadata(META_ABILITY_TOKEN, PLUGIN); } catch (e2) {}
+        if (!(ts > 0)) return false;
+        return (nowMs() - ts) <= ABILITY_TOKEN_TTL_MS;
+    } catch (e) {
+        return false;
+    }
+}
+
+function registerAbilityListener() {
+    try {
+        if (PLUGIN.gltcHuimoAbilityListener != null) {
+            try { PlayerInteractEvent.getHandlerList().unregister(PLUGIN.gltcHuimoAbilityListener); } catch (e0) {}
+            PLUGIN.gltcHuimoAbilityListener = null;
+        }
+    } catch (e) {}
+
+    var ListenerClass = Java.extend(Listener, {});
+    var listenerInstance = new ListenerClass();
+    try { PLUGIN.gltcHuimoAbilityListener = listenerInstance; } catch (eL) {}
+
+    Bukkit.getPluginManager().registerEvent(
+        PlayerInteractEvent, listenerInstance, EventPriority.MONITOR,
+        function(l, event) {
+            try {
+                if (event.getHand() != null && event.getHand() !== EquipmentSlot.HAND) return;
+                var action = event.getAction();
+                if (action !== Action.RIGHT_CLICK_AIR && action !== Action.RIGHT_CLICK_BLOCK) return;
+                var who = event.getPlayer();
+                if (!(who instanceof Player) || !who.isSneaking()) return;
+                if (!isThisStaff(who.getInventory().getItemInMainHand())) return;
+                // 仅领取「开环成功」token；关环不会写 token
+                if (!takeAbilityToken(who)) return;
+                activateInkBlast(who);
+            } catch (ex) {
+                try { Bukkit.getLogger().warning("[GLTC辉墨摇篮] abilityInteract: " + ex); } catch (e2) {}
+            }
+        }, PLUGIN
+    );
+}
+
+function ensureCoreLoaded(force) {
+    loadCastApi(!!force);
+    ensureCoreListeners();
+    // 清掉旧版跨上下文 sneak 钩子，避免与 token 监听双放护身
+    try {
+        var map = PLUGIN.gltc_staff_hooks_map;
+        if (map != null) map.remove(STAFF_ID + "|sneak");
+    } catch (eClr) {}
+}
+
+ensureCoreLoaded(true);
+registerAbilityListener();
+try {
+    Bukkit.getScheduler().runTaskLater(PLUGIN, new (Java.extend(java.lang.Runnable, {
+        run: function() {
+            // 勿 forceReload：重复 eval 会清环状态并换监听上下文
+            if (!CAST_API) loadCastApi(true);
+            ensureCoreListeners();
+            registerAbilityListener();
+        }
+    }))(), 40);
+} catch (eDelay) {}
+
+function shouldSkipStaffOnUseLocal(player) {
+    try {
+        if (PLUGIN.gltcSpellCoreListener != null) return true;
+    } catch (e0) {}
+    try {
+        var f = PLUGIN.gltcSpellCoreInteractReady;
+        if (f === true) return true;
+        if (f != null && typeof f.booleanValue === "function" && f.booleanValue()) return true;
+    } catch (e1) {}
+    try {
+        var tickMap = PLUGIN.gltc_staff_interact_use_tick;
+        if (tickMap != null && player != null) {
+            var gk = java.lang.String.valueOf(String(player.getUniqueId().toString()));
+            var tick = Number(Bukkit.getCurrentTick());
+            var last = tickMap.get(gk);
+            if (last != null && Number(last) === tick) return true;
+        }
+    } catch (e2) {}
+    return false;
+}
+
+/**
+ * SF onUse：Interact 丢失时的兜底。监听在则永不处理，防 Interact+onUse 双开环。
+ */
 function onUse(event) {
     var player;
     try { player = event.getPlayer(); } catch (e) { return; }
     if (!player || !(player instanceof Player)) return;
+    if (!isThisStaff(player.getInventory().getItemInMainHand())) return;
 
-    var item = player.getInventory().getItemInMainHand();
-    if (!isThisStaff(item)) return;
+    if (shouldSkipStaffOnUseLocal(player)) return;
 
-    if (!loadCastApi()) {
-        player.sendMessage(GLTC_PREFIX + "§c施术核心加载失败。");
+    if (!loadCastApi(false)) {
+        player.sendMessage(GLTC_PREFIX + C_MSG + "施术核心加载失败。");
         return;
     }
-    // 兜底：交互监听已处理时会被 debounce 吞掉
-    CAST_API.handleStaffUse(player, {
-        onSneakUse: function (p) { activateInkBlast(p); },
-        onAfterCast: function () {}
-    });
+    ensureCoreListeners();
+    try {
+        CAST_API.handleStaffUse(player, {});
+    } catch (eUse) {
+        try {
+            player.sendMessage(GLTC_PREFIX + C_MSG + "施术调用异常，请重载插件。");
+            Bukkit.getLogger().warning("[GLTC辉墨摇篮] onUse: " + eUse);
+        } catch (eLog) {}
+    }
 }
 
 function tick(info) {}

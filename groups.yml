@@ -388,6 +388,15 @@ B_C0:
     name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e物品'
   parent: B_A
 
+B_C01:
+  lateInit: false
+  type: sub
+  tier: 1
+  item:
+    material: magenta_wool
+    name: '&#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会 &e施术道具'
+  parent: B_A
+
 B_C1:
   lateInit: false
   type: sub
@@ -461,15 +470,6 @@ MA_5:
     lore:
     - '&#fff5b3有些术式的来源早已失传，但可能仍然强大或独特，从而保留到了现在。'
     - '  &#4c9eff持&#5593ff剑&#5e88ff，&#677dff赠&#7072ff曾&#7967ff徒&#825cff步&#8b51ff于&#974cfc纯&#a64cf5白&#b54cee荒&#c44ce8地&#d34ce1的&#e14cda众&#f04cd4生&#ff4ccd。'
-  parent: B_A
-
-B_ZW5:
-  lateInit: false
-  type: sub
-  tier: 0
-  item:
-    material: gray_stained_glass_pane
-    name: ''
   parent: B_A
 
 

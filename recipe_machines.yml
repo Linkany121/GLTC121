@@ -22147,7 +22147,6 @@ FKR_锻造锤:
           amount: 1
           noConsume: true
         2:
-          material_type: slimefun
           material: netherite_block
           amount: 48
         3:

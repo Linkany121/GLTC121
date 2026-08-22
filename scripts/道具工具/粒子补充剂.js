@@ -111,7 +111,7 @@ function onUse(event) {
     } catch (e2) { return; }
 
     if (!loadMageApi()) {
-        player.sendMessage(GLTC_PREFIX + "§c术士系统未加载。");
+        player.sendMessage(GLTC_PREFIX + C_MSG + "术士系统未加载。");
         return;
     }
 

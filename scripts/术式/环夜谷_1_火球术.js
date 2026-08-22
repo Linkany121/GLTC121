@@ -38,6 +38,8 @@ if (!UTIL) {
 // ======================== 火球术 · 可调配置 ========================
 // 改完后重载附属 / 重新加载术式脚本生效
 
+/** 物品 / 登记 ID */
+var SPELL_ID = "VASA_火球术";
 /** 显示名（播报 / 登记） */
 var SPELL_NAME = "火球术";
 /** 环数 */
@@ -153,8 +155,63 @@ function explodeAt(world, loc, dmg, caster, spellInfo) {
     }
 }
 
+function getSessionApi() {
+    try {
+        if (PLUGIN.gltcSpellSessionApi != null) return PLUGIN.gltcSpellSessionApi;
+    } catch (e0) {}
+    return UTIL && UTIL.spellSession ? UTIL.spellSession : null;
+}
+
+/** uuid -> [{ alive, task, sessionToken }] */
+function ballStore() {
+    try {
+        if (PLUGIN.gltc_huoqiu_proj != null) return PLUGIN.gltc_huoqiu_proj;
+    } catch (e0) {}
+    var m = {};
+    try { PLUGIN.gltc_huoqiu_proj = m; } catch (e1) {}
+    return m;
+}
+
+function stopBall(st, invokeSessionEnd) {
+    if (!st) return;
+    st.alive = false;
+    try { if (st.task != null) st.task.cancel(); } catch (e0) {}
+    if (invokeSessionEnd && st.sessionToken) {
+        try {
+            var api = getSessionApi();
+            if (api && typeof api.end === "function") api.end(st.ownerUuid, st.sessionToken, false);
+        } catch (e1) {}
+    }
+    st.sessionToken = null;
+}
+
+function clearAllBalls(uuid) {
+    uuid = String(uuid);
+    var store = ballStore();
+    var list = store[uuid];
+    if (!list || list.length === 0) return;
+    for (var i = 0; i < list.length; i++) stopBall(list[i], false);
+    try { delete store[uuid]; } catch (e) { store[uuid] = []; }
+}
+
+function detachBall(uuid, st) {
+    uuid = String(uuid);
+    var store = ballStore();
+    var list = store[uuid];
+    if (!list) return;
+    var kept = [];
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] !== st) kept.push(list[i]);
+    }
+    if (kept.length === 0) {
+        try { delete store[uuid]; } catch (e) { store[uuid] = []; }
+    } else {
+        store[uuid] = kept;
+    }
+}
+
 ({
-    id: "VASA_火球术",
+    id: SPELL_ID,
     name: SPELL_NAME,
     ring: SPELL_RING,
     cost: SPELL_COST,
@@ -168,14 +225,32 @@ function explodeAt(world, loc, dmg, caster, spellInfo) {
         var dir = eye.getDirection().normalize();
         var dmg = mageApi.calcSpellDamage(player, SPELL_COEFFICIENT);
         var loc = eye.clone().add(dir.clone().multiply(SPAWN_FORWARD));
-        var uuid = player.getUniqueId().toString();
+        var uuid = String(player.getUniqueId().toString());
         var spellInfo = { ring: SPELL_RING, name: SPELL_NAME };
         var ticks = 0;
         playFireCastSound(world, eye);
 
-        var task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
+        var st = { alive: true, task: null, sessionToken: null, ownerUuid: uuid };
+        var store = ballStore();
+        if (!store[uuid]) store[uuid] = [];
+        store[uuid].push(st);
+
+        var api = getSessionApi();
+        if (api && typeof api.begin === "function") {
+            try {
+                st.sessionToken = api.begin(player, SPELL_ID, function() {
+                    clearAllBalls(uuid);
+                }, { replace: false });
+            } catch (eBeg) {}
+        }
+
+        st.task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
             run: function() {
                 try {
+                    if (!st.alive) {
+                        try { st.task.cancel(); } catch (eDead) {}
+                        return;
+                    }
                     ticks++;
                     var stepX = dir.getX() * SPEED_PER_TICK;
                     var stepY = dir.getY() * SPEED_PER_TICK;
@@ -211,11 +286,13 @@ function explodeAt(world, loc, dmg, caster, spellInfo) {
                         } catch (eP) {}
                         if (caster == null) caster = player;
                         explodeAt(world, loc, dmg, caster, spellInfo);
-                        try { task.cancel(); } catch (eC) {}
+                        stopBall(st, true);
+                        detachBall(uuid, st);
                         return;
                     }
                 } catch (ex) {
-                    try { task.cancel(); } catch (e10) {}
+                    stopBall(st, true);
+                    detachBall(uuid, st);
                 }
             }
         })), 0, 1);

@@ -460,7 +460,7 @@ function getBonusesFromGearId(itemId) {
     return b;
 }
 
-/** 法杖不再提供数值加成（保留空实现兼容旧调用） */
+/** 施术道具不再提供数值加成（保留空实现兼容旧调用） */
 function getBonusesFromStaffId(itemId) {
     return emptyBonuses();
 }
@@ -499,7 +499,7 @@ function getEquipmentBonuses(uuid) {
     return total;
 }
 
-/** 法杖仅负责特效与术式存储，不参与数值汇总 */
+/** 施术道具仅负责特效与术式存储，不参与数值汇总 */
 function getStaffBonuses(player) {
     return emptyBonuses();
 }
@@ -546,7 +546,7 @@ function getTotalStats(player, includeStaff) {
     var uuid = player.getUniqueId().toString();
     var base = getPlayerStats(uuid);
     var equip = getEquipmentBonuses(uuid);
-    // includeStaff 参数保留兼容；法杖不再加数值
+    // includeStaff 参数保留兼容；施术道具不再加数值
     var staff = emptyBonuses();
 
     var pituitaryCapacity = sumStat(base, equip, staff, "pituitaryCapacity");

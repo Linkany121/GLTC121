@@ -21,6 +21,7 @@ var Interaction = Java.type("org.bukkit.entity.Interaction");
 var Color = Java.type("org.bukkit.Color");
 var Location = Java.type("org.bukkit.Location");
 var PlayerInteractEntityEvent = Java.type("org.bukkit.event.player.PlayerInteractEntityEvent");
+var EquipmentSlot = Java.type("org.bukkit.inventory.EquipmentSlot");
 var BlockBreakEvent = Java.type("org.bukkit.event.block.BlockBreakEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
@@ -118,7 +119,30 @@ function getPlayerPanels() {
         return _playerPanelsLocal;
     }
 }
-var _playerPanels = getPlayerPanels();
+function getPlayerPanel(ownerUuid) {
+    var panels = getPlayerPanels();
+    if (panels == null) return null;
+    return panels[String(ownerUuid)] || null;
+}
+function setPlayerPanel(ownerUuid, data) {
+    var panels = getPlayerPanels();
+    if (panels == null) return;
+    panels[String(ownerUuid)] = data;
+}
+function deletePlayerPanel(ownerUuid) {
+    var panels = getPlayerPanels();
+    if (panels == null) return;
+    delete panels[String(ownerUuid)];
+}
+function listPlayerPanelUuids() {
+    var panels = getPlayerPanels();
+    var keys = [];
+    if (panels == null) return keys;
+    for (var uuid in panels) {
+        if (Object.prototype.hasOwnProperty.call(panels, uuid)) keys.push(uuid);
+    }
+    return keys;
+}
 
 // 右键冷却去重：0.2秒内同一玩家的重复右键/点击只处理一次（不提示）
 // 时间戳以字符串存玩家实体的 PersistentDataContainer，跨脚本副本共享、按玩家隔离、不依赖 PLUGIN
@@ -159,8 +183,43 @@ var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2�
 
 // 全局共享锁（挂在插件对象上，与发布机/接收机共用），防止并发读写同一货币文件丢更新
 function getCurrencyLock() {
-    if (PLUGIN.gltcCurrencyLock == null) PLUGIN.gltcCurrencyLock = new java.lang.Object();
-    return PLUGIN.gltcCurrencyLock;
+    var ReentrantLock = Java.type("java.util.concurrent.locks.ReentrantLock");
+    try {
+        if (PLUGIN.gltcCurrencyLock == null || !ReentrantLock.class.isInstance(PLUGIN.gltcCurrencyLock)) {
+            PLUGIN.gltcCurrencyLock = new ReentrantLock();
+        }
+        return PLUGIN.gltcCurrencyLock;
+    } catch (e) {
+        if (PLUGIN.gltcCurrencyLock == null) PLUGIN.gltcCurrencyLock = new java.lang.Object();
+        return PLUGIN.gltcCurrencyLock;
+    }
+}
+
+function withCurrencyLock(fn) {
+    var lock = getCurrencyLock();
+    try {
+        var ReentrantLock = Java.type("java.util.concurrent.locks.ReentrantLock");
+        if (ReentrantLock.class.isInstance(lock)) {
+            lock.lock();
+            try { return fn(); } finally { lock.unlock(); }
+        }
+    } catch (e0) {}
+    try {
+        if (typeof Java.synchronized === "function") {
+            return Java.synchronized(lock, fn)();
+        }
+    } catch (e1) {}
+    return fn();
+}
+
+// 原子执行"读-改-写"：在共享锁内读取、修改并写回，避免并发时丢更新
+function modifyShipCurrency(uuid, modifier) {
+    return withCurrencyLock(function() {
+        var data = getShipCurrency(uuid);
+        var result = modifier(data);
+        setShipCurrency(uuid, data);
+        return result;
+    });
 }
 
 function getShipCurrency(uuid) {
@@ -186,16 +245,6 @@ function setShipCurrency(uuid, data) {
     } catch (e) {
         Bukkit.getLogger().warning("[GLTC] 保存舰体货币失败 uuid=" + uuid + ": " + e);
     }
-}
-
-// 原子执行"读-改-写"：在共享锁内读取、修改并写回，避免并发时丢更新
-function modifyShipCurrency(uuid, modifier) {
-    return Java.synchronized(getCurrencyLock(), function() {
-        var data = getShipCurrency(uuid);
-        var result = modifier(data);
-        setShipCurrency(uuid, data);
-        return result;
-    })();
 }
 
 // ---------------- 位置工具 ----------------
@@ -271,7 +320,7 @@ function removeEntitiesByIds(ids) {
 
 // 取消玩家面板的粒子定时任务（不删面板记录）
 function cancelPanelTask(ownerUuid) {
-    var p = _playerPanels[ownerUuid];
+    var p = getPlayerPanel(ownerUuid);
     if (p != null && p.task != null) {
         try { p.task.cancel(); } catch (e) {}
         p.task = null;
@@ -280,13 +329,13 @@ function cancelPanelTask(ownerUuid) {
 
 // 清除指定玩家打开的面板（同一玩家同时只能有一个面板）
 function removePlayerPanel(ownerUuid) {
-    var p = _playerPanels[ownerUuid];
+    var p = getPlayerPanel(ownerUuid);
     if (p == null) return;
     var oldKey = p.key;
     var entityIds = p.entityIds;
     cancelPanelTask(ownerUuid);
     removeEntitiesByIds(entityIds);
-    delete _playerPanels[ownerUuid];
+    deletePlayerPanel(ownerUuid);
     if (oldKey == null) return;
     var parts = oldKey.split(",");
     if (parts.length !== 4) return;
@@ -298,7 +347,7 @@ function removePlayerPanel(ownerUuid) {
 
 // 清除指定玩家的全部本机面板实体（优先按登记 UUID，再按面板位置附近兜底）
 function removePlayerAllEntities(ownerUuid) {
-    var p = _playerPanels[ownerUuid];
+    var p = getPlayerPanel(ownerUuid);
     if (p == null) return;
     removeEntitiesByIds(p.entityIds);
     if (p.key != null) {
@@ -315,15 +364,10 @@ function removePlayerAllEntities(ownerUuid) {
 
 // 脚本加载时清理：只清已登记面板，禁止全世界 getEntities
 function removeAllHolograms() {
-    var keys = [];
-    for (var uuid in _playerPanels) {
-        if (_playerPanels.hasOwnProperty(uuid)) keys.push(uuid);
-    }
+    var keys = listPlayerPanelUuids();
     for (var i = 0; i < keys.length; i++) {
         try { removePlayerPanel(keys[i]); } catch (e) {}
     }
-    _playerPanels = {};
-    try { PLUGIN.gltcShipLinkPanels = _playerPanels; } catch (e2) {}
 }
 
 // 读取指定机器位置面板的归属玩家UUID（无面板返回 null）
@@ -383,7 +427,7 @@ function spawnTextDisplay(world, loc, text, machineKey, ownerUuid) {
     }
     if (ownerUuid != null) {
         pdc.set(OWNER_KEY, PersistentDataType.STRING, ownerUuid);
-        var panel = _playerPanels[ownerUuid];
+        var panel = getPlayerPanel(ownerUuid);
         if (panel != null) {
             if (panel.entityIds == null) panel.entityIds = [];
             try { panel.entityIds.push(td.getUniqueId().toString()); } catch (eId) {}
@@ -403,7 +447,7 @@ function spawnTradeHitbox(world, loc, machineKey, tradeId, ownerUuid) {
     pdc.set(TRADE_KEY, PersistentDataType.STRING, tradeId);
     if (ownerUuid != null) {
         pdc.set(OWNER_KEY, PersistentDataType.STRING, ownerUuid);
-        var panel = _playerPanels[ownerUuid];
+        var panel = getPlayerPanel(ownerUuid);
         if (panel != null) {
             if (panel.entityIds == null) panel.entityIds = [];
             try { panel.entityIds.push(ih.getUniqueId().toString()); } catch (eId) {}
@@ -478,7 +522,7 @@ function startParticleTask(world, mloc, bx, bz, titleY, bottomY, midY, ownerUuid
         }
     })), 0, 5);
 
-    var p = _playerPanels[ownerUuid];
+    var p = getPlayerPanel(ownerUuid);
     if (p != null) {
         p.task = task;
     }
@@ -501,7 +545,7 @@ function showAccessPanel(loc, player, page) {
     var data = getShipCurrency(ownerUuid);
 
     // 记录该玩家的面板位置与页码（先建记录再生成，便于登记 entityIds）
-    _playerPanels[ownerUuid] = {key: key, page: page, task: null, entityIds: []};
+    setPlayerPanel(ownerUuid, {key: key, page: page, task: null, entityIds: []});
 
     // 面板起始位置：机器方块中心上方 HOLO_OFFSET_Y 格
     var base = loc.clone().add(0.5, HOLO_OFFSET_Y, 0.5);
@@ -686,7 +730,7 @@ function doTrade(player, trade) {
     try { loc.getWorld().playSound(loc, "entity.experience_orb.pickup", 0.8, 1.5); } catch (e) {}
 
     // 交易后刷新面板余额
-    var p = _playerPanels[uuid];
+    var p = getPlayerPanel(uuid);
     if (p != null) {
         var parts = p.key.split(",");
         var world = Bukkit.getWorld(parts[0]);
@@ -704,6 +748,129 @@ function doTrade(player, trade) {
 // 监听器实例挂在插件对象上（跨脚本加载共享），注册前先注销旧的，
 // 避免脚本被重复加载时 Bukkit 监听器叠加注册导致一次点击触发多次。
 
+function pdcGetString(pdc, key) {
+    if (pdc == null || key == null) return null;
+    try {
+        if (pdc.has(key, PersistentDataType.STRING)) {
+            return pdc.get(key, PersistentDataType.STRING);
+        }
+    } catch (e0) {}
+    try {
+        return pdc.get(key, PersistentDataType.STRING);
+    } catch (e1) {}
+    return null;
+}
+
+/** 是否为本机面板 Interaction 热区（勿用 JS instanceof） */
+function isPanelInteraction(ent) {
+    if (ent == null) return false;
+    try {
+        if (!Interaction.class.isInstance(ent)) return false;
+        var holo = pdcGetString(ent.getPersistentDataContainer(), HOLO_KEY);
+        return holo != null && String(holo).length > 0;
+    } catch (e) {
+        return false;
+    }
+}
+
+/** 点到文字全息时，解析到同格下方 Interaction 热区 */
+function resolvePanelInteractTarget(ent) {
+    if (ent == null) return null;
+    if (isPanelInteraction(ent)) return ent;
+    try {
+        if (!TextDisplay.class.isInstance(ent)) return null;
+        var mKey = pdcGetString(ent.getPersistentDataContainer(), HOLO_KEY);
+        if (mKey == null) return null;
+        var loc = ent.getLocation();
+        var world = ent.getWorld();
+        if (world == null) return null;
+        var nearby = world.getNearbyEntities(loc, 0.75, 0.75, 0.75);
+        var it = nearby.iterator();
+        var best = null;
+        var bestDist = 999999.0;
+        while (it.hasNext()) {
+            var cand = it.next();
+            if (!isPanelInteraction(cand)) continue;
+            var ck = pdcGetString(cand.getPersistentDataContainer(), HOLO_KEY);
+            if (ck == null || String(ck) !== String(mKey)) continue;
+            var d = cand.getLocation().distanceSquared(loc);
+            if (d < bestDist) {
+                bestDist = d;
+                best = cand;
+            }
+        }
+        return best;
+    } catch (e2) {}
+    return null;
+}
+
+function handleShiplinkEntityInteract(event) {
+    try {
+        if (event.getHand() != null && event.getHand() !== EquipmentSlot.HAND) return;
+
+        var ent = resolvePanelInteractTarget(event.getRightClicked());
+        if (ent == null) return;
+
+        var pdc = ent.getPersistentDataContainer();
+        var who = event.getPlayer();
+        if (!(who instanceof Player)) return;
+        event.setCancelled(true);
+
+        // 冷却去重：0.2秒内同一玩家的重复右键只处理一次（不提示）
+        if (!checkCooldown(who)) return;
+
+        var ownerUuid = null;
+        // 归属判断：若面板属于其他玩家 → 提示并关闭，不执行操作
+        if (pdcGetString(pdc, OWNER_KEY) != null) {
+            ownerUuid = String(pdcGetString(pdc, OWNER_KEY));
+            var myUuid = who.getUniqueId().toString();
+            if (ownerUuid !== myUuid) {
+                var ownerName = Bukkit.getOfflinePlayer(ownerUuid).getName();
+                if (ownerName == null) ownerName = "未知玩家";
+                var loc = ent.getLocation();
+                removeAllPanelEntities(loc);
+                cancelPanelTask(ownerUuid);
+                who.sendMessage(GLTC_PREFIX + "§c此面板属于玩家 " + ownerName + "，已关闭，请右键机器重新打开自己的面板");
+                return;
+            }
+        }
+
+        // 页码条切换（PAGE_KEY == "toggle"，每次点击循环切到下一页）
+        var pageAction = pdcGetString(pdc, PAGE_KEY);
+        if (pageAction != null) {
+            if (pageAction !== "toggle") return;
+            if (ownerUuid == null) ownerUuid = who.getUniqueId().toString();
+            var mKey = pdcGetString(pdc, HOLO_KEY);
+            if (mKey == null) return;
+            var parts = String(mKey).split(",");
+            if (parts.length !== 4) return;
+            var world = Bukkit.getWorld(parts[0]);
+            if (world == null) return;
+            var mloc = world.getBlockAt(parseInt(parts[1]), parseInt(parts[2]), parseInt(parts[3])).getLocation();
+            var p = getPlayerPanel(ownerUuid);
+            var curPage = (p != null) ? p.page : 0;
+            var totalPages = getTotalPages();
+            var newPage = ((curPage + 1) % totalPages + totalPages) % totalPages;
+            showAccessPanel(mloc, who, newPage);
+            who.sendMessage(GLTC_PREFIX + "§a第 " + (newPage + 1) + "/" + totalPages + " 页");
+            return;
+        }
+
+        // 交易项
+        var tradeId = pdcGetString(pdc, TRADE_KEY);
+        if (tradeId != null) {
+            var trade = findTrade(String(tradeId));
+            if (trade == null) {
+                who.sendMessage(GLTC_PREFIX + "§c交易配置错误");
+                return;
+            }
+            doTrade(who, trade);
+        }
+    } catch (e) {
+        print("[舰体链接协议] 点击错误: " + e);
+    }
+}
+
 function registerListeners() {
     // 若之前已注册过（脚本被重复加载），先注销旧监听器
     if (PLUGIN.gltcShiplinkRegistered === true) {
@@ -717,70 +884,11 @@ function registerListeners() {
     PLUGIN.gltcShiplinkListener = listenerInstance;
     PLUGIN.gltcShiplinkRegistered = true;
 
-    // 点击 Interaction 热区 → 交易或翻页
+    // 点击 Interaction 热区 / 文字全息 → 交易或翻页
     Bukkit.getPluginManager().registerEvent(
         PlayerInteractEntityEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
-            try {
-                var ent = event.getRightClicked();
-                if (ent == null) return;
-                var pdc = ent.getPersistentDataContainer();
-                var who = event.getPlayer();
-                if (!(who instanceof Player)) return;
-                event.setCancelled(true);
-
-                // 冷却去重：0.2秒内同一玩家的重复点击只处理一次（不提示）
-                if (!checkCooldown(who)) return;
-
-                // 归属判断：若面板属于其他玩家 → 提示并关闭，不执行操作
-                if (pdc.has(OWNER_KEY, PersistentDataType.STRING)) {
-                    var ownerUuid = pdc.get(OWNER_KEY, PersistentDataType.STRING);
-                    var myUuid = who.getUniqueId().toString();
-                    if (ownerUuid !== myUuid) {
-                        var ownerName = Bukkit.getOfflinePlayer(ownerUuid).getName();
-                        if (ownerName == null) ownerName = "未知玩家";
-                        // 关闭此面板（清除区域全部全息文字 + 取消粒子任务）
-                        var loc = ent.getLocation();
-                        removeAllPanelEntities(loc);
-                        cancelPanelTask(ownerUuid);
-                        who.sendMessage(GLTC_PREFIX + "§c此面板属于玩家 " + ownerName + "，已关闭，请右键机器重新打开自己的面板");
-                        return;
-                    }
-                }
-
-                // 页码条切换（PAGE_KEY == "toggle"，每次点击循环切到下一页）
-                if (pdc.has(PAGE_KEY, PersistentDataType.STRING)) {
-                    var action = pdc.get(PAGE_KEY, PersistentDataType.STRING);
-                    if (action !== "toggle") return;
-                    var mKey = pdc.get(HOLO_KEY, PersistentDataType.STRING);
-                    if (mKey == null) return;
-                    var parts = mKey.split(",");
-                    if (parts.length !== 4) return;
-                    var world = Bukkit.getWorld(parts[0]);
-                    if (world == null) return;
-                    var mloc = world.getBlockAt(parseInt(parts[1]), parseInt(parts[2]), parseInt(parts[3])).getLocation();
-                    var p = _playerPanels[ownerUuid];
-                    var curPage = (p != null) ? p.page : 0;
-                    var totalPages = getTotalPages();
-                    var newPage = ((curPage + 1) % totalPages + totalPages) % totalPages;
-                    showAccessPanel(mloc, who, newPage);
-                    who.sendMessage(GLTC_PREFIX + "§a第 " + (newPage + 1) + "/" + totalPages + " 页");
-                    return;
-                }
-
-                // 交易项
-                if (pdc.has(TRADE_KEY, PersistentDataType.STRING)) {
-                    var tradeId = pdc.get(TRADE_KEY, PersistentDataType.STRING);
-                    var trade = findTrade(tradeId);
-                    if (trade == null) {
-                        who.sendMessage(GLTC_PREFIX + "§c交易配置错误");
-                        return;
-                    }
-                    doTrade(who, trade);
-                }
-            } catch (e) {
-                print("[舰体链接协议] 点击错误: " + e);
-            }
+            handleShiplinkEntityInteract(event);
         }, PLUGIN
     );
 

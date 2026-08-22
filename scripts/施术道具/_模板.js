@@ -18,6 +18,7 @@ var ByteBuffer = Java.type("java.nio.ByteBuffer");
 
 var STAFF_ID = "VASA_把ID改成你的粘液物品ID";
 var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
+var C_MSG = "§x§f§f§f§5§b§3";
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 var CAST_API = null;
 
@@ -96,14 +97,16 @@ function onUse(event) {
     } catch (e2) { return; }
 
     if (!loadCastApi()) {
-        player.sendMessage(GLTC_PREFIX + "§c施术核心加载失败。");
+        player.sendMessage(GLTC_PREFIX + C_MSG + "施术核心加载失败。");
         return;
     }
-    CAST_API.handleStaffUse(player, {
-        // onSneakUse: function(p) { /* 仅唤出选术环时触发护身技 */ },
-        onAfterCast: function(p, spell) {
-            // ---- 施术后特效 ----
+    try {
+        if (PLUGIN.gltcSpellCoreListener == null && typeof CAST_API.ensureListeners === "function") {
+            CAST_API.ensureListeners();
         }
+    } catch (eEns) {}
+    CAST_API.handleStaffUse(player, {
+        onAfterCast: function (p, spell) {}
     });
 }
 

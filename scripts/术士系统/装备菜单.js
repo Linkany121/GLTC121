@@ -266,8 +266,8 @@ function buildEmptySlot(slotDef) {
     var name = "§5" + slotDef.label;
     var loreArr = [
         "§7类型：§f" + categoryDisplayName(slotDef.category),
-        "§e左键拿起对应类型组件后点此装备",
-        "§e空手点击已装备槽可卸下"
+        "§e左键点击背包中对应组件自动装备",
+        "§e左键点击已装备槽可卸下到背包"
     ];
     var hash = slotDef ? slotDef.skullHash : null;
     var skull = hash ? skullFromHash(hash) : null;
@@ -643,6 +643,71 @@ function giveOrDrop(player, item) {
     while (it.hasNext()) player.getWorld().dropItemNaturally(player.getLocation(), it.next());
 }
 
+/** 取走背包格中 1 个（堆叠则减 1） */
+function takeOneFromInventorySlot(inv, slot) {
+    var stack = inv.getItem(slot);
+    if (!stack || stack.getType() === Material.AIR) return null;
+    var one = stack.clone();
+    one.setAmount(1);
+    if (stack.getAmount() <= 1) inv.setItem(slot, null);
+    else {
+        stack.setAmount(stack.getAmount() - 1);
+        inv.setItem(slot, stack);
+    }
+    return one;
+}
+
+/** 找第一个空且类型匹配的装备槽 */
+function findEmptyEquipSlot(stack, gear) {
+    var defs = getSlotDefs();
+    for (var i = 0; i < defs.length; i++) {
+        if (gear.slots[i]) continue;
+        if (MAGE_API.canEquipInSlot(stack, i)) return i;
+    }
+    return -1;
+}
+
+function equipFromPlayerInv(player, top, bottom, slot) {
+    var stack = bottom.getItem(slot);
+    if (!stack || stack.getType() === Material.AIR) return;
+    if (!MAGE_API.isMageAccessory(stack)) return;
+
+    var uuid = player.getUniqueId().toString();
+    var gear = MAGE_API.getPlayerGear(uuid);
+    var idx = findEmptyEquipSlot(stack, gear);
+    if (idx < 0) {
+        player.sendMessage(GLTC_PREFIX + "§c没有可装配的空槽（类型不匹配或已满）。");
+        return;
+    }
+    var one = takeOneFromInventorySlot(bottom, slot);
+    if (!one) return;
+    var defs = getSlotDefs();
+    gear.slots[idx] = MAGE_API.itemToBase64(one);
+    MAGE_API.savePlayerGear(uuid, gear);
+    try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+    try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
+    top.setItem(defs[idx].gui, one.clone());
+    refreshStatIcons(top, player);
+    player.sendMessage(GLTC_PREFIX + "§a已装备至 §e" + defs[idx].label);
+}
+
+function unequipToPlayerInv(player, top, idx) {
+    var uuid = player.getUniqueId().toString();
+    var gear = MAGE_API.getPlayerGear(uuid);
+    var equippedB64 = gear.slots[idx];
+    if (!equippedB64) return;
+    var item = MAGE_API.itemFromBase64(equippedB64);
+    gear.slots[idx] = null;
+    MAGE_API.savePlayerGear(uuid, gear);
+    try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+    try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
+    var defs = getSlotDefs();
+    top.setItem(defs[idx].gui, buildEmptySlot(defs[idx]));
+    if (item) giveOrDrop(player, item);
+    refreshStatIcons(top, player);
+    player.sendMessage(GLTC_PREFIX + "§e已卸下 §f" + defs[idx].label);
+}
+
 function trySpendClick(player, raw, inv) {
     var session = getSession(inv);
     if (!session || !session.stats) return false;
@@ -717,79 +782,35 @@ function registerListeners() {
 
             var raw = event.getRawSlot();
             var clicked = event.getClickedInventory();
-            var cursor = event.getCursor();
-            var uuid = player.getUniqueId().toString();
+            var click = event.getClick();
 
             if (clicked === top) {
-                // 加点
+                // 加点（仍允许左右键）
                 if (trySpendClick(player, raw, top)) {
                     event.setCancelled(true);
                     return;
                 }
 
                 var idx = equipSlotIndex(raw);
-                if (idx < 0) {
-                    event.setCancelled(true);
-                    return;
-                }
-
-                var click = event.getClick();
-                if (click !== ClickType.LEFT && click !== ClickType.RIGHT) {
-                    event.setCancelled(true);
-                    return;
-                }
                 event.setCancelled(true);
-
-                var defs = getSlotDefs();
-                var gear = MAGE_API.getPlayerGear(uuid);
-                var hasCursor = cursor && cursor.getType() !== Material.AIR;
-                var equippedB64 = gear.slots[idx];
-
-                if (hasCursor) {
-                    if (!MAGE_API.isMageAccessory(cursor)) {
-                        player.sendMessage(GLTC_PREFIX + "§c该物品未在装备加成表中登记。");
-                        return;
-                    }
-                    if (!MAGE_API.canEquipInSlot(cursor, idx)) {
-                        player.sendMessage(GLTC_PREFIX + "§c此槽只能装备：§e" + categoryDisplayName(defs[idx].category));
-                        return;
-                    }
-                    if (cursor.getAmount() !== 1) {
-                        player.sendMessage(GLTC_PREFIX + "§c请将组件数量分离为 1 后再装备。");
-                        return;
-                    }
-                    if (equippedB64) {
-                        var old = MAGE_API.itemFromBase64(equippedB64);
-                        if (old) giveOrDrop(player, old);
-                    }
-                    var one = cursor.clone();
-                    one.setAmount(1);
-                    gear.slots[idx] = MAGE_API.itemToBase64(one);
-                    MAGE_API.savePlayerGear(uuid, gear);
-                    try { MAGE_API.invalidatePlayerCache(uuid); } catch (eEq0) {}
-                    try { MAGE_API.applyMageAttributes(player); } catch (eEq1) {}
-                    event.setCursor(null);
-                    top.setItem(defs[idx].gui, one.clone());
-                    refreshStatIcons(top, player);
-                    player.sendMessage(GLTC_PREFIX + "§a已装备至 §e" + defs[idx].label);
-                    return;
-                }
-
-                if (equippedB64) {
-                    var item = MAGE_API.itemFromBase64(equippedB64);
-                    gear.slots[idx] = null;
-                    MAGE_API.savePlayerGear(uuid, gear);
-                    try { MAGE_API.invalidatePlayerCache(uuid); } catch (eUn0) {}
-                    try { MAGE_API.applyMageAttributes(player); } catch (eUn1) {}
-                    top.setItem(defs[idx].gui, buildEmptySlot(defs[idx]));
-                    if (item) giveOrDrop(player, item);
-                    refreshStatIcons(top, player);
-                    player.sendMessage(GLTC_PREFIX + "§e已卸下 §f" + defs[idx].label);
-                }
+                if (idx < 0) return;
+                // 装备槽：仅左键卸下到背包
+                if (click !== ClickType.LEFT) return;
+                unequipToPlayerInv(player, top, idx);
                 return;
             }
 
-            if (event.isShiftClick()) event.setCancelled(true);
+            // 背包：左键点击组件 → 自动找空槽装备
+            if (clicked != null && clicked !== top) {
+                var cur = event.getCurrentItem();
+                if (cur && cur.getType() !== Material.AIR && MAGE_API.isMageAccessory(cur)) {
+                    event.setCancelled(true);
+                    if (click !== ClickType.LEFT) return;
+                    equipFromPlayerInv(player, top, clicked, event.getSlot());
+                    return;
+                }
+                if (event.isShiftClick()) event.setCancelled(true);
+            }
         }, PLUGIN
     );
 

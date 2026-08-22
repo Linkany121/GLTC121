@@ -7466,9 +7466,29 @@ VASA_测试戒指:
     - '&f[&#96d6a7类型&f]&#fff5b3粒术中转组件'
     - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1 · 松垂体容量 +1'
 
-VASA_木质法杖:
+VASA_粒子补充剂:
   lateInit: false
   item_group: B_C0
+  item:
+    name: "&#9ad8ff涵&#7ec8ff粒&#62b8ff子&#46a8ff补&#2a98ff充&#0e88ff剂"
+    material: honey_bottle
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&f[&#96d6a7类型&f]&#fff5b3消耗品'
+    - '&f[&#96d6a7效果&f]&#fff5b3右键使用，回复 §b20 §f粒子'
+    - '&f[&#96d6a7上限&f]&#fff5b3不超过松垂体容量'
+    - '&f[&e!&f]&#e1ccbd粒子已满时不会消耗。'
+  script: 道具工具/粒子补充剂
+  recipe_type: NULL
+  amount: 1
+
+####################
+##施术道具
+####################
+VASA_木质法杖:
+  lateInit: false
+  item_group: B_C01
   item:
     name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#b9876a表&#bd8961演&#c08a58用&#c38c4f戏&#c78d46法&#cb8f3d短&#ce9034棍"
     material: stick
@@ -7477,9 +7497,9 @@ VASA_木质法杖:
     - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
     - '&#fff5b3一根集成了小型粒子引导组件的棍子；'
     - '&#fff5b3施术时需要频繁排放热量废气，聊胜于无吧。'
-    - '&f[&#96bed6术士序列&f] &f施术道具 第四'
-    - '&f[&#96d6a7术式槽位&f]&#fff5b3 §e六枚'
-    - '&f[&#96d6a7特效&f]&#fff5b3施法时排放蒸汽，冷却0秒。'
+    - '&f[&#96bed6术士序列&f] &f施术道具 第一'
+    - '&f[&#96d6a7术式槽位&f]&#fff5b3 §e二枚'
+    - '&f[&#96d6a7特效&f]&#fff5b3施术时排放蒸汽，冷却0秒。'
     - '&f[&e已刻录术式&f]&#e1ccbd：'
     - '&f[&7未刻录&f]&f'
     - '&f[&7未刻录&f]&f'
@@ -7489,7 +7509,7 @@ VASA_木质法杖:
 
 VASA_辉墨摇篮:
   lateInit: false
-  item_group: B_C0
+  item_group: B_C01
   item:
     name: "&#ffffff辉&#dddddd墨&#bcbcbc摇&#9a9a9a篮"
     material: iron_sword
@@ -7514,23 +7534,19 @@ VASA_辉墨摇篮:
   recipe_type: NULL
   amount: 1
 
-VASA_火球术:
-  lateInit: false
-  item_group: MA_4
-  item:
-    name: "&#a075fd术&#b067fe式&#c159fe载&#d14bff体 丨 &#ff6b2e火&#ff8533球&#ffa338术"
-    material: blue_shulker_box
-    glow: true
-    lore:
-    - '&f[&#d696d0流派&f]&#fff5b3 环夜谷标准流派'
-    - '&f[&#96bed6环数&f]&#fff5b3 1环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 释放1个快速飞行的火球'
-    - '&f[&#96d6a7伤害&f]&#fff5b3&#d8b0a7 1&#d4a69c倍&#d09d91系&#cb9386数&#c7897c的&#c37f71物&#bf7666理&#ba6c5b伤&#b66250害 &f'
-    - '&f[&#96d6a7能耗&f]&#fff5b3 1 粒子'
-    - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'
-    - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
-  recipe_type: NULL
-  amount: 1
+
+####################
+##术式
+####################
+
+#焱招流派
+
+
+#高洲流派
+
+
+
+#沃土流派
 
 VASA_送花:
   lateInit: false
@@ -7542,7 +7558,7 @@ VASA_送花:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 1环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 构造花朵并发射，伤害接触的敌人'
+    - '&f[&#96d6a7效果&f]&#fff5b3 构造并发射一朵向前快速飞行的花'
     - '&f[&#96d6a7伤害&f]&#fff5b3 1.2 倍粒子伤害'
     - '&f[&#96d6a7能耗&f]&#fff5b3 1 粒子'
     - '&f[&#96d6a7冷却&f]&#fff5b3 1 秒'
@@ -7560,7 +7576,7 @@ VASA_微风花流:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 2环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 发射3朵颜色随机的郁金香，使接触的敌人失明并受到伤害'
+    - '&f[&#96d6a7效果&f]&#fff5b3 快速构造颜色随机的郁金香并向前发射，使目标受伤并失明'
     - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
     - '&f[&#96d6a7能耗&f]&#fff5b3 3 粒子'
     - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'
@@ -7578,7 +7594,7 @@ VASA_庇护脉络:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 3环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 召唤一圈活性涵粒子，持续5秒，每秒随机增益并推伤敌人'
+    - '&f[&#96d6a7效果&f]&#fff5b3 构造持续五秒的活性涵粒子环绕周身，每秒随机增益自己并推伤敌人'
     - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
     - '&f[&#96d6a7能耗&f]&#fff5b3 10 粒子'
     - '&f[&#96d6a7冷却&f]&#fff5b3 16 秒'
@@ -7596,7 +7612,7 @@ VASA_花如画卷:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 4环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 右键环绕召唤花朵，左键投出并自动追踪敌人'
+    - '&f[&#96d6a7效果&f]&#fff5b3 持续构造花朵使其环绕自身，左键时向前投出全部未发射花朵，花朵将自动跟随视线'
     - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
     - '&f[&#96d6a7能耗&f]&#fff5b3 16 粒子'
     - '&f[&#96d6a7冷却&f]&#fff5b3 12 秒'
@@ -7604,22 +7620,32 @@ VASA_花如画卷:
   recipe_type: NULL
   amount: 1
 
-VASA_粒子补充剂:
+#环夜谷标准流派
+
+VASA_火球术:
   lateInit: false
-  item_group: B_C0
+  item_group: MA_4
   item:
-    name: "&#9ad8ff涵&#7ec8ff粒&#62b8ff子&#46a8ff补&#2a98ff充&#0e88ff剂"
-    material: honey_bottle
+    name: "&#a075fd术&#b067fe式&#c159fe载&#d14bff体 丨 &#ff6b2e火&#ff8533球&#ffa338术"
+    material: blue_shulker_box
     glow: true
     lore:
-    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&f[&#96d6a7类型&f]&#fff5b3消耗品'
-    - '&f[&#96d6a7效果&f]&#fff5b3右键使用，回复 §b20 §f粒子'
-    - '&f[&#96d6a7上限&f]&#fff5b3不超过松垂体容量'
-    - '&f[&e!&f]&#e1ccbd粒子已满时不会消耗。'
-  script: 道具工具/粒子补充剂
+    - '&f[&#d696d0流派&f]&#fff5b3 环夜谷标准流派'
+    - '&f[&#96bed6环数&f]&#fff5b3 1环'
+    - '&f[&#96d6a7效果&f]&#fff5b3 立刻构造出一颗快速向前飞行的火焰团'
+    - '&f[&#96d6a7伤害&f]&#fff5b3&#d8b0a7 1&#d4a69c倍&#d09d91系&#cb9386数&#c7897c的&#c37f71物&#bf7666理&#ba6c5b伤&#b66250害 &f'
+    - '&f[&#96d6a7能耗&f]&#fff5b3 1 粒子'
+    - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'
+    - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
   recipe_type: NULL
   amount: 1
+
+#无/特殊流派
+
+
+
+
+
 
 
 

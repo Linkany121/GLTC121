@@ -129,7 +129,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
     Bukkit.getLogger().info("[GLTC监听] 已加载 术士系统");
 })();
 
-// ---------- 3) 施术核心：仅由法杖脚本本上下文 eval（Graal 无法跨脚本调 JS API）----------
+// ---------- 3) 施术核心：仅由施术道具脚本本上下文 eval（Graal 无法跨脚本调 JS API）----------
 (function setupSpellCoreNote() {
-    Bukkit.getLogger().info("[GLTC监听] 施术核心改由法杖脚本加载（避免双上下文状态分裂）");
+    Bukkit.getLogger().info("[GLTC监听] 施术核心改由施术道具脚本加载（避免双上下文状态分裂）");
 })();

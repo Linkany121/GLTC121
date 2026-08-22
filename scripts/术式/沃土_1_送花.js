@@ -34,17 +34,31 @@ function loadUtil() {
 
 var UTIL = loadUtil();
 
-// ======================== 可调配置 ========================
+// ======================== 送花 · 可调配置 ========================
+// 改完后重载附属 / 重新加载术式脚本生效
+
+/** 物品 / 登记 ID */
+var SPELL_ID = "VASA_送花";
+/** 显示名（播报 / 登记） */
 var SPELL_NAME = "送花";
+/** 环数 */
 var SPELL_RING = 1;
+/** 粒子消耗 */
 var SPELL_COST = 1;
+/** 冷却（毫秒） */
 var SPELL_COOLDOWN_MS = 1000;
+/** 伤害系数（最终 = 粒子强度 × 系数 × GLI） */
 var SPELL_COEFFICIENT = 1.2;
 
-var FLY_SPEED = 5;
+/** 飞行速度（格/秒） */
+var FLY_SPEED = 10;
+/** 最大飞行距离（格）；超时消散 */
 var MAX_DISTANCE = 32;
+/** 触碰生物的判定半宽（格） */
 var HIT_HALF = 0.45;
+/** 出生点相对眼睛向前偏移（格） */
 var SPAWN_FORWARD = 0.7;
+/** 飞行展示体材质（默认虞美人） */
 var FLOWER_MAT = null;
 try { FLOWER_MAT = Material.matchMaterial("POPPY"); } catch (e0) {}
 if (FLOWER_MAT == null) {
@@ -53,7 +67,7 @@ if (FLOWER_MAT == null) {
 if (FLOWER_MAT == null) {
     try { FLOWER_MAT = Material.POPPY; } catch (e2) {}
 }
-// ======================== 配置结束 ========================
+// ======================== 配置结束（以下勿随意改） ========================
 
 var SPEED_PER_TICK = FLY_SPEED / 20.0;
 var MAX_TICKS = Math.ceil(MAX_DISTANCE / SPEED_PER_TICK);
@@ -91,17 +105,72 @@ function findOnline(uuid) {
 }
 
 function dealHit(ent, dmg, caster, mageApi, spellInfo) {
-    if (UTIL && UTIL.dealPulseSpellDamage) {
-        UTIL.dealPulseSpellDamage(ent, dmg, caster, spellInfo, mageApi);
-    } else if (mageApi && mageApi.dealPulseDamage) {
-        mageApi.dealPulseDamage(ent, dmg, caster);
+    if (UTIL && UTIL.dealParticleSpellDamage) {
+        UTIL.dealParticleSpellDamage(ent, dmg, caster, spellInfo);
     } else {
         try { ent.damage(dmg, caster); } catch (e) {}
     }
 }
 
+function getSessionApi() {
+    try {
+        if (PLUGIN.gltcSpellSessionApi != null) return PLUGIN.gltcSpellSessionApi;
+    } catch (e0) {}
+    return UTIL && UTIL.spellSession ? UTIL.spellSession : null;
+}
+
+/** uuid -> { alive, task, display, sessionToken }[] —— 允许多弹并存 */
+function projectileStore() {
+    try {
+        if (PLUGIN.gltc_songhua_proj != null) return PLUGIN.gltc_songhua_proj;
+    } catch (e0) {}
+    var m = {};
+    try { PLUGIN.gltc_songhua_proj = m; } catch (e1) {}
+    return m;
+}
+
+function stopProjectile(st, invokeSessionEnd) {
+    if (!st) return;
+    st.alive = false;
+    try { if (st.task != null) st.task.cancel(); } catch (e0) {}
+    try { removeDisplay(st.display); } catch (e1) {}
+    st.display = null;
+    if (invokeSessionEnd && st.sessionToken) {
+        try {
+            var api = getSessionApi();
+            if (api && typeof api.end === "function") api.end(st.ownerUuid, st.sessionToken, false);
+        } catch (e2) {}
+    }
+    st.sessionToken = null;
+}
+
+function clearAllProjectiles(uuid) {
+    uuid = String(uuid);
+    var store = projectileStore();
+    var list = store[uuid];
+    if (!list || list.length === 0) return;
+    for (var i = 0; i < list.length; i++) stopProjectile(list[i], false);
+    try { delete store[uuid]; } catch (e) { store[uuid] = []; }
+}
+
+function detachProjectile(uuid, st) {
+    uuid = String(uuid);
+    var store = projectileStore();
+    var list = store[uuid];
+    if (!list) return;
+    var kept = [];
+    for (var i = 0; i < list.length; i++) {
+        if (list[i] !== st) kept.push(list[i]);
+    }
+    if (kept.length === 0) {
+        try { delete store[uuid]; } catch (e) { store[uuid] = []; }
+    } else {
+        store[uuid] = kept;
+    }
+}
+
 ({
-    id: "VASA_送花",
+    id: SPELL_ID,
     name: SPELL_NAME,
     ring: SPELL_RING,
     cost: SPELL_COST,
@@ -113,18 +182,43 @@ function dealHit(ent, dmg, caster, mageApi, spellInfo) {
         var dir = eye.getDirection().normalize();
         var dmg = mageApi.calcSpellDamage(player, SPELL_COEFFICIENT);
         var loc = eye.clone().add(dir.clone().multiply(SPAWN_FORWARD));
-        var uuid = player.getUniqueId().toString();
+        var uuid = String(player.getUniqueId().toString());
         var spellInfo = { ring: SPELL_RING, name: SPELL_NAME };
         var ticks = 0;
         var display = spawnFlowerDisplay(world, loc);
+
+        var st = {
+            alive: true,
+            task: null,
+            display: display,
+            sessionToken: null,
+            ownerUuid: uuid
+        };
+        var store = projectileStore();
+        if (!store[uuid]) store[uuid] = [];
+        store[uuid].push(st);
+
+        var api = getSessionApi();
+        if (api && typeof api.begin === "function") {
+            try {
+                // replace:false —— 允许多朵并存；切术/退服由 onClear 全清
+                st.sessionToken = api.begin(player, SPELL_ID, function() {
+                    clearAllProjectiles(uuid);
+                }, { replace: false });
+            } catch (eBeg) {}
+        }
 
         try { world.playSound(eye, Sound.BLOCK_PINK_PETALS_PLACE, 0.9, 1.2); } catch (eS) {
             try { world.playSound(eye, Sound.BLOCK_GRASS_PLACE, 0.9, 1.35); } catch (eS2) {}
         }
 
-        var task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
+        st.task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
             run: function() {
                 try {
+                    if (!st.alive) {
+                        try { st.task.cancel(); } catch (eDead) {}
+                        return;
+                    }
                     ticks++;
                     var sx = dir.getX() * SPEED_PER_TICK;
                     var sy = dir.getY() * SPEED_PER_TICK;
@@ -135,7 +229,7 @@ function dealHit(ent, dmg, caster, mageApi, spellInfo) {
                         if (mid.getBlock().getType().isSolid()) hitSolid = true;
                     } catch (eM) {}
                     loc.add(sx, sy, sz);
-                    moveDisplay(display, loc);
+                    moveDisplay(st.display, loc);
                     try { world.spawnParticle(Particle.CHERRY_LEAVES, loc, 2, 0.05, 0.05, 0.05, 0); } catch (eP) {}
                     try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
 
@@ -154,12 +248,12 @@ function dealHit(ent, dmg, caster, mageApi, spellInfo) {
                         var caster = findOnline(uuid) || player;
                         if (hitEnt) dealHit(hitEnt, dmg, caster, mageApi, spellInfo);
                         hitFx(world, loc);
-                        removeDisplay(display);
-                        try { task.cancel(); } catch (eC) {}
+                        stopProjectile(st, true);
+                        detachProjectile(uuid, st);
                     }
                 } catch (ex) {
-                    removeDisplay(display);
-                    try { task.cancel(); } catch (e10) {}
+                    stopProjectile(st, true);
+                    detachProjectile(uuid, st);
                 }
             }
         })), 0, 1);

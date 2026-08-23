@@ -6,6 +6,7 @@
  * - 蹲下右键：开关选术环；唤出成功时同时触发施术道具护身技（onSneakUse）；绝不施术
  * - 开选术环 / 换手持：清术式会话效果；层数仅在换栏/离手/退服时清
  * - 右键：Interact + SF onUse 双入口，靠 debounce 去重
+ * - 所有术式相关触发（施术 / 选术环 / 术式左键 / 护身）均要求主手持施术道具
  *
  * AI 新建术式/道具规范：scripts/_AI术式与施术道具生成指南.js
  * 禁止在本文件添加具体术式 ID 或术式专用逻辑。
@@ -26,6 +27,21 @@ var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var PlayerItemHeldEvent = Java.type("org.bukkit.event.player.PlayerItemHeldEvent");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+/** Graal：监听参数常为父类且 Java.cast 不可用，反射取 getDamager */
+var _EDBE_GET_DAMAGER = (function () {
+    try { return EntityDamageByEntityEvent.getMethod("getDamager"); } catch (e) { return null; }
+})();
+function damageByEntityDamager(event) {
+    if (event == null) return null;
+    try {
+        if (!(event instanceof EntityDamageByEntityEvent)) return null;
+    } catch (e0) { return null; }
+    if (_EDBE_GET_DAMAGER != null) {
+        try { return _EDBE_GET_DAMAGER.invoke(event); } catch (e1) {}
+    }
+    try { return event.getDamager(); } catch (e2) {}
+    return null;
+}
 var PlayerMoveEvent = Java.type("org.bukkit.event.player.PlayerMoveEvent");
 var PlayerSwapHandItemsEvent = Java.type("org.bukkit.event.player.PlayerSwapHandItemsEvent");
 var InventoryClickEvent = Java.type("org.bukkit.event.inventory.InventoryClickEvent");
@@ -95,7 +111,7 @@ var EROSION_HP_PCT = 0.2;
 
 /**
  * 术式槽整组吸附方位：开环瞬间以玩家朝向为 0°，
- * 本次选术仅在相对的 0° / 120° / 240°（‑120°）三个方向间切换
+ * 本次选术仅在相对的 0° / 130° / 230° 三个方向间切换（视觉微调，非严格 120° 三等分）
  */
 function normalizeYaw(yawDeg) {
     return ((Number(yawDeg) % 360) + 360) % 360;
@@ -113,7 +129,7 @@ function basis(yawDeg) {
     return { fx: fx, fz: fz, rx: -fz, rz: fx };
 }
 
-/** 以 baseYaw 为 0°，生成本次可切换的三向：0° / +120° / +240° */
+/** 以 baseYaw 为 0°，生成本次可切换的三向：0° / +130° / +230° */
 function buildRelativeQuads(baseYawDeg) {
     var names = ["前", "右斜", "左斜"];
     var deltas = [0, 130, 230];
@@ -177,11 +193,13 @@ var RING_CHAT_GATE_MS = 100;
 
 /**
  * RING_TICK_PERIOD —— 选术环跟随任务周期（Bukkit tick，20 tick = 1s）
- * 管什么：开环后 runTaskTimer 的间隔：刷新圆环粒子 + TextDisplay 跟随。
- * 不管什么：右键响应、CD、施术。
- * 调参：1 = 每 tick（最跟手、开销最大）；加大可降 TPS 压力，文字/粒子会变「跳」。
+ * 管什么：开环后 runTaskTimer 的间隔：TextDisplay 跟随 + 粒子（粒子见 RING_PARTICLE_EVERY）。
+ * 调参：1 = 信息每 tick 更新；粒子可另设 2 tick 降负载。
  */
 var RING_TICK_PERIOD = 1;
+
+/** 环粒子刷新间隔（tick）；信息行仍每 RING_TICK_PERIOD 更新 */
+var RING_PARTICLE_EVERY = 2;
 
 /**
  * META_STAFF_USE_AT —— 玩家 Metadata 键：上次成功通过 debounce 的时间戳(ms)
@@ -376,12 +394,12 @@ function markStaffInteractHandled(player) {
         var tick = currentServerTick();
         var now = Date.now();
         if (tick >= 0) {
-            var tv = java.lang.Long.valueOf(tick);
+            var tv = java.lang.Long.parseLong(String(Math.floor(tick)), 10);
             staffInteractTickMap.put(gk, tv);
             staffUseTickMap.put(gk, tv);
             try { staffUseTickMap.put(String(player.getUniqueId().toString()), tv); } catch (eT2) {}
         }
-        var mv = java.lang.Long.valueOf(now);
+        var mv = java.lang.Long.parseLong(String(Math.floor(now)), 10);
         staffUseMsMap.put(gk, mv);
         try { staffUseMsMap.put(String(player.getUniqueId().toString()), mv); } catch (eM2) {}
         setMetaLong(player, META_STAFF_USE_AT, now);
@@ -416,13 +434,13 @@ function shouldClickDebounce(player) {
 
         if (tick >= 0) {
             try {
-                var tv = java.lang.Long.valueOf(tick);
+                var tv = java.lang.Long.parseLong(String(Math.floor(tick)), 10);
                 staffUseTickMap.put(gk, tv);
                 staffUseTickMap.put(uuid, tv);
             } catch (eT) {}
         }
         try {
-            var mv = java.lang.Long.valueOf(now);
+            var mv = java.lang.Long.parseLong(String(Math.floor(now)), 10);
             staffUseMsMap.put(gk, mv);
             staffUseMsMap.put(uuid, mv);
         } catch (eM) {}
@@ -994,7 +1012,7 @@ function entityOf(uuidStr) {
     return null;
 }
 
-function clearOwnerDisplays(world, ownerUuid) {
+function clearOwnerDisplays(world, ownerUuid, sweepOrphans) {
     ownerUuid = String(ownerUuid);
     var gk = mapUuidKey(ownerUuid);
     var ents = null;
@@ -1010,20 +1028,24 @@ function clearOwnerDisplays(world, ownerUuid) {
             } catch (e) {}
         }
     }
-    // 兜底：扫玩家附近残留（含 map 未登记的孤儿展示体）
-    if (!world) return;
+    if (sweepOrphans !== true || !world) return;
     try {
         var p = getOnline(ownerUuid);
         var center = p != null ? p.getLocation() : null;
         if (center == null) return;
         var nearby = world.getNearbyEntities(center, 24, 16, 24);
         var it = nearby.iterator();
-        while (it.hasNext()) {
+        var swept = 0;
+        var maxSweep = 32;
+        while (it.hasNext() && swept < maxSweep) {
             var ent2 = it.next();
             try {
                 var pdc = ent2.getPersistentDataContainer();
                 if (!pdc.has(KEY_RING, PersistentDataType.STRING)) continue;
-                if (String(pdc.get(KEY_OWNER, PersistentDataType.STRING)) === ownerUuid) ent2.remove();
+                if (String(pdc.get(KEY_OWNER, PersistentDataType.STRING)) === ownerUuid) {
+                    ent2.remove();
+                    swept++;
+                }
             } catch (e2) {}
         }
     } catch (e3) {}
@@ -1290,7 +1312,18 @@ function tickOneRing(uuid) {
         return;
     }
     p.getInventory().setItemInMainHand(hand);
-    spawnRingParticles(p);
+    var ringTick = 0;
+    try {
+        var rt = ringMovePulseMap.get(mapUuidKey(uuid));
+        if (rt != null) ringTick = Number(rt) || 0;
+    } catch (eRt) {}
+    ringTick++;
+    try { ringMovePulseMap.put(mapUuidKey(uuid), java.lang.Integer.parseInt(String(ringTick), 10)); } catch (ePut) {}
+    var particleEvery = Number(RING_PARTICLE_EVERY) || 2;
+    if (particleEvery < 1) particleEvery = 1;
+    if (ringTick % particleEvery === 0) {
+        spawnRingParticles(p);
+    }
     try {
         var openedTick = ringOpenedAtTickMap.get(mapUuidKey(uuid));
         var curTick = currentServerTick();
@@ -1339,7 +1372,7 @@ function closeSpellRingByUuid(uuid) {
         }
     } else {
         var pClear = getOnline(uuid);
-        if (pClear) clearOwnerDisplays(pClear.getWorld(), uuid);
+        if (pClear) clearOwnerDisplays(pClear.getWorld(), uuid, true);
     }
     var p = getOnline(uuid);
     if (p != null && p.isOnline()) syncRelatedMageData(p);
@@ -1362,11 +1395,11 @@ function tryBeginRingOpen(uuid) {
         }
         var openGate = sharedConcurrentMap("gltc_ring_open_gate_ms");
         var now = Date.now();
-        var prev = openGate.putIfAbsent(gk, java.lang.Long.valueOf(now));
+        var prev = openGate.putIfAbsent(gk, java.lang.Long.parseLong(String(Math.floor(now)), 10));
         if (prev != null) {
             lockMap.remove(gk);
             if (now - Number(prev) < RING_OPEN_DEBOUNCE_MS) return false;
-            openGate.put(gk, java.lang.Long.valueOf(now));
+            openGate.put(gk, java.lang.Long.parseLong(String(Math.floor(now)), 10));
             if (lockMap.putIfAbsent(gk, java.lang.Boolean.TRUE) != null) return false;
         }
         return true;
@@ -1442,7 +1475,7 @@ function openSpellRing(player) {
         }
         try {
             var ot = currentServerTick();
-            if (ot >= 0) ringOpenedAtTickMap.put(mapUuidKey(uuid), java.lang.Long.valueOf(ot));
+            if (ot >= 0) ringOpenedAtTickMap.put(mapUuidKey(uuid), java.lang.Long.parseLong(String(Math.floor(ot)), 10));
         } catch (eOt) {}
         startRingTask(uuid);
         var hasTask = false;
@@ -1684,6 +1717,12 @@ function tryCastSelected(player, opts) {
             return { ok: false };
         }
         checkCastCooldown(player, spellId, spell.cooldownMs || 1000, true);
+        var sessApi = getSpellSessionApi();
+        if (sessApi && typeof sessApi.clear === "function") {
+            try {
+                sessApi.clear(player, { onlySpellId: String(spellId), reason: "recast" });
+            } catch (eRc) {}
+        }
         notifySpellContextChange(player, String(spellId), "cast");
         var castOk = false;
         try {
@@ -1785,6 +1824,11 @@ function handleStaffUse(player, opts) {
 function trySpellLeftClick(player) {
     if (!player || !(player instanceof Player)) return false;
     if (player.isSneaking()) return false;
+    // 未手持施术道具时不触发任何术式左键（含有状态左键）
+    if (!isMageStaffItem(player.getInventory().getItemInMainHand())) return false;
+    try {
+        if (player.getInventory().getItemInMainHand().getAmount() !== 1) return false;
+    } catch (eAmt) { return false; }
     try {
         var sess = getSpellSessionApi();
         if (sess && typeof sess.handleLeftClick === "function") {
@@ -1810,7 +1854,7 @@ function handleStaffLeftClick(player) {
     return true;
 }
 
-var SPELL_CORE_LISTENER_VER = 11;
+var SPELL_CORE_LISTENER_VER = 13;
 
 function resetSpellCoreRingState() {
     try {
@@ -1845,6 +1889,40 @@ function resetSpellCoreRingState() {
 }
 
 /** @param opts.force 仅热重载时 true：清环状态并强制重挂监听 */
+function purgePlayerStaffMaps(uuid) {
+    uuid = String(uuid);
+    var gk = mapUuidKey(uuid);
+    try { castInFlightMap.remove(gk); } catch (e0) {}
+    try { ringActionCdMap.remove(uuid); } catch (e1) {}
+    try { ringChatGateMap.remove(uuid); } catch (e2) {}
+    try { staffUseMsMap.remove(gk); } catch (e3) {}
+    try { staffUseMsMap.remove(uuid); } catch (e3b) {}
+    try { staffUseTickMap.remove(gk); } catch (e4) {}
+    try { staffUseTickMap.remove(uuid); } catch (e4b) {}
+    try { staffInteractTickMap.remove(gk); } catch (e5) {}
+    try { lastMainStaffMap.remove(gk); } catch (e6) {}
+    try { ringMovePulseMap.remove(gk); } catch (e7) {}
+    try {
+        var prefix = uuid + "|";
+        var toRemove = new java.util.ArrayList();
+        var it = castCdMap.keySet().iterator();
+        while (it.hasNext()) {
+            var k = String(it.next());
+            if (k.indexOf(prefix) === 0) toRemove.add(k);
+        }
+        for (var ri = 0; ri < toRemove.size(); ri++) {
+            try { castCdMap.remove(toRemove.get(ri)); } catch (eCd) {}
+        }
+    } catch (eCast) {}
+    try {
+        var huimo = PLUGIN.gltc_huimo_ability_cd;
+        if (huimo != null) {
+            huimo.remove(gk);
+            huimo.remove(uuid);
+        }
+    } catch (eH) {}
+}
+
 function unregisterSpellCoreListenerInstance(inst) {
     if (inst == null) return;
     try { PlayerInteractEvent.getHandlerList().unregister(inst); } catch (e0) {}
@@ -1949,8 +2027,9 @@ function registerListeners(opts) {
             function(l, event) {
                 try {
                     if (event.isCancelled()) return;
-                    var damager = event.getDamager();
-                    if (!(damager instanceof Player)) return;
+                    var damager = damageByEntityDamager(event);
+                    if (damager == null || !(damager instanceof Player)) return;
+                    // 异能武器等非施术道具：直接跳过，避免与武器左键抢事件
                     if (!isMageStaffItem(damager.getInventory().getItemInMainHand())) return;
                     if (!requireSingleStaff(damager)) return;
                     if (damager.isSneaking()) return;
@@ -1975,6 +2054,7 @@ function registerListeners(opts) {
             try {
                 var quuid = String(event.getPlayer().getUniqueId().toString());
                 closeSpellRingByUuid(quuid);
+                purgePlayerStaffMaps(quuid);
                 try { lastMainStaffMap.remove(mapUuidKey(quuid)); } catch (eLs) {}
                 var sess = getSpellSessionApi();
                 if (sess) sess.clear(quuid, { reason: "quit" });

@@ -8,7 +8,20 @@ var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+var _EDBE_GET_DAMAGER = (function () {
+    try { return EntityDamageByEntityEvent.getMethod("getDamager"); } catch (e) { return null; }
+})();
+function edbeDamager(event) {
+    if (event == null) return null;
+    try { if (!(event instanceof EntityDamageByEntityEvent)) return null; } catch (e0) { return null; }
+    if (_EDBE_GET_DAMAGER != null) {
+        try { return _EDBE_GET_DAMAGER.invoke(event); } catch (e1) {}
+    }
+    try { return event.getDamager(); } catch (e2) {}
+    return null;
+}
 var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
+var PlayerItemHeldEvent = Java.type("org.bukkit.event.player.PlayerItemHeldEvent");
 var Player = Java.type("org.bukkit.entity.Player");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -20,10 +33,16 @@ var PotionEffect = Java.type("org.bukkit.potion.PotionEffect");
 var PotionEffectType = Java.type("org.bukkit.potion.PotionEffectType");
 var Vector = Java.type("org.bukkit.util.Vector");
 var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
+var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 var UUIDClass = Java.type("java.util.UUID");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 
-var ITEM_ID = "FKR_无锋破军";
+var POJUN_ITEM_ID = "FKR_无锋破军";
+var META_POJUN_TASK_IDS = "gltc_pojun_task_ids";
+var META_POJUN_BANNER_MAP = "gltc_pojun_banner_map";
+var META_POJUN_HEAVY_EDGE = "gltc_pojun_heavy_edge";
+var META_POJUN_HEAVY_EDGE_TIME = "gltc_pojun_heavy_edge_time";
+var pojunTaskIds = [];
 var ABILITY_POWER_DEFAULT = 10;
 var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
 var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
@@ -85,10 +104,67 @@ var RED_DUST_BIG  = new DustOptions(Color.fromRGB(230, 50, 50), 2.5);   // 大�
 var DARK_RED_DUST  = new DustOptions(Color.fromRGB(139, 0, 0), 1.0);    // 深红色（长矛）
 var DARK_RED_DUST_BIG = new DustOptions(Color.fromRGB(150, 10, 10), 2.2); // 大型深红色（爆发）
 
-// === 状态映射 ===
-var heavyEdgeMap     = new java.util.HashMap(); // UUID -> 重锋层数
-var heavyEdgeTimeMap = new java.util.HashMap(); // UUID -> 上次获得/刷新重锋时间(ms)
-var bannerMap        = new java.util.HashMap(); // UUID -> 旌旗数组 [{loc, born}]
+// === 状态映射（挂 plugin Metadata，避免 Graal 热重载后事件与定时任务读写不同 Map）===
+function getPojunSharedMap(metaKey) {
+    try {
+        if (plugin.hasMetadata(metaKey)) {
+            var existing = plugin.getMetadata(metaKey).get(0).value();
+            if (existing != null) return existing;
+        }
+    } catch (e) {}
+    var map = new java.util.HashMap();
+    try { plugin.setMetadata(metaKey, new FixedMetadataValue(plugin, map)); } catch (e2) {}
+    return map;
+}
+function wasHolding(stack) {
+    if (!stack || stack.getType() === Material.AIR) return false;
+    var sfItem = SlimefunItem.getByItem(stack);
+    return sfItem != null && isPojunItemId(sfItem.getId());
+}
+function clearWeaponState(player) {
+    if (player == null) return;
+    var uuid = player.getUniqueId().toString();
+    heavyEdgeMap.remove(uuid);
+    heavyEdgeTimeMap.remove(uuid);
+    bannerMap.remove(uuid);
+}
+var heavyEdgeMap     = getPojunSharedMap(META_POJUN_HEAVY_EDGE);      // UUID -> 重锋层数
+var heavyEdgeTimeMap = getPojunSharedMap(META_POJUN_HEAVY_EDGE_TIME); // UUID -> 上次获得/刷新重锋时间(ms)
+var bannerMap        = getPojunSharedMap(META_POJUN_BANNER_MAP);      // UUID -> 旌旗列表
+
+function newBannerRecord(loc, born) {
+    var rec = new java.util.HashMap();
+    rec.put("loc", loc);
+    rec.put("born", java.lang.Long.valueOf(born));
+    return rec;
+}
+function readBannerLoc(banner) {
+    if (banner == null) return null;
+    try { return banner.get("loc"); } catch (e1) {}
+    try { return banner.loc; } catch (e2) {}
+    return null;
+}
+function readBannerBorn(banner) {
+    if (banner == null) return 0;
+    try {
+        var b = banner.get("born");
+        return b != null ? Number(b) : 0;
+    } catch (e1) {}
+    try { return Number(banner.born) || 0; } catch (e2) {}
+    return 0;
+}
+function isAttackCooldownReady(player) {
+    try {
+        var scale = player.getAttackStrengthScale(0.5);
+        if (scale >= 0.98) return true;
+    } catch (e0) {}
+    var cd = 1.0;
+    try { cd = player.getAttackCooldown(); } catch (e) {}
+    if (cd >= 0.98) return true;
+  // 部分 Paper 版本：满冷却时返回 0（距上次攻击 tick）
+    if (cd <= 0.05) return true;
+    return false;
+}
 
 function getAbilityPower() {
     try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
@@ -128,6 +204,19 @@ function notifyAbilityDamage(player, item, damage) {
         player.sendMessage(msg);
     }
 }
+function notifyAbilityDamageSummary(player, item, totalDamage, hitCount) {
+    if (player == null || !player.isOnline() || hitCount <= 0 || totalDamage <= 0) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item)
+        + " §f对 §e" + hitCount + " §f个目标共造成 §c"
+        + formatAbilityDamage(totalDamage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
 function dealSitDamage(target, player, item, sitMult) {
     var dmg = calcSitDamage(sitMult);
     target.setNoDamageTicks(0);
@@ -139,11 +228,21 @@ function dealSitDamage(target, player, item, sitMult) {
 // ===================================================================
 // 辅助：检查玩家是否手持破军
 // ===================================================================
+function isPojunItemId(id) {
+    if (id == null) return false;
+    var s = String(id);
+    return s === "FKR_无锋破军" || s.endsWith("FKR_无锋破军") || s.indexOf("无锋破军") >= 0;
+}
 function isHolding(player) {
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === Material.AIR) return false;
     var sfItem = SlimefunItem.getByItem(item);
-    return sfItem != null && sfItem.getId() === ITEM_ID;
+    if (sfItem != null && isPojunItemId(sfItem.getId())) return true;
+    try {
+        var meta = item.getItemMeta();
+        if (meta != null && meta.hasDisplayName() && String(meta.getDisplayName()).indexOf("破军") >= 0) return true;
+    } catch (e) {}
+    return false;
 }
 
 // ===================================================================
@@ -175,15 +274,11 @@ function onHit(damager, target) {
         ));
     }
 
-    // 生成旌旗：玩家视野范围内（视线方向 ±60°扇形，半径2-6格），只在地面
-    var viewYaw = pLoc.getYaw();
-    var angleRad = (viewYaw + 90) * Math.PI / 180; // MC yaw转弧度：0°=南方，转向量需+90°
-    var fovHalf = 60; // 视野扇形半角60°（左右各60°，共120°）
-    var randAngle = (Math.random() * 2 - 1) * fovHalf * Math.PI / 180;
-    var finalAngle = angleRad + randAngle;
-    var dist = 1.5 + Math.random() * BANNER_RADIUS;
-    var x = pLoc.getX() + Math.cos(finalAngle) * dist;
-    var z = pLoc.getZ() + Math.sin(finalAngle) * dist;
+    // 生成旌旗：自身 12 格范围内随机地面点
+    var ang = Math.random() * Math.PI * 2;
+    var dist = Math.random() * BANNER_RADIUS;
+    var x = pLoc.getX() + Math.cos(ang) * dist;
+    var z = pLoc.getZ() + Math.sin(ang) * dist;
     var y = findGroundY(world, Math.floor(x), Math.floor(z), Math.round(pLoc.getY()));
 
     var bannerLoc = new org.bukkit.Location(world, x, y, z);
@@ -197,7 +292,24 @@ function onHit(damager, target) {
     if (list.size() >= BANNER_MAX_PER_PLAYER) {
         list.remove(0);
     }
-    list.add({ loc: bannerLoc, born: Date.now() });
+    list.add(newBannerRecord(bannerLoc, Date.now()));
+}
+
+// ===================================================================
+// 近战命中入口（对齐伏地/风墟：内联主手物品校验 + 满冷却生成旌旗）
+// ===================================================================
+function onPojunEntityDamage(event) {
+    try {
+        if (event.isCancelled()) return;
+        var damager = edbeDamager(event);
+        if (!(damager instanceof Player)) return;
+        if (!isHolding(damager)) return;
+        var target = event.getEntity();
+        if (!(target instanceof LivingEntity) || target.isDead()) return;
+        try { ignoreArmor(event); } catch (eArmor) {}
+        if (!isAttackCooldownReady(damager)) return;
+        onHit(damager, target);
+    } catch (e) {}
 }
 
 // ===================================================================
@@ -247,7 +359,7 @@ function gainHeavyEdge(player) {
 // ===================================================================
 function onUse(event) {
     var player = event.getPlayer();
-    if (!isHolding(player)) return;
+    if (player == null) return;
 
     var uuid = player.getUniqueId().toString();
     var stacks = heavyEdgeMap.containsKey(uuid) ? heavyEdgeMap.get(uuid) : 0;
@@ -414,6 +526,10 @@ function dealCrushDamage(player) {
     var eyeLoc = player.getEyeLocation();
     var viewDir = eyeLoc.getDirection().normalize();
     var fovCos = Math.cos(CRUSH_FOV_DEG / 2 * Math.PI / 180);
+    var item = player.getInventory().getItemInMainHand();
+    var sitDmg = calcSitDamage(SIT_CRUSH_MULT);
+    var totalDmg = 0;
+    var hitCount = 0;
 
     var nearby = world.getNearbyEntities(eyeLoc, CRUSH_RANGE, CRUSH_RANGE, CRUSH_RANGE);
     var it = nearby.iterator();
@@ -427,24 +543,42 @@ function dealCrushDamage(player) {
         var dot = viewDir.dot(toEnt.normalize());
         if (dot < fovCos) continue;
 
-        dealSitDamage(ent, player, player.getInventory().getItemInMainHand(), SIT_CRUSH_MULT);
+        ent.setNoDamageTicks(0);
+        ent.damage(sitDmg, player);
+        totalDmg += sitDmg;
+        hitCount++;
         var entLoc = ent.getLocation().add(0, ent.getHeight() / 2, 0);
         world.spawnParticle(Particle.DUST, entLoc, 25, 0.8, 1.2, 0.8, 0, RED_DUST_BIG);
         world.playSound(entLoc, "entity.player.attack.crit", 1.5, 0.7);
     }
+    notifyAbilityDamageSummary(player, item, totalDmg, hitCount);
 }
 
 // ===================================================================
 // 旌旗渲染与靠近检测任务
 // ===================================================================
 var bannerTask = null;
-function startBannerTask() {
+function cancelPojunTaskIds() {
     try {
-        if (plugin.pojunBannerTaskId != null) {
-            Bukkit.getScheduler().cancelTask(Number(plugin.pojunBannerTaskId));
-            plugin.pojunBannerTaskId = null;
+        for (var i = 0; i < pojunTaskIds.length; i++) {
+            try { Bukkit.getScheduler().cancelTask(Number(pojunTaskIds[i])); } catch (eC) {}
+        }
+    } catch (e1) {}
+    pojunTaskIds = [];
+    try {
+        if (plugin.hasMetadata(META_POJUN_TASK_IDS)) {
+            var oldIds = plugin.getMetadata(META_POJUN_TASK_IDS).get(0).value();
+            if (oldIds != null) {
+                for (var j = 0; j < oldIds.length; j++) {
+                    try { Bukkit.getScheduler().cancelTask(Number(oldIds[j])); } catch (e2) {}
+                }
+            }
+            plugin.removeMetadata(META_POJUN_TASK_IDS, plugin);
         }
     } catch (e0) {}
+}
+function startBannerTask() {
+    cancelPojunTaskIds();
     if (bannerTask != null) {
         try { bannerTask.cancel(); } catch (e) {}
         bannerTask = null;
@@ -461,18 +595,20 @@ function startBannerTask() {
                     var out = new java.util.ArrayList();
                     var plEntity = Bukkit.getEntity(UUIDClass.fromString(uuid));
                     var pl = (plEntity instanceof Player) ? plEntity : null;
-                    var w = (pl != null && pl.isOnline()) ? pl.getWorld() : null;
 
                     for (var i = 0; i < list.size(); i++) {
                         var banner = list.get(i);
-                        var loc = banner.loc;
+                        var loc = readBannerLoc(banner);
+                        var born = readBannerBorn(banner);
+                        if (loc == null) continue;
 
                         // 超出存活时间则移除
-                        if (now - banner.born > BANNER_LIFETIME_MS) continue;
+                        if (now - born > BANNER_LIFETIME_MS) continue;
 
                         out.add(banner);
 
-                        if (w == null) continue;
+                        var bw = loc.getWorld();
+                        if (bw == null) continue;
 
                         // 旌旗粒子效果：地面金色光环 + 内部竖直光柱 + 顶部金红旗帜飘动
                         // 1. 地面金色光环（旋转扩散）
@@ -481,7 +617,7 @@ function startBannerTask() {
                             var rx = Math.cos(rAng) * 0.9;
                             var rz = Math.sin(rAng) * 0.9;
                             var rLoc = loc.clone().add(rx, 0.15 + ring * 0.12, rz);
-                            w.spawnParticle(Particle.DUST, rLoc, 1, 0, 0, 0, 0, GOLD_DUST);
+                            bw.spawnParticle(Particle.DUST, rLoc, 1, 0, 0, 0, 0, GOLD_DUST);
                         }
                         // 2. 竖直光柱（金红交替，螺旋上升）
                         var steps = Math.floor(BANNER_HEIGHT / 0.3);
@@ -491,7 +627,7 @@ function startBannerTask() {
                             var hx = Math.cos(helixAng) * 0.35;
                             var hz = Math.sin(helixAng) * 0.35;
                             var pLoc = loc.clone().add(hx, yOff, hz);
-                            w.spawnParticle(Particle.DUST, pLoc, 1, 0, 0, 0, 0,
+                            bw.spawnParticle(Particle.DUST, pLoc, 1, 0, 0, 0, 0,
                                 (h % 2 === 0) ? GOLD_DUST : RED_DUST);
                         }
                         // 3. 顶部金红旗帜飘动（横向摆动）
@@ -499,11 +635,11 @@ function startBannerTask() {
                         for (var f = 0; f < 6; f++) {
                             var fOff = (f / 5.0) * 1.4;
                             var fLoc = loc.clone().add(sway * (0.4 + f * 0.15), BANNER_HEIGHT - 0.2, fOff - 0.7);
-                            w.spawnParticle(Particle.DUST, fLoc, 1, 0.06, 0.06, 0.06, 0,
+                            bw.spawnParticle(Particle.DUST, fLoc, 1, 0.06, 0.06, 0.06, 0,
                                 (f % 2 === 0) ? RED_DUST : GOLD_DUST);
                         }
                         // 4. 顶部火焰光点
-                        w.spawnParticle(Particle.FLAME, loc.clone().add(0, BANNER_HEIGHT, 0), 1, 0.08, 0.08, 0.08, 0);
+                        bw.spawnParticle(Particle.FLAME, loc.clone().add(0, BANNER_HEIGHT, 0), 1, 0.08, 0.08, 0.08, 0);
                     }
                     if (out.size() > 0) bannerMap.put(uuid, out);
                     else it.remove();
@@ -513,22 +649,25 @@ function startBannerTask() {
                         var plLoc = pl.getLocation();
                         for (var i2 = 0; i2 < out.size(); i2++) {
                             var b = out.get(i2);
-                            var bLoc = b.loc;
+                            var bLoc = readBannerLoc(b);
+                            if (bLoc == null) continue;
+                            var bWorld = bLoc.getWorld();
+                            if (bWorld == null || plLoc.getWorld() !== bWorld) continue;
                             var dx = plLoc.getX() - bLoc.getX();
                             var dz = plLoc.getZ() - bLoc.getZ();
                             // 水平1.2格内且y差1.5格内视为踩到
                             if (Math.abs(dx) <= BANNER_TRIGGER_DIST && Math.abs(dz) <= BANNER_TRIGGER_DIST
                                 && Math.abs(plLoc.getY() - bLoc.getY()) <= 1.5) {
                                 // 重锤命中声（触发感）
-                                w.playSound(bLoc, "entity.player.attack.crit", 1.2, 0.6);
-                                w.playSound(bLoc, "block.anvil.land", 1.4, 0.7);
-                                w.playSound(bLoc, "entity.generic.explode", 1.2, 0.5);
+                                bWorld.playSound(bLoc, "entity.player.attack.crit", 1.2, 0.6);
+                                bWorld.playSound(bLoc, "block.anvil.land", 1.4, 0.7);
+                                bWorld.playSound(bLoc, "entity.generic.explode", 1.2, 0.5);
                                 // 踩踏粒子爆炸效果：金色+红色爆发扩散
-                                w.spawnParticle(Particle.DUST, bLoc.clone().add(0, 0.5, 0), 50, 2.0, 1.6, 2.0, 0.25, GOLD_DUST_BIG);
-                                w.spawnParticle(Particle.DUST, bLoc.clone().add(0, 0.5, 0), 50, 2.0, 1.6, 2.0, 0.25, RED_DUST_BIG);
-                                w.spawnParticle(Particle.FLAME, bLoc.clone().add(0, 0.5, 0), 25, 1.6, 1.4, 1.6, 0.15);
-                                w.spawnParticle(Particle.CRIT, bLoc.clone().add(0, 0.5, 0), 20, 2.0, 1.6, 2.0, 0.4);
-                                w.spawnParticle(Particle.CLOUD, bLoc.clone().add(0, 0.3, 0), 15, 1.5, 0.8, 1.5, 0.05);
+                                bWorld.spawnParticle(Particle.DUST, bLoc.clone().add(0, 0.5, 0), 50, 2.0, 1.6, 2.0, 0.25, GOLD_DUST_BIG);
+                                bWorld.spawnParticle(Particle.DUST, bLoc.clone().add(0, 0.5, 0), 50, 2.0, 1.6, 2.0, 0.25, RED_DUST_BIG);
+                                bWorld.spawnParticle(Particle.FLAME, bLoc.clone().add(0, 0.5, 0), 25, 1.6, 1.4, 1.6, 0.15);
+                                bWorld.spawnParticle(Particle.CRIT, bLoc.clone().add(0, 0.5, 0), 20, 2.0, 1.6, 2.0, 0.4);
+                                bWorld.spawnParticle(Particle.CLOUD, bLoc.clone().add(0, 0.3, 0), 15, 1.5, 0.8, 1.5, 0.05);
                                 // 旌旗消失
                                 out.remove(i2);
                                 gainHeavyEdge(pl);
@@ -543,7 +682,10 @@ function startBannerTask() {
         }
     });
     bannerTask = new BannerTask().runTaskTimer(plugin, 0, 3);
-    try { plugin.pojunBannerTaskId = bannerTask.getTaskId(); } catch (eId) {}
+    pojunTaskIds.push(bannerTask.getTaskId());
+    try {
+        plugin.setMetadata(META_POJUN_TASK_IDS, new FixedMetadataValue(plugin, pojunTaskIds));
+    } catch (eId) {}
 }
 
 // ===================================================================
@@ -551,12 +693,6 @@ function startBannerTask() {
 // ===================================================================
 var heavyEdgeTask = null;
 function startHeavyEdgeDecay() {
-    try {
-        if (plugin.pojunHeavyEdgeTaskId != null) {
-            Bukkit.getScheduler().cancelTask(Number(plugin.pojunHeavyEdgeTaskId));
-            plugin.pojunHeavyEdgeTaskId = null;
-        }
-    } catch (e0) {}
     if (heavyEdgeTask != null) {
         try { heavyEdgeTask.cancel(); } catch (e) {}
         heavyEdgeTask = null;
@@ -601,7 +737,10 @@ function startHeavyEdgeDecay() {
         }
     });
     heavyEdgeTask = new DecayTask().runTaskTimer(plugin, 0, 20);
-    try { plugin.pojunHeavyEdgeTaskId = heavyEdgeTask.getTaskId(); } catch (eId) {}
+    pojunTaskIds.push(heavyEdgeTask.getTaskId());
+    try {
+        plugin.setMetadata(META_POJUN_TASK_IDS, new FixedMetadataValue(plugin, pojunTaskIds));
+    } catch (eId) {}
 }
 
 // ===================================================================
@@ -609,7 +748,8 @@ function startHeavyEdgeDecay() {
 // 直接基于原始伤害按"护甲+韧性"公式重算，将减免比例降至40%
 // ===================================================================
 function ignoreArmor(event) {
-    var damager = event.getDamager();
+    if (!(event instanceof EntityDamageByEntityEvent)) return;
+    var damager = edbeDamager(event);
     if (!(damager instanceof Player)) return;
     var player = damager;
     if (!isHolding(player)) return;
@@ -643,22 +783,30 @@ function ignoreArmor(event) {
 }
 
 // ===================================================================
-// 事件监听器注册（参考 伏地.js 热重载安全模式）
+// 定时任务启动
 // ===================================================================
-var pojunListener = new (Java.extend(Listener, {}))();
 var RunnableImpl = Java.extend(Java.type('java.lang.Runnable'));
+var startTasksRunnable = new RunnableImpl({
+    run: function() {
+        cancelPojunTaskIds();
+        startBannerTask();
+        startHeavyEdgeDecay();
+    }
+});
+Bukkit.getScheduler().runTask(plugin, startTasksRunnable);
+
+var pojunListener = new (Java.extend(Listener, {}))();
 var initPojunListener = new RunnableImpl({
     run: function() {
-        // 热重载时先注销旧监听器
         if (plugin.pojunListenerRegistered === true && plugin.pojunListener != null) {
             try { PlayerInteractEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e) {}
-            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e) {}
-            try { PlayerQuitEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e) {}
+            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e1) {}
+            try { PlayerItemHeldEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e2) {}
+            try { PlayerQuitEvent.getHandlerList().unregister(plugin.pojunListener); } catch (e3) {}
         }
         plugin.pojunListener = pojunListener;
         plugin.pojunListenerRegistered = true;
 
-        // 右键
         Bukkit.getPluginManager().registerEvent(
             PlayerInteractEvent,
             pojunListener,
@@ -669,54 +817,56 @@ var initPojunListener = new RunnableImpl({
                     if (actionName !== "RIGHT_CLICK_AIR" && actionName !== "RIGHT_CLICK_BLOCK") return;
                     var hand = event.getHand();
                     if (hand == null || hand.name() !== "HAND") return;
+                    if (!isHolding(event.getPlayer())) return;
                     onUse(event);
                 } catch (e) {}
             },
             plugin
         );
-
-        // 攻击：忽视护甲 + 生成旌旗 + 缓慢3
         Bukkit.getPluginManager().registerEvent(
             EntityDamageByEntityEvent,
             pojunListener,
             EventPriority.HIGHEST,
             function (l, event) {
+                try { onPojunEntityDamage(event); } catch (e) {}
+            },
+            plugin
+        );
+        Bukkit.getPluginManager().registerEvent(
+            PlayerItemHeldEvent,
+            pojunListener,
+            EventPriority.MONITOR,
+            function (l, evt) {
                 try {
-                    if (event.isCancelled()) return;
-                    var damager = event.getDamager();
-                    if (!(damager instanceof Player)) return;
-                    if (!isHolding(damager)) return;
-                    var target = event.getEntity();
-                    if (!(target instanceof LivingEntity)) return;
-                    ignoreArmor(event);
-                    onHit(damager, target);
+                    var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
+                    if (wasHolding(prev)) clearWeaponState(evt.getPlayer());
                 } catch (e) {}
             },
             plugin
         );
-
         Bukkit.getPluginManager().registerEvent(
             PlayerQuitEvent,
             pojunListener,
             EventPriority.MONITOR,
             function (l, event) {
-                try {
-                    var uuid = event.getPlayer().getUniqueId().toString();
-                    heavyEdgeMap.remove(uuid);
-                    heavyEdgeTimeMap.remove(uuid);
-                } catch (e) {}
+                try { clearWeaponState(event.getPlayer()); } catch (e) {}
             },
             plugin
         );
     }
 });
-Bukkit.getScheduler().runTask(plugin, initPojunListener);
 
-// 启动两个任务
-var startTasksRunnable = new RunnableImpl({
-    run: function() {
-        startBannerTask();
-        startHeavyEdgeDecay();
-    }
-});
-Bukkit.getScheduler().runTask(plugin, startTasksRunnable);
+function onLoad() {
+    return {
+        PlayerItemHeldEvent: function(evt) {
+            try {
+                var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
+                if (wasHolding(prev)) clearWeaponState(evt.getPlayer());
+            } catch (e) {}
+        },
+        PlayerQuitEvent: function(evt) {
+            try { clearWeaponState(evt.getPlayer()); } catch (e) {}
+        }
+    };
+}
+Bukkit.getScheduler().runTask(plugin, initPojunListener);

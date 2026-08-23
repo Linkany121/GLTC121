@@ -138,7 +138,7 @@ VASA_术式承载转换仪:
   item_group: B_C1
   item:
     name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#c9a0ff术&#b88aff式&#a774ff承&#9660ff载&#8560ff转&#7450ff换&#6340ff仪"
-    material: lectern
+    material: respawn_anchor
     glow: true
     lore:
     - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'

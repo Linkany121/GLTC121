@@ -73,6 +73,8 @@ var TRACK_RANGE = 18;
 var HOMING = 0.35;
 /** 左键投出防抖（毫秒）；实际门闩在 _工具.js LEFT_CLICK_GATE_MS */
 var LAUNCH_GATE_MS = 250;
+/** 碰撞检测间隔（tick）；位移仍每 tick */
+var HIT_CHECK_EVERY = 2;
 
 /** 环绕 / 投出可选花材质名 */
 var FLOWER_NAME_CANDIDATES = [
@@ -430,23 +432,27 @@ function launchProjectile(projCtx) {
                 var sx = dir.getX() * SPEED_PER_TICK;
                 var sy = dir.getY() * SPEED_PER_TICK;
                 var sz = dir.getZ() * SPEED_PER_TICK;
-                var hitSolid = false;
-                try {
-                    var mid = loc.clone().add(sx * 0.5, sy * 0.5, sz * 0.5);
-                    if (mid.getBlock().getType().isSolid()) hitSolid = true;
-                } catch (eM) {}
                 loc.add(sx, sy, sz);
                 moveDisplay(display, loc);
                 trailParticle(world, loc, 3);
-                try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
 
-                var hitEnt = findHitEntity(world, loc, uuid);
-                if (hitEnt || hitSolid || ticks >= MAX_FLY_TICKS) {
-                    var p = findOnline(uuid) || caster;
-                    if (hitEnt) dealHit(hitEnt, projCtx.dmg, p, projCtx.mageApi, projCtx.spellInfo);
-                    burstParticle(world, loc);
-                    stopProjectile(proj);
-                    detachProjectile(wave, proj);
+                var doHitCheck = (HIT_CHECK_EVERY <= 1) || (ticks % HIT_CHECK_EVERY === 0) || (ticks >= MAX_FLY_TICKS);
+                if (doHitCheck) {
+                    var hitSolid = false;
+                    try {
+                        var mid = loc.clone().add(-sx * 0.5, -sy * 0.5, -sz * 0.5);
+                        if (mid.getBlock().getType().isSolid()) hitSolid = true;
+                    } catch (eM) {}
+                    try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
+
+                    var hitEnt = findHitEntity(world, loc, uuid);
+                    if (hitEnt || hitSolid || ticks >= MAX_FLY_TICKS) {
+                        var p = findOnline(uuid) || caster;
+                        if (hitEnt) dealHit(hitEnt, projCtx.dmg, p, projCtx.mageApi, projCtx.spellInfo);
+                        burstParticle(world, loc);
+                        stopProjectile(proj);
+                        detachProjectile(wave, proj);
+                    }
                 }
             } catch (ex) {
                 stopProjectile(proj);
@@ -654,10 +660,6 @@ function castFlowerScroll(player, mageApi) {
                 var p = findOnline(uuid);
                 if (p == null || !p.isOnline()) {
                     stopOrbitSession(uuid, st, true);
-                    return;
-                }
-                if (consumeLeftClickPulse(p)) {
-                    launchAll(p, st);
                     return;
                 }
                 updateOrbit(st, p);

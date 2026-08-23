@@ -12,6 +12,7 @@ var File = java.io.File;
 var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
+var JString = Java.type("java.lang.String");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 
@@ -61,6 +62,8 @@ var EXPLODE_DIAMETER = 1;
 var HIT_HALF = 0.35;
 /** 出生点相对眼睛向前偏移（格） */
 var SPAWN_FORWARD = 0.8;
+/** 碰撞检测间隔（tick）；位移仍每 tick */
+var HIT_CHECK_EVERY = 2;
 
 /** 球体火焰粒子：外圈 / 内芯数量与扩散 */
 var SPHERE_FLAME_OUTER = 18;
@@ -162,53 +165,110 @@ function getSessionApi() {
     return UTIL && UTIL.spellSession ? UTIL.spellSession : null;
 }
 
-/** uuid -> [{ alive, task, sessionToken }] */
-function ballStore() {
-    try {
-        if (PLUGIN.gltc_huoqiu_proj != null) return PLUGIN.gltc_huoqiu_proj;
-    } catch (e0) {}
-    var m = {};
-    try { PLUGIN.gltc_huoqiu_proj = m; } catch (e1) {}
-    return m;
+function uuidKey(uuid) {
+    return JString.valueOf(String(uuid));
 }
 
-function stopBall(st, invokeSessionEnd) {
+function sharedMap(field) {
+    try {
+        var existing = PLUGIN[field];
+        if (existing != null && (existing instanceof java.util.concurrent.ConcurrentHashMap)) {
+            return existing;
+        }
+    } catch (e0) {}
+    var map = new java.util.concurrent.ConcurrentHashMap();
+    try { PLUGIN[field] = map; } catch (e1) {}
+    return map;
+}
+
+/** uuid -> { sessionToken, projectiles: ArrayList } —— 多球并存，单主 session（#12B） */
+function playerStateStore() {
+    return sharedMap("gltc_huoqiu_state");
+}
+
+function getPlayerState(uuid) {
+    uuid = uuidKey(uuid);
+    var store = playerStateStore();
+    var ps = store.get(uuid);
+    if (ps == null) {
+        ps = { sessionToken: null, projectiles: new java.util.ArrayList() };
+        store.put(uuid, ps);
+    }
+    return ps;
+}
+
+function ensureMasterSession(player, uuid) {
+    var ps = getPlayerState(uuid);
+    if (ps.sessionToken != null) return ps;
+    var api = getSessionApi();
+    if (api && typeof api.begin === "function") {
+        try {
+            ps.sessionToken = api.begin(player, SPELL_ID, function() {
+                clearAllBalls(uuid);
+            }, { replace: false });
+        } catch (eBeg) {}
+    }
+    return ps;
+}
+
+function tryEndMasterSession(uuid) {
+    uuid = uuidKey(uuid);
+    var store = playerStateStore();
+    var ps = store.get(uuid);
+    if (ps == null) return;
+    if (ps.projectiles != null && ps.projectiles.size() > 0) return;
+    if (ps.sessionToken) {
+        var api = getSessionApi();
+        if (api && typeof api.end === "function") {
+            try { api.end(uuid, ps.sessionToken, false); } catch (eEnd) {}
+        }
+        ps.sessionToken = null;
+    }
+    try { store.remove(uuid); } catch (eRm) {}
+}
+
+function stopBall(st) {
     if (!st) return;
     st.alive = false;
     try { if (st.task != null) st.task.cancel(); } catch (e0) {}
-    if (invokeSessionEnd && st.sessionToken) {
-        try {
-            var api = getSessionApi();
-            if (api && typeof api.end === "function") api.end(st.ownerUuid, st.sessionToken, false);
-        } catch (e1) {}
-    }
-    st.sessionToken = null;
 }
 
 function clearAllBalls(uuid) {
-    uuid = String(uuid);
-    var store = ballStore();
-    var list = store[uuid];
-    if (!list || list.length === 0) return;
-    for (var i = 0; i < list.length; i++) stopBall(list[i], false);
-    try { delete store[uuid]; } catch (e) { store[uuid] = []; }
+    uuid = uuidKey(uuid);
+    var store = playerStateStore();
+    var ps = store.get(uuid);
+    if (ps == null) return;
+    var list = ps.projectiles;
+    if (list != null) {
+        for (var i = 0; i < list.size(); i++) stopBall(list.get(i));
+        list.clear();
+    }
+    if (ps.sessionToken) {
+        var api = getSessionApi();
+        if (api && typeof api.end === "function") {
+            try { api.end(uuid, ps.sessionToken, false); } catch (e2) {}
+        }
+        ps.sessionToken = null;
+    }
+    try { store.remove(uuid); } catch (eR) {}
 }
 
 function detachBall(uuid, st) {
-    uuid = String(uuid);
-    var store = ballStore();
-    var list = store[uuid];
-    if (!list) return;
-    var kept = [];
-    for (var i = 0; i < list.length; i++) {
-        if (list[i] !== st) kept.push(list[i]);
-    }
-    if (kept.length === 0) {
-        try { delete store[uuid]; } catch (e) { store[uuid] = []; }
-    } else {
-        store[uuid] = kept;
-    }
+    uuid = uuidKey(uuid);
+    var ps = playerStateStore().get(uuid);
+    if (ps == null || ps.projectiles == null) return;
+    try { ps.projectiles.remove(st); } catch (eRm) {}
+    tryEndMasterSession(uuid);
 }
+
+try {
+    if (UTIL && typeof UTIL.registerDirectClearHook === "function") {
+        UTIL.registerDirectClearHook(SPELL_ID, function(p) {
+            if (!p) return;
+            clearAllBalls(p.getUniqueId().toString());
+        });
+    }
+} catch (eHook) {}
 
 ({
     id: SPELL_ID,
@@ -230,19 +290,9 @@ function detachBall(uuid, st) {
         var ticks = 0;
         playFireCastSound(world, eye);
 
-        var st = { alive: true, task: null, sessionToken: null, ownerUuid: uuid };
-        var store = ballStore();
-        if (!store[uuid]) store[uuid] = [];
-        store[uuid].push(st);
-
-        var api = getSessionApi();
-        if (api && typeof api.begin === "function") {
-            try {
-                st.sessionToken = api.begin(player, SPELL_ID, function() {
-                    clearAllBalls(uuid);
-                }, { replace: false });
-            } catch (eBeg) {}
-        }
+        var st = { alive: true, task: null };
+        var ps = ensureMasterSession(player, uuid);
+        ps.projectiles.add(st);
 
         st.task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
             run: function() {
@@ -255,43 +305,46 @@ function detachBall(uuid, st) {
                     var stepX = dir.getX() * SPEED_PER_TICK;
                     var stepY = dir.getY() * SPEED_PER_TICK;
                     var stepZ = dir.getZ() * SPEED_PER_TICK;
-                    // 中点+终点双检，降低高速穿墙漏判
-                    var hitSolid = false;
-                    try {
-                        var mid = loc.clone().add(stepX * 0.5, stepY * 0.5, stepZ * 0.5);
-                        if (mid.getBlock().getType().isSolid()) hitSolid = true;
-                    } catch (eMid) {}
                     loc.add(stepX, stepY, stepZ);
                     spawnFlameSphere(world, loc);
-                    try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
 
-                    var hitLiving = false;
-                    var near = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF);
-                    var it = near.iterator();
-                    while (it.hasNext()) {
-                        var ent = it.next();
-                        if (ent instanceof LivingEntity && !(ent instanceof Player && ent.getUniqueId().toString() === uuid)) {
-                            hitLiving = true;
-                            break;
+                    var doHitCheck = (HIT_CHECK_EVERY <= 1) || (ticks % HIT_CHECK_EVERY === 0) || (ticks >= MAX_TICKS);
+                    if (doHitCheck) {
+                        var hitSolid = false;
+                        try {
+                            var mid = loc.clone().add(-stepX * 0.5, -stepY * 0.5, -stepZ * 0.5);
+                            if (mid.getBlock().getType().isSolid()) hitSolid = true;
+                        } catch (eMid) {}
+                        try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
+
+                        var hitLiving = false;
+                        var near = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF);
+                        var it = near.iterator();
+                        while (it.hasNext()) {
+                            var ent = it.next();
+                            if (ent instanceof LivingEntity && !(ent instanceof Player && ent.getUniqueId().toString() === uuid)) {
+                                hitLiving = true;
+                                break;
+                            }
+                        }
+
+                        if (hitLiving || hitSolid || ticks >= MAX_TICKS) {
+                            var caster = null;
+                            try {
+                                var online = Bukkit.getOnlinePlayers().toArray();
+                                for (var oi = 0; oi < online.length; oi++) {
+                                    if (online[oi].getUniqueId().toString() === uuid) { caster = online[oi]; break; }
+                                }
+                            } catch (eP) {}
+                            if (caster == null) caster = player;
+                            explodeAt(world, loc, dmg, caster, spellInfo);
+                            stopBall(st);
+                            detachBall(uuid, st);
+                            return;
                         }
                     }
-
-                    if (hitLiving || hitSolid || ticks >= MAX_TICKS) {
-                        var caster = null;
-                        try {
-                            var online = Bukkit.getOnlinePlayers().toArray();
-                            for (var oi = 0; oi < online.length; oi++) {
-                                if (online[oi].getUniqueId().toString() === uuid) { caster = online[oi]; break; }
-                            }
-                        } catch (eP) {}
-                        if (caster == null) caster = player;
-                        explodeAt(world, loc, dmg, caster, spellInfo);
-                        stopBall(st, true);
-                        detachBall(uuid, st);
-                        return;
-                    }
                 } catch (ex) {
-                    stopBall(st, true);
+                    stopBall(st);
                     detachBall(uuid, st);
                 }
             }

@@ -15,8 +15,21 @@ var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
 var PlayerItemHeldEvent = Java.type("org.bukkit.event.player.PlayerItemHeldEvent");
+var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var EntityDamageEvent = Java.type("org.bukkit.event.entity.EntityDamageEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+var _EDBE_GET_DAMAGER = (function () {
+    try { return EntityDamageByEntityEvent.getMethod("getDamager"); } catch (e) { return null; }
+})();
+function edbeDamager(event) {
+    if (event == null) return null;
+    try { if (!(event instanceof EntityDamageByEntityEvent)) return null; } catch (e0) { return null; }
+    if (_EDBE_GET_DAMAGER != null) {
+        try { return _EDBE_GET_DAMAGER.invoke(event); } catch (e1) {}
+    }
+    try { return event.getDamager(); } catch (e2) {}
+    return null;
+}
 var EntityDeathEvent = Java.type("org.bukkit.event.entity.EntityDeathEvent");
 var EntityExplodeEvent = Java.type("org.bukkit.event.entity.EntityExplodeEvent");
 var EntityChangeBlockEvent = Java.type("org.bukkit.event.entity.EntityChangeBlockEvent");
@@ -35,13 +48,22 @@ var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
 var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 var plugin = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer").INSTANCE;
 
-var ITEM_ID = "FKR_咀嚼曾世的晚梦";     // Slimefun 物品 ID（须与 items.yml 一致）
+var JIUME_ITEM_ID = "FKR_咀嚼曾世的晚梦";
 var META_ZHU_LING = "gltc_jiumeng_zhuling";   // 祝灵实体 metadata 标记
 var META_DRAGON = "gltc_jiumeng_dragon";      // 宴死者之龙 metadata 标记
 var META_CHIMING_EXTRA = "gltc_jiumeng_chiming_extra"; // 斥命额外伤害防递归标记
+// 斥命额外伤害：不触发的 DamageCause（环境/状态类）
+var CHIMING_EXTRA_BLOCKED_CAUSES = {
+    FALL: true, FIRE: true, FIRE_TICK: true, LAVA: true, DROWNING: true,
+    SUFFOCATION: true, STARVATION: true, POISON: true, WITHER: true, VOID: true,
+    LIGHTNING: true, HOT_FLOOR: true, CRAMMING: true, DRYOUT: true, FREEZE: true,
+    SONIC_BOOM: true, MELTING: true, FALLING_BLOCK: true, CONTACT: true
+};
 // Graal 不能可靠给 Java Plugin 挂 JS 字段，任务 ID / 监听器改走 Metadata + 本文件变量
 var META_JIUME_TASKS = "gltc_jiumeng_task_ids";
 var META_JIUME_LISTENER = "gltc_jiumeng_listener";
+var META_CHIMING_MAP = "gltc_jiumeng_chiming_map";
+var META_JIUME_RITUAL_CD = "gltc_jiumeng_ritual_cd";
 var jiumengTaskIds = [];
 
 // ===================================================================
@@ -101,7 +123,7 @@ var CHARGE_FX_SOUND_BURST_2 = "block.amethyst_block.break"; // 脚下爆发音�
 var ZHU_LING_MAX = 16;                   // 每玩家同时存在上限（仪式爆发可 bypass）
 var ZHU_LING_LIFE_TICKS = 120;          // 存活时长（6秒）
 var ZHU_LING_SPEED = 0.6;              // 每 tick 飞行距离
-var ZHU_LING_HIT_RANGE = 1.4;          // 命中判定半径
+var ZHU_LING_HIT_RANGE = 2.5;          // 命中判定半径
 var ZHU_LING_SEARCH_RANGE = 32;         // 寻敌半径
 var ZHU_LING_SPAWN_ABOVE_HEAD = 1.0;    // 相对头顶再抬高（格）
 var ZHU_LING_RESIST_TICKS = 130;        // 抗性持续（10秒）
@@ -126,7 +148,9 @@ var CHIMING_FULL_NO_TARGET = true;      // 满层敌人不再被祝灵索敌
 var CHIMING_FULL_NO_DECAY = true;       // 满层敌人斥命不再随时间减少
 var CHIMING_FULL_CAP_STACKS = true;     // 满层后不再叠加更高层数
 var CHIMING_CLEAR_ON_UNEQUIP = true;    // 切换手持离开本武器时，只清空自己施加的斥命
-var CHIMING_SLOW_TICKS = 120;           // 缓慢刷新时长
+var CHIMING_SLOW_TICKS = 120;           // 非满层缓慢刷新时长
+var CHIMING_FULL_SLOW_TICKS = 200;      // 满层缓慢时长（200 tick = 10 秒）
+var CHIMING_FULL_SLOW_LEVEL = 2;        // 满层缓慢等级（2 = 缓慢 III）
 var CHIMING_RING_BASE = 0.4;            // 圆环基础半径加成
 var CHIMING_RING_WIDTH_FACTOR = 0.6;    // 圆环随实体宽度系数
 var CHIMING_RING_PER_STACK = 0.08;      // 每层圆环半径增加
@@ -164,8 +188,11 @@ var DRAGON_BLAST_EXTRA_FOR_OWNER = true; // 爆炸时额外为召唤者再播一
 var DRAGON_BLAST_ANCHOR_BREAK_SOUND = "block.respawn_anchor.deplete"; // 每次爆炸额外为玩家播重生锚破碎
 var DRAGON_BLAST_ANCHOR_BREAK_VOL = 1.2;   // 破碎音音量
 var DRAGON_BLAST_ANCHOR_BREAK_PITCH = 0.85; // 破碎音音调
-var DRAGON_LAND_ON_GROUND = true;       // 落到地面高度，而非碰到生物即消失
-var DRAGON_LAND_FX_LIFT = 0.3;          // 落地特效相对地面抬高（避免埋进方块）
+var DRAGON_LAND_ON_GROUND = false;      // false=落到目标脚底 Y；true=落到地表 getGroundY
+var DRAGON_LAND_FX_LIFT = 0.3;          // 落地特效相对脚底抬高（避免埋进方块）
+var DRAGON_LAND_ENTITY_OFFSET = -2.0;   // 末影龙实体 Y 偏移（负=向下；法阵/爆炸位置不变）
+var DRAGON_REMOVE_ABOVE_LAND = 12.0;    // 下落距落地高度 ≤ 此值时提前移除龙实体（防碰撞箱顶飞目标，仅保留粒子）
+var DRAGON_FALL_MAX_TICKS = 200;        // 下落超时强制落地（tick，200≈10秒）
 var DRAGON_MUTE_RANGE = 64;             // 静默音效影响玩家距离
 var DRAGON_MUTE_RETRY_TICKS = [1, 5];   // 移除后再清音效的延迟
 
@@ -180,6 +207,7 @@ var DRAGON_BLAST_INTERVAL = 15;         // 爆炸间隔（tick，10=0.5秒）
 var DRAGON_BLAST_OFFSET = 1;            // 爆炸中心随机水平偏移范围
 var DRAGON_BLAST_Y = 3;               // 爆炸相对落地特效中心的高度
 var DRAGON_BLAST_ONLY_FIRST_DAMAGES = true; // 仅第一次爆炸有伤害
+var DRAGON_BLAST_KNOCKBACK = 1.2;       // 龙落地爆炸击退力度（不含召唤目标自身）
 var DRAGON_BLAST_PITCHES = [1.0, 0.8, 0.6]; // 三次爆炸音调（依次降低）
 // 爆炸粒子（更密、更大 + 中心紫球）
 var DRAGON_BLAST_CHERRY_COUNT = 160;    // 外圈樱花数量
@@ -297,17 +325,51 @@ for (var __ri = 0; __ri < RING_COLOR_RGB.length; __ri++) {
 var chargeProgressMap = new java.util.HashMap(); // uuid -> ticks（>0 表示正在蓄力）
 var chargeFullMap = new java.util.HashMap();     // uuid -> boolean
 var leftReleaseCdMap = new java.util.HashMap();  // uuid -> ms
-// chimingMap: entityUuid -> { byOwner: { ownerUuid: {stacks, lastGain} }, maxBurst }
-var chimingMap = new java.util.HashMap();
+var chimingMap = new java.util.HashMap();        // entityUuid -> chiming data（本脚本局部 Map）
 var zhuLingCountMap = new java.util.HashMap();   // playerUuid -> count
-var ritualCdMap = new java.util.HashMap();       // uuid -> ms
 var holdingTrackMap = new java.util.HashMap();   // playerUuid -> 上一tick是否手持本武器
+var ritualCdMap = new java.util.HashMap();      // uuid -> ms
+
+function getChimingMap() { return chimingMap; }
+function getRitualCdMap() { return ritualCdMap; }
+function getEventPlugin() {
+    try {
+        var p = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+        if (p != null) return p;
+    } catch (e) {}
+    return plugin;
+}
+
+function matchItemId(actualId, expectedId) {
+    if (!actualId || !expectedId) return false;
+    if (actualId === expectedId) return true;
+    try { return String(actualId).toLowerCase() === String(expectedId).toLowerCase(); } catch (e) { return false; }
+}
+
+function isOffHand(hand) {
+    if (hand == null) return false;
+    try { return hand.name() === "OFF_HAND"; } catch (e) { return String(hand).indexOf("OFF") >= 0; }
+}
+
+function isMainHand(hand) {
+    return !isOffHand(hand);
+}
 
 function isHoldingItem(player) {
+    if (player == null || !player.isOnline()) return false;
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === Material.AIR) return false;
     var sfItem = SlimefunItem.getByItem(item);
-    return sfItem != null && sfItem.getId() === ITEM_ID;
+    return sfItem != null && matchItemId(sfItem.getId(), JIUME_ITEM_ID);
+}
+
+function isLivingEntity(ent) {
+    if (ent == null) return false;
+    try { return ent instanceof LivingEntity; } catch (e) { return false; }
+}
+function isPlayer(ent) {
+    if (ent == null) return false;
+    try { return ent instanceof Player; } catch (e) { return false; }
 }
 
 function getAbilityPower() {
@@ -348,6 +410,19 @@ function notifyAbilityDamage(player, item, damage) {
     var mode = getDamageNotifyMode();
     if (mode === "none") return;
     var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function notifyAbilityDamageSummary(player, item, totalDamage, hitCount) {
+    if (player == null || !player.isOnline() || hitCount <= 0 || totalDamage <= 0) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item)
+        + " §f对 §e" + hitCount + " §f个目标共造成 §c"
+        + formatAbilityDamage(totalDamage) + " §f伤害！";
     if (mode === "actionbar") {
         try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
     } else {
@@ -534,9 +609,8 @@ function findNearestTarget(fromLoc, owner, range) {
     var bestChiming = null;
     var bestChimingDist = range;
     var list = world.getNearbyEntities(fromLoc, range, range, range);
-    var it = list.iterator();
-    while (it.hasNext()) {
-        var ent = it.next();
+    for (var fi = 0; fi < list.size(); fi++) {
+        var ent = list.get(fi);
         if (!(ent instanceof LivingEntity) || ent.isDead()) continue;
         if (owner != null && ent.getUniqueId().equals(owner.getUniqueId())) continue;
         if (ent.hasMetadata(META_ZHU_LING) || ent.hasMetadata(META_DRAGON)) continue;
@@ -704,15 +778,49 @@ function sumChimingData(data) {
 
 function getChimingStacks(entity) {
     var id = entity.getUniqueId().toString();
-    if (!chimingMap.containsKey(id)) return 0;
-    return sumChimingData(chimingMap.get(id));
+    var map = getChimingMap();
+    if (!map.containsKey(id)) return 0;
+    return sumChimingData(map.get(id));
+}
+
+function getChimingStacksForOwner(entity, owner) {
+    if (entity == null || owner == null) return 0;
+    var id = entity.getUniqueId().toString();
+    var ownerId = owner.getUniqueId().toString();
+    var map = getChimingMap();
+    if (!map.containsKey(id)) return 0;
+    var data = map.get(id);
+    if (data == null || !data.byOwner) return 0;
+    var entry = data.byOwner[ownerId];
+    return entry ? entry.stacks : 0;
+}
+
+function consumeChimingForOwner(entity, owner) {
+    if (entity == null || owner == null) return 0;
+    var id = entity.getUniqueId().toString();
+    var ownerId = owner.getUniqueId().toString();
+    var map = getChimingMap();
+    if (!map.containsKey(id)) return 0;
+    var data = map.get(id);
+    if (data == null || !data.byOwner || !data.byOwner[ownerId]) return 0;
+    var stacks = data.byOwner[ownerId].stacks;
+    delete data.byOwner[ownerId];
+    var total = sumChimingData(data);
+    if (total <= 0) {
+        map.remove(id);
+    } else {
+        if (total < CHIMING_RING_MAX) data.maxBurst = false;
+        map.put(id, data);
+        applyChimingSlow(entity, total);
+    }
+    return stacks;
 }
 
 function ensureChimingData(id) {
-    if (!chimingMap.containsKey(id)) {
-        chimingMap.put(id, { byOwner: {}, maxBurst: false });
+    if (!getChimingMap().containsKey(id)) {
+        getChimingMap().put(id, { byOwner: {}, maxBurst: false });
     }
-    var data = chimingMap.get(id);
+    var data = getChimingMap().get(id);
     if (!data.byOwner) {
         data.byOwner = {};
         if (typeof data.stacks === "number" && data.stacks > 0) {
@@ -729,12 +837,12 @@ function refreshChimingEntity(entityId, data) {
     var total = sumChimingData(data);
     if (total < CHIMING_RING_MAX) data.maxBurst = false;
     if (total <= 0) {
-        chimingMap.remove(entityId);
+        getChimingMap().remove(entityId);
         return;
     }
-    chimingMap.put(entityId, data);
+    getChimingMap().put(entityId, data);
     var ent = Bukkit.getEntity(UUID.fromString(entityId));
-    if (ent != null && !ent.isDead() && ent instanceof LivingEntity) {
+    if (ent != null && !ent.isDead() && isLivingEntity(ent)) {
         applyChimingSlow(ent, total);
     }
 }
@@ -764,12 +872,12 @@ function addChiming(entity, amount, viewer) {
         after = CHIMING_RING_MAX;
     }
     if (after < CHIMING_RING_MAX) data.maxBurst = false;
-    chimingMap.put(id, data);
+    getChimingMap().put(id, data);
     applyChimingSlow(entity, after);
 
     if (before < CHIMING_RING_MAX && after >= CHIMING_RING_MAX && !data.maxBurst) {
         data.maxBurst = true;
-        chimingMap.put(id, data);
+        getChimingMap().put(id, data);
         playChimingFullFx(entity, viewer);
     }
 }
@@ -787,13 +895,13 @@ function playChimingFullFx(entity, viewer) {
 
 function clearChiming(entity) {
     var id = entity.getUniqueId().toString();
-    chimingMap.remove(id);
+    getChimingMap().remove(id);
 }
 
 /** 清空某玩家施加在所有敌人上的斥命层数（切换手持时用） */
 function clearChimingOwnedBy(ownerUuid) {
     if (ownerUuid == null) return;
-    var it = chimingMap.entrySet().iterator();
+    var it = getChimingMap().entrySet().iterator();
     while (it.hasNext()) {
         var entry = it.next();
         var data = entry.getValue();
@@ -810,7 +918,7 @@ function clearChimingOwnedBy(ownerUuid) {
         if (total < CHIMING_RING_MAX) data.maxBurst = false;
         entry.setValue(data);
         var ent = Bukkit.getEntity(UUID.fromString(entry.getKey()));
-        if (ent != null && !ent.isDead() && ent instanceof LivingEntity) {
+        if (ent != null && !ent.isDead() && isLivingEntity(ent)) {
             applyChimingSlow(ent, total);
         }
     }
@@ -825,8 +933,15 @@ function onPlayerUnequipWeapon(player) {
 
 function applyChimingSlow(entity, stacks) {
     if (SLOWNESS == null || stacks <= 0) return;
-    var amp = Math.max(0, stacks - 1);
-    entity.addPotionEffect(new PotionEffect(SLOWNESS, CHIMING_SLOW_TICKS, amp, false, true, true));
+    var ticks, amp;
+    if (stacks >= CHIMING_RING_MAX) {
+        ticks = CHIMING_FULL_SLOW_TICKS;
+        amp = CHIMING_FULL_SLOW_LEVEL;
+    } else {
+        ticks = CHIMING_SLOW_TICKS;
+        amp = Math.max(0, stacks - 1);
+    }
+    entity.addPotionEffect(new PotionEffect(SLOWNESS, ticks, amp, false, true, true));
 }
 
 function ringColorForStacks(stacks) {
@@ -854,7 +969,7 @@ function drawChimingRing(entity) {
 
 function tickChimingDecay() {
     var now = Date.now();
-    var it = chimingMap.entrySet().iterator();
+    var it = getChimingMap().entrySet().iterator();
     while (it.hasNext()) {
         var entry = it.next();
         var data = entry.getValue();
@@ -887,7 +1002,7 @@ function tickChimingDecay() {
         }
         entry.setValue(data);
         var ent = Bukkit.getEntity(UUID.fromString(entry.getKey()));
-        if (ent == null || ent.isDead() || !(ent instanceof LivingEntity)) {
+        if (ent == null || ent.isDead() || !isLivingEntity(ent)) {
             it.remove();
             continue;
         }
@@ -899,8 +1014,15 @@ function onChimingDamaged(event) {
     try {
         if (event.isCancelled()) return;
         var entity = event.getEntity();
-        if (!(entity instanceof LivingEntity) || entity.isDead()) return;
+        if (!isLivingEntity(entity) || entity.isDead()) return;
         if (entity.hasMetadata(META_CHIMING_EXTRA)) return;
+        if (entity.hasMetadata(META_ZHU_LING) || entity.hasMetadata(META_DRAGON)) return;
+        var cause = event.getCause();
+        if (cause != null) {
+            try {
+                if (CHIMING_EXTRA_BLOCKED_CAUSES[cause.name()] === true) return;
+            } catch (eCause) {}
+        }
         var stacks = getChimingStacks(entity);
         if (stacks <= 0) return;
         var extra = stacks * CHIMING_EXTRA_FACTOR * getAbilityPower();
@@ -913,6 +1035,18 @@ function onChimingDamaged(event) {
             try { entity.removeMetadata(META_CHIMING_EXTRA, plugin); } catch (e2) {}
         }
     } catch (e) {}
+}
+
+function onPlayerQuitJiumeng(player) {
+    if (player == null) return;
+    var uuid = player.getUniqueId().toString();
+    chargeProgressMap.remove(uuid);
+    chargeFullMap.remove(uuid);
+    leftReleaseCdMap.remove(uuid);
+    getRitualCdMap().remove(uuid);
+    holdingTrackMap.remove(uuid);
+    zhuLingCountMap.remove(uuid);
+    try { clearChimingOwnedBy(uuid); } catch (e) {}
 }
 
 // ===================================================================
@@ -991,14 +1125,17 @@ function summonZhuLing(owner, spawnLoc, preferNearEntity, bypassMax) {
                 if (target != null && !target.isDead()) {
                     var aim = target.getLocation().add(0, target.getHeight() * 0.5, 0);
                     var dir = aim.toVector().subtract(loc.toVector());
+                    var hitLoc = loc.clone();
                     if (dir.lengthSquared() > 1e-6) {
                         dir.normalize().multiply(ZHU_LING_SPEED);
                         var next = loc.clone().add(dir);
                         next.setDirection(dir);
                         allay.teleport(next);
+                        hitLoc = next;
                     }
-                    if (loc.distance(aim) <= ZHU_LING_HIT_RANGE) {
+                    if (hitLoc.distance(aim) <= ZHU_LING_HIT_RANGE * 1.5) {
                         hit = true;
+                        try { target.setNoDamageTicks(0); target.damage(ZHU_LING_HIT_BLAST_DAMAGE * getAbilityPower(), owner); } catch (eDmg) {}
                         addChiming(target, 1, owner);
                         drawChimingRing(target);
                         playZhuLingHitBlast(world, aim, owner);
@@ -1141,9 +1278,10 @@ function setupFeastDragon(dragon) {
     try { dragon.setGravity(false); } catch (e2) {}
     try { dragon.setSilent(true); } catch (e3) {}
     try { dragon.setInvulnerable(true); } catch (e4) {}
-    try { dragon.setPersistent(false); } catch (e5) {}
-    try { dragon.setRemoveWhenFarAway(true); } catch (e6) {}
+    try { dragon.setPersistent(true); } catch (e5) {}
+    try { dragon.setRemoveWhenFarAway(false); } catch (e6) {}
     try { dragon.setCollidable(false); } catch (e7) {}
+    try { dragon.setNoPhysics(true); } catch (e7b) {}
     try { dragon.setAware(false); } catch (e8) {}
     dragon.setMetadata(META_DRAGON, new FixedMetadataValue(plugin, true));
     hideDragonBossBar(dragon);
@@ -1160,16 +1298,7 @@ function forceDragonTransform(dragon, world, x, y, z, yaw) {
         try { dragon.teleport(loc); ok = true; } catch (e2) {}
     }
     try { dragon.setRotation(faceYaw, DRAGON_PITCH); } catch (e3) {}
-    try {
-        var cur = dragon.getLocation();
-        var vy = y - cur.getY();
-        if (vy > -0.15) vy = DRAGON_VELOCITY_MIN_DOWN;
-        dragon.setVelocity(new Vector(
-            (x - cur.getX()) * 0.85,
-            vy,
-            (z - cur.getZ()) * 0.85
-        ));
-    } catch (e4) {}
+    try { dragon.setVelocity(new Vector(0, 0, 0)); } catch (e4) {}
     try {
         var EnderDragon = Java.type("org.bukkit.entity.EnderDragon");
         dragon.setPhase(EnderDragon.Phase.HOVER);
@@ -1180,20 +1309,142 @@ function forceDragonTransform(dragon, world, x, y, z, yaw) {
 // ===================================================================
 // 宴死者之龙（真实末影龙）
 // ===================================================================
-function aoeDamage(world, center, owner, radius, dmg) {
-    var item = owner != null ? owner.getInventory().getItemInMainHand() : null;
-    var list = world.getNearbyEntities(center, radius, radius, radius);
-    var it = list.iterator();
-    while (it.hasNext()) {
-        var ent = it.next();
-        if (!(ent instanceof LivingEntity) || ent.isDead()) continue;
-        if (owner != null && ent.getUniqueId().equals(owner.getUniqueId())) continue;
-        if (ent.hasMetadata(META_ZHU_LING) || ent.hasMetadata(META_DRAGON)) continue;
+function isDragonEntityUsable(dragon) {
+    if (dragon == null) return false;
+    try { return dragon.isValid() && !dragon.isDead(); } catch (e) { return false; }
+}
+
+/** 下落期间刷新追踪点：目标存活则跟脚，否则用快照 */
+function refreshDragonTrack(track, target, fallbackBase) {
+    if (target != null) {
+        try {
+            if (!target.isDead() && target.isValid()) {
+                var loc = target.getLocation();
+                track.x = loc.getX();
+                track.z = loc.getZ();
+                track.landY = loc.getY();
+                try { track.yaw = loc.getYaw(); } catch (eY) {}
+                return;
+            }
+        } catch (e) {}
+    }
+    if (fallbackBase != null) {
+        track.x = fallbackBase.getX();
+        track.z = fallbackBase.getZ();
+        track.landY = fallbackBase.getY();
+        try { track.yaw = fallbackBase.getYaw(); } catch (eY2) {}
+    }
+}
+
+function spawnDragonFallTrailFx(world, x, posY, z) {
+    var fxLoc = new Location(world, x, posY, z);
+    spawnCherry(world, fxLoc, 18, 1.8, 1.2, 1.8, 0.02);
+    spawnDust(world, fxLoc, 22, 1.6, 1.0, 1.6, 0, PURPLE_DUST);
+    spawnDust(world, fxLoc.clone().add(0, -1, 0), 10, 1.2, 0.6, 1.2, 0, PURPLE_BIG);
+}
+
+function finishDragonLanding(world, owner, track, dragon, dragonTargetUuid) {
+    var fxLocLand = new Location(world, track.x, track.landY + DRAGON_LAND_FX_LIFT, track.z);
+    var dragonLandY = track.landY + DRAGON_LAND_ENTITY_OFFSET;
+    if (isDragonEntityUsable(dragon)) {
+        forceDragonTransform(dragon, world, track.x, dragonLandY, track.z, track.yaw);
+        hideDragonBossBar(dragon);
+    }
+    drawDragonCircle(world, fxLocLand);
+    spawnCherry(world, fxLocLand, 90, 3.5, 1.2, 3.5, 0.05);
+    spawnDust(world, fxLocLand, 100, 3.2, 1.0, 3.2, 0, PURPLE_BIG);
+    if (isDragonEntityUsable(dragon)) silentRemoveDragon(dragon, world, fxLocLand);
+    playDragonLandingAftermath(owner, fxLocLand, dragonTargetUuid);
+}
+
+function restoreEntityVelocity(ent, savedVel, delayTicks) {
+    if (ent == null || savedVel == null) return;
+    function apply() {
+        try {
+            if (ent.isDead()) return;
+            ent.setVelocity(savedVel);
+        } catch (e) {}
+    }
+    apply();
+    if (delayTicks == null || delayTicks <= 0) delayTicks = 1;
+    var RestoreTask = Java.extend(BukkitRunnable, {
+        run: function () { apply(); }
+    });
+    new RestoreTask().runTaskLater(plugin, delayTicks);
+}
+
+function damageEntityInAoe(ent, dmg, owner, noKnockback) {
+    var isZhuLing = ent.hasMetadata(META_ZHU_LING);
+    var wasInvuln = false;
+    var savedVel = null;
+    if (noKnockback) {
+        try { savedVel = ent.getVelocity().clone(); } catch (eVel) {}
+    }
+    if (isZhuLing) {
+        try { wasInvuln = ent.isInvulnerable(); ent.setInvulnerable(false); } catch (eInv) {}
+    }
+    try {
         ent.setNoDamageTicks(0);
         if (owner != null) ent.damage(dmg, owner);
         else ent.damage(dmg);
-        if (owner != null) notifyAbilityDamage(owner, item, dmg);
+    } finally {
+        if (isZhuLing && !ent.isDead()) {
+            try { ent.setInvulnerable(wasInvuln || true); } catch (eRest) {}
+        }
+        if (noKnockback && savedVel != null && !ent.isDead()) {
+            restoreEntityVelocity(ent, savedVel, 1);
+        }
     }
+    if (isZhuLing && ent.isDead()) {
+        try {
+            var meta = ent.getMetadata(META_ZHU_LING);
+            if (meta != null && meta.size() > 0) {
+                addZhuLingCount(String(meta.get(0).value()), -1);
+            }
+        } catch (eCnt) {}
+        try { ent.remove(); } catch (eRm) {}
+    }
+}
+
+function applyAoeKnockback(ent, center, strength) {
+    if (ent == null || strength <= 0) return;
+    try {
+        var entLoc = ent.getLocation();
+        var dir = entLoc.toVector().subtract(center.toVector());
+        dir.setY(dir.getY() + 0.25);
+        if (dir.lengthSquared() < 0.01) {
+            dir = new Vector((Math.random() - 0.5) * 0.4, 0.35, (Math.random() - 0.5) * 0.4);
+        }
+        dir.normalize().multiply(strength);
+        ent.setVelocity(dir);
+    } catch (e) {}
+}
+
+function aoeDamage(world, center, owner, radius, dmg, options) {
+    options = options || {};
+    var hitZhuLing = options.hitZhuLing === true;
+    var knockback = options.knockback != null ? options.knockback : 0;
+    var noKnockbackUuid = options.noKnockbackUuid;
+    var item = owner != null ? owner.getInventory().getItemInMainHand() : null;
+    var list = world.getNearbyEntities(center, radius, radius, radius);
+    var totalDmg = 0;
+    var hitCount = 0;
+    for (var i = 0; i < list.size(); i++) {
+        var ent = list.get(i);
+        if (!(ent instanceof LivingEntity) || ent.isDead()) continue;
+        if (owner != null && ent.getUniqueId().equals(owner.getUniqueId())) continue;
+        if (ent.hasMetadata(META_DRAGON)) continue;
+        if (ent.hasMetadata(META_ZHU_LING) && !hitZhuLing) continue;
+        var entUuid = ent.getUniqueId().toString();
+        var skipKnockback = noKnockbackUuid != null && entUuid === noKnockbackUuid;
+        damageEntityInAoe(ent, dmg, owner, skipKnockback);
+        if (knockback > 0 && !skipKnockback) {
+            applyAoeKnockback(ent, center, knockback);
+        }
+        totalDmg += dmg;
+        hitCount++;
+    }
+    if (owner != null) notifyAbilityDamageSummary(owner, item, totalDmg, hitCount);
 }
 
 function playLargeBlastFx(world, loc, owner, blastIndex) {
@@ -1236,7 +1487,7 @@ function playLargeBlastFx(world, loc, owner, blastIndex) {
 }
 
 /** 落地后：直径20米法阵 + 三次爆炸（仅第一次有伤害）+ 法阵内随机5只祝灵 */
-function playDragonLandingAftermath(owner, landLoc) {
+function playDragonLandingAftermath(owner, landLoc, dragonTargetUuid) {
     var world = landLoc.getWorld();
     var center = landLoc.clone();
 
@@ -1255,7 +1506,11 @@ function playDragonLandingAftermath(owner, landLoc) {
         );
         playLargeBlastFx(world, offset, owner, index);
         if (index === 0 || !DRAGON_BLAST_ONLY_FIRST_DAMAGES) {
-            aoeDamage(world, center, owner, blastRadius, blastDmg);
+            aoeDamage(world, center, owner, blastRadius, blastDmg, {
+                hitZhuLing: true,
+                knockback: DRAGON_BLAST_KNOCKBACK,
+                noKnockbackUuid: dragonTargetUuid
+            });
         }
     }
 
@@ -1296,49 +1551,86 @@ function playDragonLandingAftermath(owner, landLoc) {
     new SpawnTask().runTaskLater(plugin, thirdDelay + DRAGON_POST_ZHU_LING_DELAY);
 }
 
-function startDragonFall(dragon, world, base, landY, startY, owner) {
+function startDragonFall(dragon, world, base, landY, startY, owner, target) {
     var fallPerTick = DRAGON_FALL_PER_SEC / 20.0;
     var posY = startY;
-    var yaw = base.getYaw();
     var taskRef = null;
     var landed = false;
+    var landingDone = false;
+    var tickCount = 0;
+    var track = { x: base.getX(), z: base.getZ(), landY: landY, yaw: base.getYaw() };
+    var dragonTargetUuid = target != null ? target.getUniqueId().toString() : null;
 
-    forceDragonTransform(dragon, world, base.getX(), startY, base.getZ(), yaw);
+    function doLand() {
+        if (landingDone) return;
+        landingDone = true;
+        landed = true;
+        finishDragonLanding(world, owner, track, dragon, dragonTargetUuid);
+        dragon = null;
+        try { taskRef.cancel(); } catch (eC) {}
+    }
+
+    if (isDragonEntityUsable(dragon)) {
+        forceDragonTransform(dragon, world, track.x, startY + DRAGON_LAND_ENTITY_OFFSET, track.z, track.yaw);
+    }
 
     var FallTask = Java.extend(BukkitRunnable, {
         run: function () {
             try {
                 if (landed) return;
-                if (dragon == null || !dragon.isValid() || dragon.isDead()) {
-                    try { taskRef.cancel(); } catch (e) {}
-                    return;
-                }
-                hideDragonBossBar(dragon);
+                tickCount++;
+                refreshDragonTrack(track, target, base);
+
+                if (!isDragonEntityUsable(dragon)) dragon = null;
+                else hideDragonBossBar(dragon);
 
                 posY -= fallPerTick;
-                forceDragonTransform(dragon, world, base.getX(), posY, base.getZ(), yaw);
+                var dragonEntityY = posY + DRAGON_LAND_ENTITY_OFFSET;
+                var antiPushTarget = null;
+                var antiPushVel = null;
+                if (isDragonEntityUsable(dragon) && target != null) {
+                    try {
+                        if (!target.isDead() && target.isValid()) {
+                            antiPushTarget = target;
+                            antiPushVel = target.getVelocity().clone();
+                        }
+                    } catch (eAP) {}
+                }
+                if (isDragonEntityUsable(dragon)) {
+                    forceDragonTransform(dragon, world, track.x, dragonEntityY, track.z, track.yaw);
+                    if (posY <= track.landY + DRAGON_REMOVE_ABOVE_LAND) {
+                        silentRemoveDragon(dragon, world, new Location(world, track.x, dragonEntityY, track.z));
+                        dragon = null;
+                    }
+                }
+                if (antiPushTarget != null && antiPushVel != null) {
+                    var apT = antiPushTarget;
+                    var apV = antiPushVel;
+                    var AntiPushTask = Java.extend(BukkitRunnable, {
+                        run: function () {
+                            try {
+                                if (apT.isDead()) return;
+                                var cur = apT.getVelocity();
+                                var dx = cur.getX() - apV.getX();
+                                var dy = cur.getY() - apV.getY();
+                                var dz = cur.getZ() - apV.getZ();
+                                if (dx * dx + dy * dy + dz * dz > 0.04) {
+                                    restoreEntityVelocity(apT, apV, 0);
+                                }
+                            } catch (eFix) {}
+                        }
+                    });
+                    new AntiPushTask().runTaskLater(plugin, 0);
+                    new AntiPushTask().runTaskLater(plugin, 1);
+                }
+                spawnDragonFallTrailFx(world, track.x, posY, track.z);
 
-                var fxLoc = new Location(world, base.getX(), posY, base.getZ());
-                spawnCherry(world, fxLoc, 18, 1.8, 1.2, 1.8, 0.02);
-                spawnDust(world, fxLoc, 22, 1.6, 1.0, 1.6, 0, PURPLE_DUST);
-                spawnDust(world, fxLoc.clone().add(0, -1, 0), 10, 1.2, 0.6, 1.2, 0, PURPLE_BIG);
-
-                // 落到地面高度才结算，不因碰到生物提前消失
-                if (posY <= landY + DRAGON_LAND_Y_SLOP) {
-                    landed = true;
-                    // 龙实体落到地面表面；特效抬高，避免埋进方块
-                    forceDragonTransform(dragon, world, base.getX(), landY, base.getZ(), yaw);
-                    var fxLocLand = new Location(world, base.getX(), landY + DRAGON_LAND_FX_LIFT, base.getZ());
-                    drawDragonCircle(world, fxLocLand);
-                    spawnCherry(world, fxLocLand, 90, 3.5, 1.2, 3.5, 0.05);
-                    spawnDust(world, fxLocLand, 100, 3.2, 1.0, 3.2, 0, PURPLE_BIG);
-                    silentRemoveDragon(dragon, world, fxLocLand);
-                    playDragonLandingAftermath(owner, fxLocLand);
-                    try { taskRef.cancel(); } catch (eC) {}
+                if (posY <= track.landY + DRAGON_LAND_Y_SLOP || tickCount >= DRAGON_FALL_MAX_TICKS) {
+                    doLand();
                 }
             } catch (ex) {
-                try { silentRemoveDragon(dragon, world, base); } catch (e2) {}
-                try { taskRef.cancel(); } catch (e3) {}
+                try { refreshDragonTrack(track, target, base); } catch (eTr) {}
+                doLand();
             }
         }
     });
@@ -1358,7 +1650,7 @@ function summonFeastDragon(owner, target) {
     var startY = headY + DRAGON_HEIGHT;
     var landY = DRAGON_LAND_ON_GROUND
         ? getGroundY(world, base.getX(), base.getZ(), base.getY())
-        : headY;
+        : base.getY();
     var start = new Location(world, base.getX(), startY, base.getZ());
     start.setPitch(90);
     start.setYaw(yaw);
@@ -1386,21 +1678,24 @@ function summonFeastDragon(owner, target) {
                     try {
                         dragon = world.spawnEntity(start, EntityType.ENDER_DRAGON);
                     } catch (eSpawn2) {
-                        plugin.getLogger().warning("[咀梦] 无法生成末影龙: " + eSpawn2);
-                        aoeDamage(world, base, owner, DRAGON_AOE_RADIUS, DRAGON_DAMAGE_FACTOR * getAbilityPower());
-                        drawDragonCircle(world, new Location(world, base.getX(), landY + DRAGON_LAND_FX_LIFT, base.getZ()));
+                        plugin.getLogger().warning("[咀梦] 无法生成末影龙，改用纯特效下落: " + eSpawn2);
+                        startDragonFall(null, world, base, landY, startY, owner, target);
                         return;
                     }
                 }
-                if (dragon == null) return;
+                if (dragon == null) {
+                    startDragonFall(null, world, base, landY, startY, owner, target);
+                    return;
+                }
 
                 setupFeastDragon(dragon);
                 try { dragon.teleport(start); } catch (eT) {}
                 // 龙诞生时再吼一次（仍在地面附近 + 耳边）
                 playDragonGrowl(owner, growlAt);
-                startDragonFall(dragon, world, base, landY, startY, owner);
+                startDragonFall(dragon, world, base, landY, startY, owner, target);
             } catch (ex) {
                 plugin.getLogger().warning("[咀梦] 龙诞生流程异常: " + ex);
+                try { startDragonFall(null, world, base, landY, startY, owner, target); } catch (eFall) {}
             }
         }
     });
@@ -1413,6 +1708,7 @@ function summonFeastDragon(owner, target) {
 function castDreamRitual(player) {
     var uuid = player.getUniqueId().toString();
     var now = Date.now();
+    var ritualCdMap = getRitualCdMap();
     if (ritualCdMap.containsKey(uuid) && (now - ritualCdMap.get(uuid)) < RITUAL_CD_MS) return;
     ritualCdMap.put(uuid, now);
 
@@ -1421,22 +1717,23 @@ function castDreamRitual(player) {
     var power = getAbilityPower();
     var count = 0;
     var dragonCount = 0;
+    var ritualTotalDmg = 0;
+    var playerUuid = uuid;
 
     var list = world.getNearbyEntities(eye, RITUAL_RANGE, RITUAL_RANGE, RITUAL_RANGE);
-    var it = list.iterator();
-    while (it.hasNext()) {
-        var ent = it.next();
+    for (var ri = 0; ri < list.size(); ri++) {
+        var ent = list.get(ri);
         if (!(ent instanceof LivingEntity) || ent.isDead()) continue;
-        if (ent.getUniqueId().equals(player.getUniqueId())) continue;
+        if (ent.getUniqueId().toString() === playerUuid) continue;
         if (ent.hasMetadata(META_ZHU_LING) || ent.hasMetadata(META_DRAGON)) continue;
         var center = ent.getLocation().add(0, ent.getHeight() * 0.5, 0);
         if (!inPlayerView(player, center, RITUAL_RANGE, RITUAL_FOV_DEG)) continue;
-        var stacks = getChimingStacks(ent);
+        var stacks = getChimingStacksForOwner(ent, player);
         if (stacks <= 0) continue;
 
         var dmg = stacks * RITUAL_DAMAGE_FACTOR * power;
         var needDragon = stacks >= CHIMING_DRAGON_STACKS;
-        clearChiming(ent);
+        consumeChimingForOwner(ent, player);
 
         // 先出龙再结算引爆伤害，避免满层伤害直接打死目标导致不出龙
         if (needDragon) {
@@ -1444,9 +1741,16 @@ function castDreamRitual(player) {
             summonFeastDragon(player, ent);
         }
 
+        var savedVel = null;
+        if (needDragon) {
+            try { savedVel = ent.getVelocity().clone(); } catch (eVel) {}
+        }
         ent.setNoDamageTicks(0);
         ent.damage(dmg, player);
-        notifyAbilityDamage(player, player.getInventory().getItemInMainHand(), dmg);
+        if (savedVel != null && !ent.isDead()) {
+            restoreEntityVelocity(ent, savedVel, 1);
+        }
+        ritualTotalDmg += dmg;
         count++;
 
         spawnCherry(world, center, 25, 0.5, 0.5, 0.5, 0.03);
@@ -1457,6 +1761,7 @@ function castDreamRitual(player) {
     world.playSound(eye, RITUAL_SOUND_1, 1.0, 0.7);
     world.playSound(eye, RITUAL_SOUND_2, 0.9, 0.8);
     if (count > 0) {
+        notifyAbilityDamageSummary(player, player.getInventory().getItemInMainHand(), ritualTotalDmg, count);
         player.sendActionBar(MSG_RITUAL_OK_PREFIX + count + MSG_RITUAL_OK_MID +
             (dragonCount > 0 ? (MSG_RITUAL_DRAGON_SUFFIX + dragonCount) : ""));
     } else {
@@ -1466,9 +1771,7 @@ function castDreamRitual(player) {
 
 function onUse(event) {
     try {
-        var player = event.getPlayer();
-        if (!isHoldingItem(player)) return;
-        castDreamRitual(player);
+        castDreamRitual(event.getPlayer());
     } catch (e) {
         plugin.getLogger().warning("[咀梦] onUse异常: " + e);
     }
@@ -1499,7 +1802,7 @@ function spawnZhuLingBurstAtPlayer(owner, count, bypassMax) {
 function onEntityDeath(event) {
     try {
         var entity = event.getEntity();
-        if (!(entity instanceof LivingEntity)) return;
+        if (!isLivingEntity(entity)) return;
 
         // 宴死者之龙：禁止掉落，尽量取消死亡并静默移除（防死亡动画/音效）
         if (entity.hasMetadata(META_DRAGON)) {
@@ -1515,7 +1818,7 @@ function onEntityDeath(event) {
             try { event.setDroppedExp(0); } catch (e4) {}
             return;
         }
-        if (entity instanceof Player) return;
+        if (isPlayer(entity)) return;
 
         var deathLoc = entity.getLocation();
         var stacks = getChimingStacks(entity);
@@ -1572,11 +1875,11 @@ function protectVisualDragon(event) {
 }
 
 function tickRingDisplay() {
-    var it = chimingMap.entrySet().iterator();
+    var it = getChimingMap().entrySet().iterator();
     while (it.hasNext()) {
         var entry = it.next();
         var ent = Bukkit.getEntity(UUID.fromString(entry.getKey()));
-        if (ent == null || ent.isDead() || !(ent instanceof LivingEntity)) {
+        if (ent == null || ent.isDead() || !isLivingEntity(ent)) {
             it.remove();
             continue;
         }
@@ -1592,18 +1895,18 @@ var RunnableImpl = Java.extend(Java.type("java.lang.Runnable"));
 
 var initListener = new RunnableImpl({
     run: function () {
-        // 热重载：卸掉上一份监听器（Metadata 可跨 eval 保留引用）
         try {
             if (plugin.hasMetadata(META_JIUME_LISTENER)) {
                 var oldL = plugin.getMetadata(META_JIUME_LISTENER).get(0).value();
                 if (oldL != null) {
                     try { PlayerInteractEvent.getHandlerList().unregister(oldL); } catch (e) {}
-                    try { PlayerItemHeldEvent.getHandlerList().unregister(oldL); } catch (e) {}
-                    try { EntityDamageEvent.getHandlerList().unregister(oldL); } catch (e) {}
-                    try { EntityDamageByEntityEvent.getHandlerList().unregister(oldL); } catch (e) {}
-                    try { EntityDeathEvent.getHandlerList().unregister(oldL); } catch (e) {}
-                    try { EntityExplodeEvent.getHandlerList().unregister(oldL); } catch (e) {}
-                    try { EntityChangeBlockEvent.getHandlerList().unregister(oldL); } catch (e) {}
+                    try { PlayerItemHeldEvent.getHandlerList().unregister(oldL); } catch (e1) {}
+                    try { EntityDamageEvent.getHandlerList().unregister(oldL); } catch (e2) {}
+                    try { EntityDamageByEntityEvent.getHandlerList().unregister(oldL); } catch (e3) {}
+                    try { EntityDeathEvent.getHandlerList().unregister(oldL); } catch (e4) {}
+                    try { EntityExplodeEvent.getHandlerList().unregister(oldL); } catch (e5) {}
+                    try { EntityChangeBlockEvent.getHandlerList().unregister(oldL); } catch (e6) {}
+                    try { PlayerQuitEvent.getHandlerList().unregister(oldL); } catch (e7) {}
                 }
                 try { plugin.removeMetadata(META_JIUME_LISTENER, plugin); } catch (eR) {}
             }
@@ -1631,22 +1934,19 @@ var initListener = new RunnableImpl({
             plugin
         );
 
-        // 切换快捷栏：若离开本武器则清空自己施加的斥命
         Bukkit.getPluginManager().registerEvent(
             PlayerItemHeldEvent, jiumengListener, EventPriority.MONITOR,
             function (l, event) {
                 try {
                     var player = event.getPlayer();
                     var uuid = player.getUniqueId().toString();
-                    var inv = player.getInventory();
-                    var prev = inv.getItem(event.getPreviousSlot());
+                    var prev = player.getInventory().getItem(event.getPreviousSlot());
                     var wasWeapon = false;
                     if (prev != null && prev.getType() !== Material.AIR) {
                         var sfPrev = SlimefunItem.getByItem(prev);
-                        wasWeapon = sfPrev != null && sfPrev.getId() === ITEM_ID;
+                        wasWeapon = sfPrev != null && matchItemId(sfPrev.getId(), JIUME_ITEM_ID);
                     }
                     if (!wasWeapon) return;
-                    // 延迟 1 tick 再判断新手持（槽位切换后物品才稳定）
                     var ClearTask = Java.extend(BukkitRunnable, {
                         run: function () {
                             try {
@@ -1657,19 +1957,18 @@ var initListener = new RunnableImpl({
                             } catch (e2) {}
                         }
                     });
-                    new ClearTask().runTaskLater(plugin, 1);
+                    new ClearTask().runTaskLater(getEventPlugin(), 1);
                 } catch (e) {}
             },
             plugin
         );
 
-        // 左键近战命中实体时同样进入蓄力
         Bukkit.getPluginManager().registerEvent(
             EntityDamageByEntityEvent, jiumengListener, EventPriority.MONITOR,
             function (l, event) {
                 try {
                     if (event.isCancelled()) return;
-                    var damager = event.getDamager();
+                    var damager = edbeDamager(event);
                     if (!(damager instanceof Player)) return;
                     if (!isHoldingItem(damager)) return;
                     onLeftClickCharge(damager);
@@ -1707,9 +2006,17 @@ var initListener = new RunnableImpl({
             function (l, event) { protectVisualDragon(event); },
             plugin
         );
+
+        Bukkit.getPluginManager().registerEvent(
+            PlayerQuitEvent, jiumengListener, EventPriority.MONITOR,
+            function (l, event) {
+                try { onPlayerQuitJiumeng(event.getPlayer()); } catch (e) {}
+            },
+            plugin
+        );
     }
 });
-Bukkit.getScheduler().runTask(plugin, initListener);
+Bukkit.getScheduler().runTask(getEventPlugin(), initListener);
 
 var startTasks = new RunnableImpl({
     run: function () {
@@ -1751,4 +2058,4 @@ var startTasks = new RunnableImpl({
         } catch (eMeta) {}
     }
 });
-Bukkit.getScheduler().runTask(plugin, startTasks);
+Bukkit.getScheduler().runTask(getEventPlugin(), startTasks);

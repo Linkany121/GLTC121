@@ -17,6 +17,7 @@ var File = java.io.File;
 var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
+var JString = Java.type("java.lang.String");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 
@@ -71,6 +72,8 @@ var LAUNCH_WINDOW_TICKS = 20;
 var BLIND_TICKS = 60;
 /** 失明等级（0 = I） */
 var BLIND_AMP = 0;
+/** 碰撞检测间隔（tick）；位移仍每 tick */
+var HIT_CHECK_EVERY = 2;
 
 /** 可选郁金香材质名（随机不重复优先） */
 var TULIP_NAMES = ["RED_TULIP", "ORANGE_TULIP", "WHITE_TULIP", "PINK_TULIP"];
@@ -168,14 +171,25 @@ function getSessionApi() {
     return UTIL && UTIL.spellSession ? UTIL.spellSession : null;
 }
 
-/** uuid -> { alive, sessionToken, delayTasks[], projectiles[] } */
-function waveStore() {
+function uuidKey(uuid) {
+    return JString.valueOf(String(uuid));
+}
+
+function sharedMap(field) {
     try {
-        if (PLUGIN.gltc_weifeng_wave != null) return PLUGIN.gltc_weifeng_wave;
+        var existing = PLUGIN[field];
+        if (existing != null && (existing instanceof java.util.concurrent.ConcurrentHashMap)) {
+            return existing;
+        }
     } catch (e0) {}
-    var m = {};
-    try { PLUGIN.gltc_weifeng_wave = m; } catch (e1) {}
-    return m;
+    var map = new java.util.concurrent.ConcurrentHashMap();
+    try { PLUGIN[field] = map; } catch (e1) {}
+    return map;
+}
+
+/** uuid -> { alive, sessionToken, delayTasks[], delayPending, projectiles[] } */
+function waveStore() {
+    return sharedMap("gltc_weifeng_wave");
 }
 
 function stopProjectile(proj) {
@@ -187,11 +201,11 @@ function stopProjectile(proj) {
 }
 
 function stopWave(uuid, invokeSessionEnd) {
-    uuid = String(uuid);
+    uuid = uuidKey(uuid);
     var store = waveStore();
-    var wave = store[uuid];
-    if (!wave) return;
-    try { delete store[uuid]; } catch (e0) { store[uuid] = null; }
+    var wave = null;
+    try { wave = store.remove(uuid); } catch (e0) {}
+    if (wave == null) return;
     wave.alive = false;
     if (wave.delayTasks) {
         for (var i = 0; i < wave.delayTasks.length; i++) {
@@ -217,6 +231,15 @@ function detachProjectile(wave, proj) {
     }
     wave.projectiles = kept;
 }
+
+try {
+    if (UTIL && typeof UTIL.registerDirectClearHook === "function") {
+        UTIL.registerDirectClearHook(SPELL_ID, function(p) {
+            if (!p) return;
+            stopWave(p.getUniqueId().toString(), false);
+        });
+    }
+} catch (eHook) {}
 
 function launchOne(wave, player, mageApi, mat, dmg, spellInfo) {
     if (!wave || !wave.alive) return;
@@ -247,37 +270,40 @@ function launchOne(wave, player, mageApi, mat, dmg, spellInfo) {
                 var sx = dir.getX() * SPEED_PER_TICK;
                 var sy = dir.getY() * SPEED_PER_TICK;
                 var sz = dir.getZ() * SPEED_PER_TICK;
-                var hitSolid = false;
-                try {
-                    var mid = loc.clone().add(sx * 0.5, sy * 0.5, sz * 0.5);
-                    if (mid.getBlock().getType().isSolid()) hitSolid = true;
-                } catch (eM) {}
                 loc.add(sx, sy, sz);
                 moveDisplay(proj.display, loc);
                 try { world.spawnParticle(Particle.CHERRY_LEAVES, loc, 1, 0.04, 0.04, 0.04, 0); } catch (eP) {}
-                try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
 
-                var hitEnt = null;
-                var near = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF);
-                var it = near.iterator();
-                while (it.hasNext()) {
-                    var ent = it.next();
-                    if (!(ent instanceof LivingEntity)) continue;
-                    if (ent instanceof Player && ent.getUniqueId().toString() === uuid) continue;
-                    hitEnt = ent;
-                    break;
-                }
+                var doHitCheck = (HIT_CHECK_EVERY <= 1) || (ticks % HIT_CHECK_EVERY === 0) || (ticks >= MAX_TICKS);
+                if (doHitCheck) {
+                    var hitSolid = false;
+                    try {
+                        var mid = loc.clone().add(-sx * 0.5, -sy * 0.5, -sz * 0.5);
+                        if (mid.getBlock().getType().isSolid()) hitSolid = true;
+                    } catch (eM) {}
+                    try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
 
-                if (hitEnt || hitSolid || ticks >= MAX_TICKS) {
-                    var caster = findOnline(uuid) || player;
-                    if (hitEnt) dealHit(hitEnt, dmg, caster, mageApi, spellInfo);
-                    try { world.spawnParticle(Particle.CHERRY_LEAVES, loc, 14, 0.2, 0.2, 0.2, 0.02); } catch (eH) {}
-                    stopProjectile(proj);
-                    detachProjectile(wave, proj);
-                    // 波次全部结束：静默摘会话
-                    if (wave.alive && wave.projectiles.length === 0
-                        && (!wave.delayTasks || wave.delayPending <= 0)) {
-                        stopWave(uuid, true);
+                    var hitEnt = null;
+                    var near = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF);
+                    var it = near.iterator();
+                    while (it.hasNext()) {
+                        var ent = it.next();
+                        if (!(ent instanceof LivingEntity)) continue;
+                        if (ent instanceof Player && ent.getUniqueId().toString() === uuid) continue;
+                        hitEnt = ent;
+                        break;
+                    }
+
+                    if (hitEnt || hitSolid || ticks >= MAX_TICKS) {
+                        var caster = findOnline(uuid) || player;
+                        if (hitEnt) dealHit(hitEnt, dmg, caster, mageApi, spellInfo);
+                        try { world.spawnParticle(Particle.CHERRY_LEAVES, loc, 14, 0.2, 0.2, 0.2, 0.02); } catch (eH) {}
+                        stopProjectile(proj);
+                        detachProjectile(wave, proj);
+                        if (wave.alive && wave.projectiles.length === 0
+                            && (!wave.delayTasks || wave.delayPending <= 0)) {
+                            stopWave(uuid, true);
+                        }
                     }
                 }
             } catch (ex) {
@@ -312,7 +338,7 @@ function launchOne(wave, player, mageApi, mat, dmg, spellInfo) {
             delayPending: TULIP_COUNT,
             projectiles: []
         };
-        waveStore()[uuid] = wave;
+        waveStore().put(uuidKey(uuid), wave);
 
         var api = getSessionApi();
         if (api && typeof api.begin === "function") {
@@ -331,6 +357,8 @@ function launchOne(wave, player, mageApi, mat, dmg, spellInfo) {
                         try {
                             wave.delayPending = Math.max(0, (wave.delayPending || 0) - 1);
                             if (!wave.alive) return;
+                            var key = uuidKey(uuid);
+                            if (waveStore().get(key) !== wave) return;
                             var p = findOnline(uuid);
                             if (p == null || !p.isOnline()) {
                                 stopWave(uuid, true);

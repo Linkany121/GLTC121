@@ -62,26 +62,43 @@ var TYPE_RESIST = PotionEffectType.getByName("RESISTANCE");
 try { if (TYPE_RESIST == null) TYPE_RESIST = PotionEffectType.getByName("DAMAGE_RESISTANCE"); } catch (eR) {}
 var TYPE_SPEED = PotionEffectType.getByName("SPEED");
 
-/** 冷却：uuid -> 上次释放时间戳(ms) */
-var cdMap = {};
+/** 冷却：uuid -> 上次释放时间戳(ms)，ConcurrentHashMap 跨上下文共享 */
+function abilityCdStore() {
+    try {
+        var existing = PLUGIN.gltc_huimo_ability_cd;
+        if (existing != null && (existing instanceof java.util.concurrent.ConcurrentHashMap)) {
+            return existing;
+        }
+    } catch (e0) {}
+    var map = new java.util.concurrent.ConcurrentHashMap();
+    try { PLUGIN.gltc_huimo_ability_cd = map; } catch (e1) {}
+    return map;
+}
 
-function nowMs() {
-    return Math.floor(Number(Date.now()));
+function abilityCdKey(uuid) {
+    return java.lang.String.valueOf(String(uuid));
 }
 
 function isAbilityOnCd(uuid) {
-    var last = cdMap[uuid];
+    uuid = abilityCdKey(uuid);
+    var last = abilityCdStore().get(uuid);
     if (last == null) return false;
     return (nowMs() - Number(last)) < ABILITY_CD_MS;
 }
 
 function cdLeftSec(uuid) {
-    var last = Number(cdMap[uuid]) || 0;
+    uuid = abilityCdKey(uuid);
+    var last = Number(abilityCdStore().get(uuid)) || 0;
     return Math.max(1, Math.ceil((ABILITY_CD_MS - (nowMs() - last)) / 1000));
 }
 
 function markAbilityCd(uuid) {
-    cdMap[uuid] = nowMs();
+    // 直接存毫秒数，避免 GraalJS 下 Long.valueOf 重载歧义
+    abilityCdStore().put(abilityCdKey(uuid), nowMs());
+}
+
+function nowMs() {
+    return Math.floor(Number(Date.now()));
 }
 
 function formatDamage(n) {
@@ -130,7 +147,7 @@ function ensureCoreListeners() {
             var needForce = false;
             try {
                 if (PLUGIN.gltcSpellCoreListener == null) needForce = true;
-                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 11) needForce = true;
+                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 13) needForce = true;
             } catch (eV) {}
             CAST_API.ensureListeners(needForce);
         }
@@ -652,6 +669,14 @@ function registerAbilityListener() {
                 var who = event.getPlayer();
                 if (!(who instanceof Player) || !who.isSneaking()) return;
                 if (!isThisStaff(who.getInventory().getItemInMainHand())) return;
+                var uuid = String(who.getUniqueId().toString());
+                // 冷却中：清 token、只提示，不触发护身
+                if (isAbilityOnCd(uuid)) {
+                    try { who.removeMetadata(META_ABILITY_TOKEN, PLUGIN); } catch (eRm) {}
+                    var leftCd = cdLeftSec(uuid);
+                    try { who.sendActionBar("§8光影废墟冷却中… §e" + leftCd + "§7s"); } catch (eA) {}
+                    return;
+                }
                 // 仅领取「开环成功」token；关环不会写 token
                 if (!takeAbilityToken(who)) return;
                 activateInkBlast(who);

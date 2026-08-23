@@ -130,12 +130,67 @@ const ItemStack = Java.type('org.bukkit.inventory.ItemStack');
 const ClickEvent = Java.type('org.bukkit.event.inventory.InventoryClickEvent');
 const CloseEvent = Java.type('org.bukkit.event.inventory.InventoryCloseEvent');
 const EventPriority = Java.type('org.bukkit.event.EventPriority');
-const plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 const SlimefunItem = Java.type('io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem');
 const Listener = Java.type('org.bukkit.event.Listener');
 
-// ---- 信用点系统 ----
-var File = java.io.File;var Files = java.nio.file.Files;var StandardCharsets = java.nio.charset.StandardCharsets;var NamespacedKey = Java.type('org.bukkit.NamespacedKey');var PersistentDataType = Java.type('org.bukkit.persistence.PersistentDataType');var _plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;var DATA_DIR = new File(_plugin.getDataFolder().getAbsolutePath() + '/addon_configs/GLTC/玩家属性/信用点');if (!DATA_DIR.exists()) DATA_DIR.mkdirs();var CARD_OWNER_KEY = new NamespacedKey('gltc', 'card_owner');var SF_ITEM_KEY = new NamespacedKey('slimefun', 'slimefun_item');var CARD_ID = 'GLTC_银行卡';var EXCHANGE_RATES = {'AL_A1':1,'AL_A2':1,'AL_A3':1,'AL_A4':1,'AL_A5':1,'AL_A6':1,'AL_B1':2,'TSTL':2,'TSSY':2,'TSG':2,'TSHH':3,'TSYY':3,'TSBD':3,'TSTLS':3,'TSND':3,'TSJJ':3,'TSGD':3,'TSXT':3,'TSTJ':4,'TSDBG':4,'TSBTL':4,'TSJLD':4,'TSYM':4,'TSLD':4,'TSYD':4,'TSDD':4,'TSPJD':5,'TSCH':5,'TSSKD':5,'TSLKS':5,'TSYMY':5,'TSDJL':5,'TSGWHS':5,'TSTHYY':5};function _getSlimefunId(s){if(!s||s.getType()===Material.AIR)return null;try{var m=s.getItemMeta();if(m){var p=m.getPersistentDataContainer();if(p.has(SF_ITEM_KEY,PersistentDataType.STRING))return p.get(SF_ITEM_KEY,PersistentDataType.STRING);}}catch(e){}var sf=SlimefunItem.getByItem(s);return sf?sf.getId():null;}function _creditLock(){if(plugin.gltcCreditLock==null)plugin.gltcCreditLock=new java.lang.Object();return plugin.gltcCreditLock;}function _getCreditUnlocked(u){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');if(!f.exists())return 0;try{var b=Files.readAllBytes(f.toPath());var bb=Java.type('java.nio.ByteBuffer');var cb=StandardCharsets.UTF_8.decode(bb.wrap(b));return JSON.parse(cb.toString()).credit||0;}catch(e){return 0;}}function _setCreditUnlocked(u,c){var f=new File(DATA_DIR.getAbsolutePath()+'/'+u+'.json');try{var l=new java.util.ArrayList();l.add(JSON.stringify({credit:c},null,2));Files.write(f.toPath(),l,StandardCharsets.UTF_8);return true;}catch(e){try{Java.type('org.bukkit.Bukkit').getLogger().warning('[GLTC信用点] 写入失败 '+u+': '+e);}catch(e2){}return false;}}function _getCredit(u){return Java.synchronized(_creditLock(),function(){return _getCreditUnlocked(u);})();}function _setCredit(u,c){return Java.synchronized(_creditLock(),function(){return _setCreditUnlocked(u,c);})();}function _trySpendCredit(u,cost){return Java.synchronized(_creditLock(),function(){var cur=_getCreditUnlocked(u);if(cur<cost)return false;return _setCreditUnlocked(u,cur-cost);})();}function _findCard(inv,uuid){for(var i=0;i<inv.getSize();i++){var s=inv.getItem(i);if(!s||s.getType()===Material.AIR)continue;var id=_getSlimefunId(s);if(!id||id!==CARD_ID)continue;var m=s.getItemMeta();if(!m)continue;var p=m.getPersistentDataContainer();if(p.has(CARD_OWNER_KEY,PersistentDataType.STRING)&&p.get(CARD_OWNER_KEY,PersistentDataType.STRING)===uuid)return true;}return false;}function _updateCardLore(inv,uuid,name,credit){for(var i=0;i<inv.getSize();i++){var s=inv.getItem(i);if(!s||s.getType()===Material.AIR)continue;var id=_getSlimefunId(s);if(!id||id!==CARD_ID)continue;var m=s.getItemMeta();if(!m)continue;var p=m.getPersistentDataContainer();if(p.has(CARD_OWNER_KEY,PersistentDataType.STRING)&&p.get(CARD_OWNER_KEY,PersistentDataType.STRING)===uuid){var lore=m.getLore();if(lore&&lore.size()>=6){lore.set(4,'§f[§e凭证持有者§f]§b '+name);lore.set(5,'§f[§e信用点余额§f]§b '+credit+'△');m.setLore(lore);s.setItemMeta(m);}}}}function calcCreditCost(pl){var t=0;for(var i=0;i<pl.length;i++){t+=(pl[i].amount*(EXCHANGE_RATES[pl[i].id]||0));}return t;}
+// ---- 信用点系统（共用 _信用点.js）----
+function loadCreditApi() {
+    var Bukkit = Java.type("org.bukkit.Bukkit");
+    var plugin = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+    var inst = null;
+    try {
+        inst = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer").INSTANCE;
+    } catch (e0) {}
+    if (plugin != null && plugin.gltcCreditApi != null) return plugin.gltcCreditApi;
+    if (inst != null && inst.gltcCreditApi != null) {
+        if (plugin != null) plugin.gltcCreditApi = inst.gltcCreditApi;
+        return inst.gltcCreditApi;
+    }
+    if (plugin == null) return null;
+
+    var File = java.io.File;
+    var Files = java.nio.file.Files;
+    var StandardCharsets = java.nio.charset.StandardCharsets;
+    var ByteBuffer = Java.type("java.nio.ByteBuffer");
+    var basePath = plugin.getDataFolder().getAbsolutePath();
+    var candidates = [];
+    var seen = {};
+    function addPath(file) {
+        if (!file) return;
+        var p = String(file.getAbsolutePath());
+        if (seen[p]) return;
+        seen[p] = true;
+        candidates.push(file);
+    }
+    addPath(new File(basePath + "/addons/GLTC_联合协议/scripts/能源流/_信用点.js"));
+    addPath(new File(basePath + "/addons/GLTC121/scripts/能源流/_信用点.js"));
+    try {
+        var addonsDir = new File(basePath + "/addons");
+        var list = addonsDir.listFiles();
+        if (list) {
+            for (var i = 0; i < list.length; i++) {
+                addPath(new File(list[i].getAbsolutePath() + "/scripts/能源流/_信用点.js"));
+            }
+        }
+    } catch (e1) {}
+    for (var c = 0; c < candidates.length; c++) {
+        var file = candidates[c];
+        if (!file.exists()) continue;
+        try {
+            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
+            var exported = (0, eval)(code);
+            plugin.gltcCreditApi = exported;
+            if (inst != null) inst.gltcCreditApi = exported;
+            return exported;
+        } catch (e2) {
+            try {
+                Bukkit.getLogger().warning("[GLTC信用点] 加载 " + file.getAbsolutePath() + " 失败: " + e2);
+            } catch (e3) {}
+        }
+    }
+    return null;
+}
+function getRscPlugin() { return Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer"); }
 
 const BATCH_MULTIPLIER = 5;
 const COOLDOWN_MAP = new java.util.HashMap();
@@ -161,18 +216,6 @@ function item(mat, name, lore) {
 function borderItem() { return item('BLUE_STAINED_GLASS_PANE', '§6 '); }
 function applyBorder(inv) { const b = borderItem(); BORDER_SLOTS.forEach(s => inv.setItem(s, b.clone())); }
 
-function hasEnough(player, priceList, multiplier, batchMul) {
-    var uuid = player.getUniqueId().toString();
-    var cost = calcCreditCost(priceList) * multiplier * (batchMul || 1);
-    return _getCredit(uuid) >= cost;
-}
-function removeItems(player, priceList, multiplier, batchMul) {
-    var uuid = player.getUniqueId().toString();
-    var cost = calcCreditCost(priceList) * multiplier * (batchMul || 1);
-    if (!_trySpendCredit(uuid, cost)) return false;
-    _updateCardLore(player.getInventory(), uuid, player.getName(), _getCredit(uuid));
-    return true;
-}
 function canAddItem(player, itemStack, amount) {
     const maxStack = itemStack.getMaxStackSize();
     let remaining = amount;
@@ -187,23 +230,14 @@ function canAddItem(player, itemStack, amount) {
     }
     return false;
 }
-function giveItems(player, itemProto, amount) {
-    const maxStack = itemProto.getMaxStackSize();
-    let give = amount;
-    while (give > 0) {
-        const copy = itemProto.clone();
-        copy.setAmount(Math.min(maxStack, give));
-        const left = player.getInventory().addItem(copy);
-        if (!left.isEmpty()) player.getWorld().dropItem(player.getLocation(), left.values().iterator().next());
-        give -= Math.min(maxStack, give);
-    }
-}
 
-function getBuyMessage(priceList, times, totalGive, itemId, playerUuid, batchMul) {
-    var _unitPrice = calcCreditCost(priceList);
+
+function getBuyMessage(priceList, times, totalGive, itemId, balance, batchMul) {
+    var CREDIT = loadCreditApi();
+    var _unitPrice = CREDIT ? CREDIT.calcShopCreditCost(priceList) : 0;
     var creditCost = _unitPrice * times * (batchMul || 1);
     var itemName = ITEM_NAMES[itemId] || itemId;
-    var balance = _getCredit(playerUuid);
+    
     var prefix = (
         '§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T' +
         '§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合' +
@@ -220,7 +254,7 @@ function getBuyMessage(priceList, times, totalGive, itemId, playerUuid, batchMul
     }
 }
 
-function getFailMessage(currencyName, neededAmount) {
+function getFailMessage(neededAmount) {
     var prefix = (
         '§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T' +
         '§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合' +
@@ -234,6 +268,8 @@ function getFailMessage(currencyName, neededAmount) {
 }
 
 function buildBlockMenu(page) {
+    var CREDIT = loadCreditApi();
+    if (!CREDIT) return null;
     page = page || 0;
     const list = ITEMS['方块'];
     if (!list || !list.length) return null;
@@ -265,7 +301,7 @@ function buildBlockMenu(page) {
             if (mat) {
                 displayItem = new ItemStack(mat, 1);
                 const meta = displayItem.getItemMeta();
-                var _creditCost = calcCreditCost(e.price);
+                var _creditCost = CREDIT.calcShopCreditCost(e.price);
                 var _give = e.giveAmount || 1;
                 meta.setLore([
                     '§x§F§F§F§5§B§3消耗 §b' + _creditCost + '△ §x§F§F§F§5§B§3信用点可获得 §e' + _give + ' §x§F§F§F§5§B§3个。',
@@ -278,7 +314,7 @@ function buildBlockMenu(page) {
             if (sf) {
                 displayItem = sf.getItem().clone();
                 const meta = displayItem.getItemMeta();
-                var _creditCost = calcCreditCost(e.price);
+                var _creditCost = CREDIT.calcShopCreditCost(e.price);
                 var _give = e.giveAmount || 1;
                 meta.setLore([
                     '§x§F§F§F§5§B§3消耗 §b' + _creditCost + '△ §x§F§F§F§5§B§3信用点可获得 §e' + _give + ' §x§F§F§F§5§B§3个。',
@@ -300,19 +336,23 @@ let registered = false;
 
 function ensureListener() {
     if (registered) return;
+    var rscPlugin = getRscPlugin();
+    if (!rscPlugin) return;
     const DragEvent = Java.type('org.bukkit.event.inventory.InventoryDragEvent');
-    var _oldShopL = plugin[SHOP_LISTENER_KEY];
+    var _oldShopL = rscPlugin[SHOP_LISTENER_KEY];
     if (_oldShopL) {
         ClickEvent.getHandlerList().unregister(_oldShopL);
         CloseEvent.getHandlerList().unregister(_oldShopL);
         DragEvent.getHandlerList().unregister(_oldShopL);
-        plugin[SHOP_LISTENER_KEY] = null;
+        rscPlugin[SHOP_LISTENER_KEY] = null;
     }
     const L = Java.extend(Listener, {});
     const listener = new L();
 
     Bukkit.getPluginManager().registerEvent(ClickEvent, listener, EventPriority.NORMAL, (l, e) => {
         try {
+            var CREDIT = loadCreditApi();
+            if (!CREDIT) return;
             const p = e.getWhoClicked();
             if (!openPlayers.contains(p)) return;
             if (e.getView().getTitle() !== MAIN_TITLE) return;
@@ -329,13 +369,13 @@ function ensureListener() {
 
             if (slot === PREV_SLOT && it.getItemMeta().getDisplayName() === '§e← 上一页') {
                 const cur = PAGE_MAP.get(p) || 0;
-                if (cur > 0) { PAGE_MAP.put(p, cur - 1); const inv = buildBlockMenu(cur - 1); if (inv) openMenu(p, inv); }
+                if (cur > 0) { PAGE_MAP.put(p, cur - 1); const inv = buildBlockMenu(cur - 1); if (inv) openMenu(p, inv); else p.sendMessage('§c无法创建兑换菜单，请联系管理员。'); }
                 return;
             }
             if (slot === NEXT_SLOT && it.getItemMeta().getDisplayName() === '§e下一页 →') {
                 const cur = PAGE_MAP.get(p) || 0;
                 const totalPages = Math.ceil(ITEMS['方块'].length / PAGE_SIZE);
-                if (cur < totalPages - 1) { PAGE_MAP.put(p, cur + 1); const inv = buildBlockMenu(cur + 1); if (inv) openMenu(p, inv); }
+                if (cur < totalPages - 1) { PAGE_MAP.put(p, cur + 1); const inv = buildBlockMenu(cur + 1); if (inv) openMenu(p, inv); else p.sendMessage('§c无法创建兑换菜单，请联系管理员。'); }
                 return;
             }
             if (slot === 49 && it.getItemMeta().getDisplayName() === '§c关闭') { p.closeInventory(); return; }
@@ -367,15 +407,11 @@ function ensureListener() {
             let times = isShift ? Math.ceil(64 / giveAmount) : 1;
             const totalGive = times * giveAmount;
             var _batchMul = isShift ? BATCH_MULTIPLIER : 1;
-            var _creditCost = calcCreditCost(config.price) * times * _batchMul;
+            var _creditCost = CREDIT.calcShopCreditCost(config.price) * times * _batchMul;
 
             var _uuid = p.getUniqueId().toString();
-            if (!_findCard(p.getInventory(), _uuid)) {
-                p.sendMessage(getFailMessage('', -1));
-                return;
-            }
-            if (!hasEnough(p, config.price, times, _batchMul)) {
-                p.sendMessage(getFailMessage('', _creditCost));
+            if (!CREDIT || !CREDIT.findCard(p.getInventory(), _uuid)) {
+                p.sendMessage(getFailMessage(-1));
                 return;
             }
             if (!canAddItem(p, itemProto, totalGive)) {
@@ -383,27 +419,29 @@ function ensureListener() {
                 return;
             }
 
-            if (!removeItems(p, config.price, times, _batchMul)) {
-                p.sendMessage(getFailMessage('', _creditCost));
+            var spend = CREDIT.trySpendForShop(_uuid, _creditCost, null, 0, 0);
+            if (!spend.ok) {
+                if (spend.reason === 'credit') {
+                    p.sendMessage(getFailMessage(_creditCost));
+                } else {
+                    p.sendMessage('§c交易失败，请重试。');
+                }
                 return;
             }
-            giveItems(p, itemProto, totalGive);
-            p.sendMessage(getBuyMessage(config.price, times, totalGive, config.id, _uuid, _batchMul));
+            CREDIT.giveItems(p, itemProto, totalGive);
+            CREDIT.updateAllCardsLore(p.getInventory(), _uuid, p.getName(), spend.balance);
+            p.sendMessage(getBuyMessage(config.price, times, totalGive, config.id, spend.balance, _batchMul));
             setCooldown(p);
         } catch (err) { print("方块兑换错误: " + err); }
-    }, plugin);
+    }, rscPlugin);
 
     Bukkit.getPluginManager().registerEvent(CloseEvent, listener, EventPriority.NORMAL, (l, e) => {
         const p = e.getPlayer();
         if (PAGE_SWITCHING.contains(p)) return;
-        openPlayers.remove(p); COOLDOWN_MAP.remove(p); PAGE_MAP.remove(p);
-        if (openPlayers.isEmpty()) {
-            ClickEvent.getHandlerList().unregister(listener);
-            CloseEvent.getHandlerList().unregister(listener);
-            DragEvent.getHandlerList().unregister(listener);
-            plugin[SHOP_LISTENER_KEY] = null; registered = false;
-        }
-    }, plugin);
+        openPlayers.remove(p);
+        COOLDOWN_MAP.remove(p);
+        PAGE_MAP.remove(p);
+    }, rscPlugin);
 
     Bukkit.getPluginManager().registerEvent(DragEvent, listener, EventPriority.NORMAL, (l, e) => {
         if (!openPlayers.contains(e.getWhoClicked())) return;
@@ -411,12 +449,15 @@ function ensureListener() {
         const topSize = e.getView().getTopInventory().getSize();
         const itSlots = e.getRawSlots().iterator();
         while (itSlots.hasNext()) if (itSlots.next() < topSize) { e.setCancelled(true); return; }
-    }, plugin);
-    plugin[SHOP_LISTENER_KEY] = listener; registered = true;
+    }, rscPlugin);
+    rscPlugin[SHOP_LISTENER_KEY] = listener; registered = true;
 }
 
 function openMenu(p, inv) { PAGE_SWITCHING.add(p); p.openInventory(inv); PAGE_SWITCHING.remove(p); openPlayers.add(p); ensureListener(); }
-function openMain(p) { PAGE_MAP.put(p, 0); const inv = buildBlockMenu(0); if (inv) openMenu(p, inv); }
+function openMain(p) {
+    var CREDIT = loadCreditApi();
+    if (!CREDIT) { p.sendMessage('§c信用点系统未加载，请联系管理员。'); return; }
+    PAGE_MAP.put(p, 0); const inv = buildBlockMenu(0); if (inv) openMenu(p, inv); else p.sendMessage('§c无法创建兑换菜单，请联系管理员。'); }
 
 function onButtonGroupClick(player, slot, clickedItem, clickAction, guideMode) { try { openMain(player); return true; } catch (err) { player.sendMessage('§c无法打开方块兑换菜单'); return false; } }
 function onUse(e) { try { openMain(e.getPlayer()); } catch (err) { e.getPlayer().sendMessage('§c无法打开方块兑换菜单'); } return false; }

@@ -14,6 +14,11 @@ var ByteBuffer = Java.type("java.nio.ByteBuffer");
 var MAGE_API = null;
 
 function gltcEvalScript(relativePath, captureExport) {
+    return gltcEvalScriptEx(relativePath, captureExport, false);
+}
+
+/** isolated=true 时用 IIFE 包裹，避免多武器脚本共用全局 var 互相覆盖 */
+function gltcEvalScriptEx(relativePath, captureExport, isolated) {
     var candidates = [
         new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/" + relativePath),
         new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/" + relativePath)
@@ -36,6 +41,9 @@ function gltcEvalScript(relativePath, captureExport) {
         try {
             var bytes = Files.readAllBytes(file.toPath());
             var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes)).toString();
+            if (isolated) {
+                code = "(function(){\n" + code + "\n})();";
+            }
             var exported = (0, eval)(code);
             if (captureExport) return exported;
             return true;
@@ -46,6 +54,22 @@ function gltcEvalScript(relativePath, captureExport) {
     Bukkit.getLogger().warning("[GLTC监听] 未找到脚本: " + relativePath);
     return captureExport ? null : false;
 }
+
+// ---------- 0) 能源流信用点（预加载，供各商店/银行卡/充值机复用） ----------
+(function preloadCreditApi() {
+    var credit = gltcEvalScript("能源流/_信用点.js", true);
+    if (credit) {
+        try {
+            PLUGIN.gltcCreditApi = credit;
+            try {
+                Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer").INSTANCE.gltcCreditApi = credit;
+            } catch (eInst) {}
+            Bukkit.getLogger().info("[GLTC监听] 已加载 能源流/_信用点.js");
+        } catch (eCredit) {}
+    } else {
+        Bukkit.getLogger().warning("[GLTC监听] 能源流/_信用点.js 预加载失败，商店将在点击时重试");
+    }
+})();
 
 // ---------- 1) 料理 / 食物战斗效果 ----------
 if (gltcEvalScript("食物/战斗效果监听.js", false)) {
@@ -104,7 +128,10 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
                 var api = PLUGIN.gltcMageApi != null ? PLUGIN.gltcMageApi : MAGE_API;
                 if (!api) return;
                 // 脉冲伤害：不吃粒子折射、不吃最终减伤
-                if (api.isPulseDamage && api.isPulseDamage(entity)) return;
+                if (api.isPulseDamage && api.isPulseDamage(entity)) {
+                    try { entity.removeMetadata("gltc_pulse_hit", PLUGIN); } catch (ePulse) {}
+                    return;
+                }
 
                 var stats = api.getTotalStats(entity, false);
                 var dmg = event.getDamage();
@@ -132,4 +159,25 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
 // ---------- 3) 施术核心：仅由施术道具脚本本上下文 eval（Graal 无法跨脚本调 JS API）----------
 (function setupSpellCoreNote() {
     Bukkit.getLogger().info("[GLTC监听] 施术核心改由施术道具脚本加载（避免双上下文状态分裂）");
+})();
+
+// ---------- 4) 异能武器：隔离预加载 registerEvent（IIFE 防 ITEM_ID 污染；非全局路由）----------
+(function preloadWeaponScripts() {
+    var weaponScripts = [
+        "武器/伏地.js",
+        "武器/风墟龙冕.js",
+        "武器/破军.js",
+        "武器/隐兰狂玉唤剑葫.js",
+        "武器/咀梦.js",
+        "武器/ASPL.js"
+    ];
+    for (var wi = 0; wi < weaponScripts.length; wi++) {
+        try {
+            if (gltcEvalScriptEx(weaponScripts[wi], false, true)) {
+                Bukkit.getLogger().info("[GLTC监听] 已预加载 " + weaponScripts[wi]);
+            }
+        } catch (eW) {
+            Bukkit.getLogger().warning("[GLTC监听] 预加载失败 " + weaponScripts[wi] + ": " + eW);
+        }
+    }
 })();

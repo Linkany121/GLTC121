@@ -1,3 +1,7 @@
+// ============================================
+// 舰体订单发布机
+// 投入空白订单，按按钮生成 1 / 7 / 28 张随机舰体需求订单（BOOK + PDC）
+// ============================================
 
 var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -7,6 +11,7 @@ var Material = Java.type("org.bukkit.Material");
 var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
 var Player = Java.type("org.bukkit.entity.Player");
 var InventoryClickEvent = Java.type("org.bukkit.event.inventory.InventoryClickEvent");
+var InventoryCreativeEvent = Java.type("org.bukkit.event.inventory.InventoryCreativeEvent");
 var InventoryCloseEvent = Java.type("org.bukkit.event.inventory.InventoryCloseEvent");
 var InventoryDragEvent = Java.type("org.bukkit.event.inventory.InventoryDragEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
@@ -18,8 +23,9 @@ var StandardCharsets = java.nio.charset.StandardCharsets;
 
 // ---------------- 可调参数 ----------------
 var MACHINE_ID = "skey_舰体订单发布机";     // 机器ID
-var ORDER_ITEM_ID = "skey_订单";             // 生成的订单物品ID
+var ORDER_ITEM_ID = "skey_订单";             // 订单标识（PDC 识别，与 items.yml 一致）
 var INPUT_ITEM_ID = "skey_空白订单";         // 消耗的材料ID
+var ORDER_MODEL_ID = 1210238;                // 与 items.yml → skey_订单.modelId 一致
 var GUI_TITLE = "§b舰体订单发布机";
 
 // 第1行（0-8）中间7格：空白订单投入槽
@@ -38,8 +44,23 @@ var OUTPUT_SLOTS = [
 ];
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var DATA_DIR = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/舰体货币");
-if (!DATA_DIR.exists()) DATA_DIR.mkdirs();
+
+function loadShipCurrencyApi() {
+    if (PLUGIN.gltcShipCurrencyApi != null) return PLUGIN.gltcShipCurrencyApi;
+    try {
+        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/机器/_舰体货币.js";
+        var apiFile = new File(path);
+        if (!apiFile.exists()) return null;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(apiFile.toPath()))).toString();
+        PLUGIN.gltcShipCurrencyApi = (0, eval)(code);
+        return PLUGIN.gltcShipCurrencyApi;
+    } catch (e) {
+        Bukkit.getLogger().warning("[GLTC] 加载舰体货币模块失败: " + e);
+        return null;
+    }
+}
+var CURRENCY_API = loadShipCurrencyApi();
 
 var SF_ITEM_KEY = new NamespacedKey("slimefun", "slimefun_item");
 // 订单数据 PDC Key（供日后交付机器读取）
@@ -78,59 +99,7 @@ function translateCodes(s) {
     return out;
 }
 
-// ---------------- 舰体货币数据读写（模仿能源流信用点系统） ----------------
-
-/**
- * 读取玩家舰体货币 {I, V, X}
- */
-function getShipCurrency(uuid) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    if (!file.exists()) return {I: 0, V: 0, X: 0};
-    try {
-        var bytes = Files.readAllBytes(file.toPath());
-        var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var charBuffer = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes));
-        var data = JSON.parse(charBuffer.toString());
-        return {I: data.I || 0, V: data.V || 0, X: data.X || 0};
-    } catch (e) {
-        return {I: 0, V: 0, X: 0};
-    }
-}
-
-/**
- * 保存玩家舰体货币
- */
-function setShipCurrency(uuid, data) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    try {
-        var lines = new java.util.ArrayList();
-        lines.add(JSON.stringify({I: data.I || 0, V: data.V || 0, X: data.X || 0}, null, 2));
-        Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
-    } catch (e) {
-        Bukkit.getLogger().warning("[GLTC] 保存舰体货币失败 uuid=" + uuid + ": " + e);
-    }
-}
-
-/**
- * 增加玩家某档舰体货币
- * @param type "I" | "V" | "X"
- */
-// 全局共享锁（挂在插件对象上，与接收机/访问站共用），防止并发读写同一货币文件丢更新
-function getCurrencyLock() {
-    if (PLUGIN.gltcCurrencyLock == null) PLUGIN.gltcCurrencyLock = new java.lang.Object();
-    return PLUGIN.gltcCurrencyLock;
-}
-
-function addShipCurrency(uuid, type, amount) {
-    return Java.synchronized(getCurrencyLock(), function() {
-        var data = getShipCurrency(uuid);
-        if (type === "I") data.I += amount;
-        else if (type === "V") data.V += amount;
-        else if (type === "X") data.X += amount;
-        setShipCurrency(uuid, data);
-        return data;
-    })();
-}
+// ---------------- 舰体货币（共用 _舰体货币.js，发布机本脚本不直接读写货币） ----------------
 
 // ---------------- 订单随机生成参数 ----------------
 
@@ -514,6 +483,7 @@ function buildOrderItem(order) {
     var rewardText = buildRewardText(order.level, order.rewardAmount);
 
     meta.setDisplayName(translateCodes(ORDER_NAME_TEMPLATE));
+    try { meta.setCustomModelData(ORDER_MODEL_ID); } catch (eModel) {}
 
     var lore = new java.util.ArrayList();
     for (var li = 0; li < ORDER_LORE_TEMPLATE.length; li++) {
@@ -596,8 +566,34 @@ var BUTTON_ITEMS = {};
     }
 })();
 
+var BORDER_SLOTS = [0, 8, 9, 12, 14, 16, 17, 18, 26, 27, 35, 36, 44, 45, 53];
 var activeInventories = new java.util.HashSet();
-var _listenerRegistered = false;
+
+function getActiveInventories() {
+    return activeInventories;
+}
+
+function isPublisherFreeSlot(slot) {
+    var i;
+    for (i = 0; i < INPUT_SLOTS.length; i++) {
+        if (INPUT_SLOTS[i] === slot) return true;
+    }
+    for (i = 0; i < OUTPUT_SLOTS.length; i++) {
+        if (OUTPUT_SLOTS[i] === slot) return true;
+    }
+    return false;
+}
+
+function shouldCancelPublisherDrag(event, topInv) {
+    var topSize = topInv.getSize();
+    var rawSlots = event.getRawSlots();
+    var it = rawSlots.iterator();
+    while (it.hasNext()) {
+        var raw = it.next();
+        if (raw < topSize && !isPublisherFreeSlot(raw)) return true;
+    }
+    return false;
+}
 
 function onUse(event) {
     var player;
@@ -606,9 +602,9 @@ function onUse(event) {
 
     var inv = Bukkit.createInventory(null, 54, GUI_TITLE);
     // 仅边框填底色，输出区保持空白
-    var BORDER_SLOTS = [0, 8, 9, 12, 14, 16, 17, 18, 26, 27, 35, 36, 44, 45, 53];
-    for (var b = 0; b < BORDER_SLOTS.length; b++) {
-        inv.setItem(BORDER_SLOTS[b], BG_ITEM.clone());
+    var BORDER_SLOTS_LOCAL = BORDER_SLOTS;
+    for (var b = 0; b < BORDER_SLOTS_LOCAL.length; b++) {
+        inv.setItem(BORDER_SLOTS_LOCAL[b], BG_ITEM.clone());
     }
     // 第1行：空白订单投入槽（留空，玩家直接放入空白订单）
     // 第2行：说明书 + 生成按钮
@@ -618,7 +614,7 @@ function onUse(event) {
     inv.setItem(BUTTON_28_SLOT, BUTTON_ITEMS[28].clone());
     // 第3~6行：输出区初始为空
 
-    activeInventories.add(inv);
+    getActiveInventories().add(inv);
     player.openInventory(inv);
 }
 
@@ -705,18 +701,26 @@ function processGenerate(player, inv, count) {
 // ---------------- 事件监听注册 ----------------
 
 function registerListeners() {
-    if (_listenerRegistered) return;
-    _listenerRegistered = true;
+    if (PLUGIN.gltcOrderPublisherRegistered === true) {
+        try {
+            InventoryClickEvent.getHandlerList().unregister(PLUGIN.gltcOrderPublisherListener);
+            InventoryDragEvent.getHandlerList().unregister(PLUGIN.gltcOrderPublisherListener);
+            InventoryCloseEvent.getHandlerList().unregister(PLUGIN.gltcOrderPublisherListener);
+        } catch (eUnreg) {}
+    }
 
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcOrderPublisherListener = listenerInstance;
+    PLUGIN.gltcOrderPublisherRegistered = true;
 
     // InventoryClickEvent
     Bukkit.getPluginManager().registerEvent(
         InventoryClickEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
+            if (event instanceof InventoryCreativeEvent) return;
             var topInv = event.getView().getTopInventory();
-            if (!activeInventories.contains(topInv)) return;
+            if (!getActiveInventories().contains(topInv)) return;
 
             var player = event.getWhoClicked();
             if (!(player instanceof Player)) return;
@@ -752,13 +756,13 @@ function registerListeners() {
         }, PLUGIN
     );
 
-    // InventoryDragEvent
+    // InventoryDragEvent：仅拦截拖向受保护槽位
     Bukkit.getPluginManager().registerEvent(
         InventoryDragEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
             var topInv = event.getView().getTopInventory();
-            if (!activeInventories.contains(topInv)) return;
-            event.setCancelled(true);
+            if (!getActiveInventories().contains(topInv)) return;
+            if (shouldCancelPublisherDrag(event, topInv)) event.setCancelled(true);
         }, PLUGIN
     );
 
@@ -767,6 +771,7 @@ function registerListeners() {
         InventoryCloseEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
             var inv = event.getInventory();
+            var activeInventories = getActiveInventories();
             if (!activeInventories.contains(inv)) return;
 
             var player = event.getPlayer();

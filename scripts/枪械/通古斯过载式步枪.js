@@ -2,104 +2,77 @@
 // 通古斯过载式步枪（反卫星）· 可调配置
 // 最终伤害 = 系数 × 异能强度(SIT)；改完重载脚本生效
 // ===================================================================
-var SIT_PER_BULLET = 0.6;              // 单发充能光束伤害系数（×SIT）
-var SIT_BEAM_MULT = 20;                // 第10发后巨型脉冲伤害系数（×SIT）
-var ABILITY_POWER_DEFAULT = 10;        // 异能强度默认值（配置缺失时回退）
-var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment"; // 异能强度读取的配置键
-var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";   // 伤害提示方式配置键
-var DAMAGE_NOTIFY_DEFAULT = "chat";    // 伤害提示默认：chat / actionbar / none
-var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f"; // 伤害提示前缀
-var RANGE = 60;                        // 射程（格）
-var COOLDOWN_MS = 5000;                // 整轮射击结束后的再装填（毫秒）
-var BULLET_INTERVAL = 2;               // 充能连射间隔（tick，2≈0.1秒）
-var MAX_BULLETS = 10;                  // 充能连射发数（打满后触发脉冲）
-var BEAM_RADIUS = 2.0;                 // 巨型脉冲判定圆柱半径（格）
-
-function getAbilityPower() {
-    try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
-}
+var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
+var Material = Java.type("org.bukkit.Material");
+var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
+var FluidCollisionMode = Java.type("org.bukkit.FluidCollisionMode");
+var plugin = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer").INSTANCE;
+var ABILITY_POWER_DEFAULT = 10;
+var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
+var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
+var DAMAGE_NOTIFY_DEFAULT = "chat";
+var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
+function getAbilityPower() { try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; } }
 function calcSitDamage(mult) { return mult * getAbilityPower(); }
-function formatAbilityDamage(dmg) {
-    var v = Math.round(dmg * 10) / 10;
-    return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1);
-}
-function getWeaponDisplayName(item) {
-    if (item == null) return "未知武器";
+function formatAbilityDamage(dmg) { var v = Math.round(dmg * 10) / 10; return (Math.abs(v - Math.round(v)) < 0.05) ? String(Math.round(v)) : v.toFixed(1); }
+function getGunDisplayName(item) { if (item == null) return "未知武器"; try { var meta = item.getItemMeta(); if (meta != null && meta.hasDisplayName()) return meta.getDisplayName(); } catch (e) {} return "未知武器"; }
+function getDamageNotifyMode() { try { var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim(); if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar"; if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none"; if (mode === "chat" || mode === "聊天框") return "chat"; return DAMAGE_NOTIFY_DEFAULT; } catch (e) { return DAMAGE_NOTIFY_DEFAULT; } }
+function notifyAbilityDamage(player, item, damage) { if (player == null || !player.isOnline()) return; var mode = getDamageNotifyMode(); if (mode === "none") return; var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getGunDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！"; if (mode === "actionbar") { try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); } } else { player.sendMessage(msg); } }
+function dealSitDamage(target, player, item, sitMult) { var dmg = calcSitDamage(sitMult); target.setNoDamageTicks(0); target.damage(dmg, player); notifyAbilityDamage(player, item, dmg); return dmg; }
+function rayTraceLiving(world, start, dir, range, shooter) { return world.rayTrace(start, dir, range, FluidCollisionMode.NEVER, false, 0.3, function(ent) { return ent instanceof LivingEntity && ent !== shooter; }); }
+function scheduleReloadSound(player, cooldownMs) { if (player == null) return; var _player = player; var CloseTask = Java.extend(BukkitRunnable, { run: function() { if (_player.isOnline()) _player.getWorld().playSound(_player.getLocation(), "block.iron_door.close", 0.7, 1.0); } }); new CloseTask().runTaskLater(plugin, Math.max(1, Math.floor(cooldownMs / 50))); }
+function adjustPlayerPitch(player, degrees) { if (player == null || !player.isOnline()) return; var loc = player.getLocation(); var newPitch = loc.getPitch() - degrees; if (newPitch > 90) newPitch = 90; if (newPitch < -90) newPitch = -90; try { player.setRotation(loc.getYaw(), newPitch); } catch (e) { try { loc.setPitch(newPitch); player.teleport(loc); } catch (e2) {} } }
+function isHoldingGun(player, gunId) { if (player == null || !player.isOnline()) return false; var item = player.getInventory().getItemInMainHand(); if (!item || item.getType() === Material.AIR) return false; var sfItem = SlimefunItem.getByItem(item); return sfItem != null && sfItem.getId() === gunId; }
+function wasHoldingGun(stack, gunId) { if (!stack || stack.getType() === Material.AIR) return false; var sfItem = SlimefunItem.getByItem(stack); return sfItem != null && sfItem.getId() === gunId; }
+
+var GUN_ID = "FKR_通古斯过载式步枪";
+var SIT_PER_BULLET = 0.6;
+var SIT_BEAM_MULT = 20;
+var RANGE = 60;
+var COOLDOWN_MS = 5000;
+var BULLET_INTERVAL = 2;
+var MAX_BULLETS = 10;
+var BEAM_RADIUS = 2.0;
+
+var cdMap = new java.util.HashMap();
+var firingMap = new java.util.HashMap();
+var taskMap = new java.util.HashMap();
+function cancelTaskMap(map) {
+    if (map == null) return;
     try {
-        var meta = item.getItemMeta();
-        if (meta != null && meta.hasDisplayName()) return meta.getDisplayName();
-    } catch (e) {}
-    return "未知武器";
+        var tasks = map.values().toArray();
+        for (var i = 0; i < tasks.length; i++) { try { tasks[i].cancel(); } catch (e) {} }
+        map.clear();
+    } catch (e2) {}
 }
-function getDamageNotifyMode() {
-    try {
-        var mode = String(getAddonConfig().getString(DAMAGE_NOTIFY_CONFIG_KEY, DAMAGE_NOTIFY_DEFAULT)).toLowerCase().trim();
-        if (mode === "actionbar" || mode === "action_bar" || mode === "action" || mode === "物品栏上方") return "actionbar";
-        if (mode === "none" || mode === "off" || mode === "hide" || mode === "不显示") return "none";
-        if (mode === "chat" || mode === "聊天框") return "chat";
-        return DAMAGE_NOTIFY_DEFAULT;
-    } catch (e) {
-        return DAMAGE_NOTIFY_DEFAULT;
-    }
+function clearGunState(player) {
+    if (player == null) return;
+    var uuid = player.getUniqueId().toString();
+    cdMap.remove(uuid);
+    firingMap.remove(uuid);
+    var task = taskMap.remove(uuid);
+    if (task != null) { try { task.cancel(); } catch (e) {} }
 }
-function notifyAbilityDamage(player, item, damage) {
-    if (player == null || !player.isOnline()) return;
-    var mode = getDamageNotifyMode();
-    if (mode === "none") return;
-    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
-    if (mode === "actionbar") {
-        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
-    } else {
-        player.sendMessage(msg);
-    }
-}
-function dealSitDamage(target, player, item, sitMult) {
-    var dmg = calcSitDamage(sitMult);
-    target.setNoDamageTicks(0);
-    target.damage(dmg, player);
-    notifyAbilityDamage(player, item, dmg);
-    return dmg;
-}
+
 var Particle = org.bukkit.Particle;
 var Location = org.bukkit.Location;
 var Vector = org.bukkit.util.Vector;
 var DustOptions = org.bukkit.Particle.DustOptions;
 var Color = org.bukkit.Color;
-var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
-var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
-var FluidCollisionMode = org.bukkit.FluidCollisionMode;
-var cdMap = new java.util.HashMap();
-var firingMap = new java.util.HashMap();
-var taskMap = new java.util.HashMap();
-// 热重载：取消上一份脚本残留的连射任务（必须在 plugin 定义之后）
-try {
-    if (plugin.gltcOverloadTaskMap != null) {
-        var _oldFire = plugin.gltcOverloadTaskMap.values().toArray();
-        for (var _fi = 0; _fi < _oldFire.length; _fi++) {
-            try { _oldFire[_fi].cancel(); } catch (_fe) {}
-        }
-    }
-} catch (_fo) {}
-try {
-    plugin.gltcOverloadTaskMap = taskMap;
-    plugin.gltcOverloadFiringMap = firingMap;
-} catch (_fp) {}
+var FluidCollisionMode = Java.type("org.bukkit.FluidCollisionMode");
 var bulletDust = new DustOptions(Color.fromRGB(255, 180, 0), 1.0);
 var beamCoreDust = new DustOptions(Color.fromRGB(255, 120, 0), 1.5);
 var beamRingDust = new DustOptions(Color.fromRGB(255, 0, 0), 1.2);
+
 function fireBullet(player, bulletIndex) {
+    if (!isHoldingGun(player, GUN_ID)) return;
     var world = player.getWorld();
     var item = player.getInventory().getItemInMainHand();
     var start = player.getEyeLocation();
     var dir = start.getDirection().normalize();
-
-    var rayHit = world.rayTrace(
-        start, dir, RANGE,
-        FluidCollisionMode.NEVER, false, 0.3,
-        function(ent) {
-            return ent instanceof org.bukkit.entity.LivingEntity && ent !== player;
-        }
-    );
+    var rayHit = rayTraceLiving(world, start, dir, RANGE, player);
     var endDist = RANGE;
     if (rayHit != null) {
         var hitPos = rayHit.getHitPosition();
@@ -117,16 +90,18 @@ function fireBullet(player, bulletIndex) {
         tracerLoc.add(stepVec);
     }
     if (rayHit != null) {
-        var hitPos = rayHit.getHitPosition();
-        var hitLoc = new Location(world, hitPos.getX(), hitPos.getY(), hitPos.getZ());
+        var hitPos2 = rayHit.getHitPosition();
+        var hitLoc = new Location(world, hitPos2.getX(), hitPos2.getY(), hitPos2.getZ());
         world.spawnParticle(Particle.DUST, hitLoc, 12, 0.15, 0.15, 0.15, 0.05, bulletDust);
         world.spawnParticle(Particle.SMOKE, hitLoc, 3, 0.1, 0.1, 0.1, 0.02);
     }
-    var volume = 0.3 + (bulletIndex / 10) * 0.9; // 0.2→0.8
-    var pitch = 0.4 + (bulletIndex / 10) * 1.6; // 0.5→2.0
+    var volume = 0.3 + (bulletIndex / 10) * 0.9;
+    var pitch = 0.4 + (bulletIndex / 10) * 1.6;
     world.playSound(start, "block.respawn_anchor.charge", volume, pitch);
 }
+
 function fireBeam(player) {
+    if (!isHoldingGun(player, GUN_ID)) return;
     var world = player.getWorld();
     var item = player.getInventory().getItemInMainHand();
     var start = player.getEyeLocation();
@@ -144,31 +119,18 @@ function fireBeam(player) {
     var maxX = Math.max(start.getX(), endLoc.getX()) + beamRadius;
     var maxY = Math.max(start.getY(), endLoc.getY()) + beamRadius;
     var maxZ = Math.max(start.getZ(), endLoc.getZ()) + beamRadius;
-    var queryCenter = new Location(
-        world,
-        (minX + maxX) / 2.0,
-        (minY + maxY) / 2.0,
-        (minZ + maxZ) / 2.0
-    );
-    var nearby = world.getNearbyEntities(
-        queryCenter,
-        (maxX - minX) / 2.0,
-        (maxY - minY) / 2.0,
-        (maxZ - minZ) / 2.0
-    );
+    var queryCenter = new Location(world, (minX + maxX) / 2.0, (minY + maxY) / 2.0, (minZ + maxZ) / 2.0);
+    var nearby = world.getNearbyEntities(queryCenter, (maxX - minX) / 2.0, (maxY - minY) / 2.0, (maxZ - minZ) / 2.0);
     var startVec = start.toVector();
     var it = nearby.iterator();
     while (it.hasNext()) {
         var ent = it.next();
         if (!(ent instanceof org.bukkit.entity.LivingEntity) || ent === player) continue;
-        var box = ent.getBoundingBox().expand(beamRadius);
-        if (box.rayTrace(startVec, dir, endDist) == null) continue;
+        if (ent.getBoundingBox().expand(beamRadius).rayTrace(startVec, dir, endDist) == null) continue;
         dealSitDamage(ent, player, item, SIT_BEAM_MULT);
     }
     var anyVec = new Vector(0, 1, 0);
-    if (Math.abs(dir.getX()) < 0.01 && Math.abs(dir.getZ()) < 0.01) {
-        anyVec = new Vector(1, 0, 0);
-    }
+    if (Math.abs(dir.getX()) < 0.01 && Math.abs(dir.getZ()) < 0.01) anyVec = new Vector(1, 0, 0);
     var perp1 = dir.clone().crossProduct(anyVec).normalize();
     var perp2 = perp1.clone().crossProduct(dir).normalize();
     var ringPoints = 12;
@@ -186,18 +148,15 @@ function fireBeam(player) {
     var steps = Math.floor(endDist / 0.5);
     for (var i = 0; i < steps; i++) {
         world.spawnParticle(Particle.DUST, tracerLoc, 3, 0, 0, 0, 0, beamCoreDust);
-        if (i % 4 === 0) {
-            world.spawnParticle(Particle.ELECTRIC_SPARK, tracerLoc, 15, 0.4, 0.4, 0.4, 0);
-        }
-        for (var j = 0; j < ringPoints; j++) {
-            var circlePoint = tracerLoc.clone().add(ringOffsets[j]);
-            world.spawnParticle(Particle.DUST, circlePoint, 1, 0, 0, 0, 0, beamRingDust);
+        if (i % 4 === 0) world.spawnParticle(Particle.ELECTRIC_SPARK, tracerLoc, 15, 0.4, 0.4, 0.4, 0);
+        for (var j2 = 0; j2 < ringPoints; j2++) {
+            world.spawnParticle(Particle.DUST, tracerLoc.clone().add(ringOffsets[j2]), 1, 0, 0, 0, 0, beamRingDust);
         }
         tracerLoc.add(stepVec);
     }
-    var waveSteps = Math.floor(endDist / 1.0);
     var waveLoc = start.clone();
     var waveStepVec = dir.clone().multiply(1.0);
+    var waveSteps = Math.floor(endDist / 1.0);
     for (var w = 0; w < waveSteps; w++) {
         world.spawnParticle(Particle.SONIC_BOOM, waveLoc, 1, 0, 0, 0, 0);
         waveLoc.add(waveStepVec);
@@ -214,30 +173,21 @@ function fireBeam(player) {
     world.playSound(start, "block.beacon.activate", 3.0, 0.6);
     world.playSound(start, "item.mace.smash_ground_heavy", 3.0, 1.0);
 }
-function adjustPitch(player, degrees) {
-    if (player == null || !player.isOnline()) return;
-    var loc = player.getLocation();
-    loc.setPitch(loc.getPitch() - degrees);
-    player.teleport(loc);
-}
+
 function onUse(event) {
     var player = event.getPlayer();
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === org.bukkit.Material.AIR) return;
     var sfItem = SlimefunItem.getByItem(item);
-    if (!sfItem || sfItem.getId() !== "FKR_通古斯过载式步枪") return;
+    if (!sfItem || sfItem.getId() !== GUN_ID) return;
     var uuid = player.getUniqueId().toString();
     if (firingMap.containsKey(uuid)) {
         firingMap.remove(uuid);
         cdMap.put(uuid, Date.now());
         var task = taskMap.remove(uuid);
-        if (task != null) { try { task.cancel(); } catch(e) {} }
+        if (task != null) { try { task.cancel(); } catch (e) {} }
         player.sendActionBar("§c中止，进入再装填...");
-        var _p1 = player;
-        var CloseTask1 = Java.extend(BukkitRunnable, { run: function() {
-            if (_p1.isOnline()) _p1.getWorld().playSound(_p1.getLocation(), "block.iron_door.close", 0.7, 1.0);
-        }});
-        new CloseTask1().runTaskLater(plugin, Math.floor(COOLDOWN_MS / 50));
+        scheduleReloadSound(player, COOLDOWN_MS);
         return;
     }
     var now = Date.now();
@@ -254,14 +204,23 @@ function onUse(event) {
     var _uuid = uuid;
     var FireTask = Java.extend(BukkitRunnable, {
         run: function() {
-            // 玩家中途下线：立即终止任务并清理状态，避免闭包引用失效实体持续空转
             if (_player == null || !_player.isOnline()) {
                 firingMap.remove(_uuid);
                 var _t = taskMap.remove(_uuid);
-                if (_t != null) { try { _t.cancel(); } catch(e) {} }
+                if (_t != null) { try { _t.cancel(); } catch (e) {} }
                 return;
             }
-            if (!firingMap.containsKey(_uuid)) return;
+            if (!firingMap.containsKey(_uuid)) {
+                var idleTask = taskMap.remove(_uuid);
+                if (idleTask != null) { try { idleTask.cancel(); } catch (e2) {} }
+                return;
+            }
+            if (!isHoldingGun(_player, GUN_ID)) {
+                firingMap.remove(_uuid);
+                var lostTask = taskMap.remove(_uuid);
+                if (lostTask != null) { try { lostTask.cancel(); } catch (e3) {} }
+                return;
+            }
             if (bulletCount < MAX_BULLETS) {
                 fireBullet(_player, bulletCount);
                 bulletCount++;
@@ -269,33 +228,29 @@ function onUse(event) {
             } else {
                 firingMap.remove(_uuid);
                 fireBeam(_player);
-                adjustPitch(_player, 3);
+                adjustPlayerPitch(_player, 3);
                 cdMap.put(_uuid, Date.now());
                 _player.sendActionBar("§c已完全激发光束脉冲，进入再装填...");
-                var _p2 = _player;
-                var CloseTask2 = Java.extend(BukkitRunnable, { run: function() {
-                    if (_p2.isOnline()) _p2.getWorld().playSound(_p2.getLocation(), "block.iron_door.close", 0.7, 1.0);
-                }});
-                new CloseTask2().runTaskLater(plugin, Math.floor(COOLDOWN_MS / 50));
-                var task = taskMap.remove(_uuid);
-                if (task != null) { try { task.cancel(); } catch(e) {} }
+                scheduleReloadSound(_player, COOLDOWN_MS);
+                var doneTask = taskMap.remove(_uuid);
+                if (doneTask != null) { try { doneTask.cancel(); } catch (e4) {} }
             }
         }
     });
-    var bukkitTask = new FireTask().runTaskTimer(plugin, 0, BULLET_INTERVAL);
-    taskMap.put(uuid, bukkitTask);
+    taskMap.put(uuid, new FireTask().runTaskTimer(plugin, 0, BULLET_INTERVAL));
 }
 
-// 定时清理已过期的冷却记录，防止 cdMap 长期膨胀
-var _cdCleanup = Java.extend(BukkitRunnable, {
-    run: function() {
-        var _now = Date.now();
-        var _it = cdMap.entrySet().iterator();
-        while (_it.hasNext()) {
-            var _e = _it.next();
-            if (_now - _e.getValue() > COOLDOWN_MS) _it.remove();
+function onLoad() {
+    return {
+        PlayerItemHeldEvent: function(evt) {
+            try {
+                var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
+                if (wasHoldingGun(prev, GUN_ID)) clearGunState(evt.getPlayer());
+            } catch (e) {}
+        },
+        PlayerQuitEvent: function(evt) {
+            try { clearGunState(evt.getPlayer()); } catch (e) {}
         }
-    }
-});
-try{if(plugin.gltcGunCdTask_通古斯过载式步枪!=null){org.bukkit.Bukkit.getScheduler().cancelTask(plugin.gltcGunCdTask_通古斯过载式步枪);plugin.gltcGunCdTask_通古斯过载式步枪=null;}}catch(_e){}
-plugin.gltcGunCdTask_通古斯过载式步枪 = new _cdCleanup().runTaskTimer(plugin, 400, 400).getTaskId();
+    };
+}
+onLoad();

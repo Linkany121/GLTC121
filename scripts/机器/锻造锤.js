@@ -1,13 +1,19 @@
 // ==================== FKR_锻造锤 · 运行特效 ====================
-// 功能：所有【正在加工】的锻造锤，每 1 秒播放一次铁砧锻造声 +
-//       铁傀儡死亡声，并播撒爆炸状的火焰粒子与烟雾。
+// 功能：锻造锤【正在加工】时，约每 1 秒播放铁砧锻造声 + 铁傀儡死亡声，
+//       并播撒爆炸状的火焰粒子与烟雾。
 //
 // 挂载于 recipe_machines.yml → FKR_锻造锤 → script: 机器/锻造锤
+//
+// 实现：维护已登记锻造锤坐标表，仅对表内机器做加工检测（非全服 SF 扫描）。
+//       onTick（若 RSC 支持）用于即时登记；定时任务负责特效与低频补扫。
 // ===============================================================
 
 var MACHINE_ID = "FKR_锻造锤";
 var PROGRESS_SLOT = 11;
 var EFFECT_INTERVAL_TICKS = 20;
+var TASK_INTERVAL_TICKS = 20;
+var RESCAN_INTERVAL_TICKS = 1200; // 60s 补扫新放置的锻造锤
+var EMPTY_RESCAN_INTERVAL_TICKS = 200; // 尚未发现任何锻造锤时，较低频探测
 var RANGE = 2.0;
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -39,6 +45,10 @@ try {
     }
 }
 
+var _trackedHammers = new java.util.concurrent.ConcurrentHashMap();
+var _lastEffectTick = new java.util.concurrent.ConcurrentHashMap();
+var _lastRescanTick = 0;
+
 function getTaskIdField() {
     try {
         var existing = PLUGIN.gltcForgeHammerTaskId;
@@ -51,28 +61,49 @@ function setTaskIdField(taskId) {
     try { PLUGIN.gltcForgeHammerTaskId = taskId; } catch (e) {}
 }
 
-// ---------- 判断机器是否正在加工 ----------
-function isProcessing(loc) {
-    try {
-        // 优先：RSC 配方机运行态（不依赖 GUI 是否打开、进度条名称是否变化）
-        var sfItem = StorageCacheUtils.getSfItem(loc);
-        if (sfItem != null) {
-            try {
-                if (AdvancedCustomMachine.class.isInstance(sfItem)) {
-                    var machine = Java.cast(sfItem, AdvancedCustomMachine);
-                    var ticker = machine.getTicker();
-                    if (ticker != null) {
-                        var processor = ticker.getAdvancedMachineProcessor();
-                        if (processor != null) {
-                            var op = processor.getOperation(loc);
-                            if (op != null && !op.isFinished()) return true;
-                        }
-                    }
-                }
-            } catch (eProc) {}
-        }
+function locKey(loc) {
+    return loc.getWorld().getUID().toString() + ":" + loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ();
+}
 
-        // 兜底：进度条槽位（空闲时显示「空闲中」）
+function trackHammer(loc) {
+    if (loc == null) return;
+    _trackedHammers.put(locKey(loc), loc);
+}
+
+function untrackHammer(loc) {
+    if (loc == null) return;
+    var key = locKey(loc);
+    _trackedHammers.remove(key);
+    _lastEffectTick.remove(key);
+}
+
+function isStillHammer(loc) {
+    try {
+        if (!StorageCacheUtils.isBlock(loc, MACHINE_ID)) return false;
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function isProcessingByOperation(loc) {
+    try {
+        var sfItem = StorageCacheUtils.getSfItem(loc);
+        if (sfItem == null || !AdvancedCustomMachine.class.isInstance(sfItem)) return false;
+        var machine = Java.cast(sfItem, AdvancedCustomMachine);
+        var ticker = machine.getTicker();
+        if (ticker == null) return false;
+        var processor = ticker.getAdvancedMachineProcessor();
+        if (processor == null) return false;
+        var op = processor.getOperation(loc);
+        return op != null && !op.isFinished();
+    } catch (e) {
+        return false;
+    }
+}
+
+function isProcessingByProgressBar(loc) {
+    try {
         var menu = StorageCacheUtils.getMenu(loc);
         if (menu == null) return false;
         var item = menu.getItemInSlot(PROGRESS_SLOT);
@@ -85,6 +116,20 @@ function isProcessing(loc) {
     } catch (e) {
         return false;
     }
+}
+
+function isProcessing(loc) {
+    if (isProcessingByOperation(loc)) return true;
+    return isProcessingByProgressBar(loc);
+}
+
+function maybePlayEffects(loc) {
+    var key = locKey(loc);
+    var now = Bukkit.getCurrentTick();
+    var last = _lastEffectTick.get(key);
+    if (last != null && now - last < EFFECT_INTERVAL_TICKS) return;
+    _lastEffectTick.put(key, now);
+    playForgeEffects(loc);
 }
 
 function playForgeEffects(loc) {
@@ -106,9 +151,9 @@ function playForgeEffects(loc) {
     } catch (e) {}
 }
 
-function tickAllMachines() {
+function rescanForgeHammers() {
+    if (_databaseManager == null) return;
     try {
-        if (_databaseManager == null) return;
         var controller = _databaseManager.getBlockDataController();
         var chunkDatas = controller.getAllLoadedChunkData();
         var cit = chunkDatas.iterator();
@@ -119,17 +164,47 @@ function tickAllMachines() {
             while (bit.hasNext()) {
                 var bd = bit.next();
                 if (bd.getSfId() === MACHINE_ID) {
-                    var loc = bd.getLocation();
-                    if (isProcessing(loc)) {
-                        playForgeEffects(loc);
-                    }
+                    trackHammer(bd.getLocation());
                 }
             }
         }
     } catch (e) {}
 }
 
-function startForgeHammerEffects() {
+function tickTrackedHammers() {
+    var it = _trackedHammers.entrySet().iterator();
+    while (it.hasNext()) {
+        var entry = it.next();
+        var loc = entry.getValue();
+        try {
+            if (!isStillHammer(loc)) {
+                it.remove();
+                _lastEffectTick.remove(entry.getKey());
+                continue;
+            }
+            if (isProcessing(loc)) {
+                maybePlayEffects(loc);
+            }
+        } catch (e) {
+            it.remove();
+            _lastEffectTick.remove(entry.getKey());
+        }
+    }
+}
+
+function runEffectCycle() {
+    var now = Bukkit.getCurrentTick();
+    var rescanInterval = _trackedHammers.isEmpty()
+        ? EMPTY_RESCAN_INTERVAL_TICKS
+        : RESCAN_INTERVAL_TICKS;
+    if (_lastRescanTick === 0 || now - _lastRescanTick >= rescanInterval) {
+        rescanForgeHammers();
+        _lastRescanTick = now;
+    }
+    tickTrackedHammers();
+}
+
+function startEffectTask() {
     if (PLUGIN == null) return false;
 
     try {
@@ -142,15 +217,55 @@ function startForgeHammerEffects() {
 
     var task = new RunnableImpl({
         run: function() {
-            tickAllMachines();
+            runEffectCycle();
         }
     });
     var taskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(
-        PLUGIN, task, EFFECT_INTERVAL_TICKS, EFFECT_INTERVAL_TICKS
+        PLUGIN, task, TASK_INTERVAL_TICKS, TASK_INTERVAL_TICKS
     );
     if (taskId === -1) return false;
     setTaskIdField(taskId);
+
+    Bukkit.getScheduler().runTaskLater(PLUGIN, new RunnableImpl({
+        run: function() {
+            rescanForgeHammers();
+            _lastRescanTick = Bukkit.getCurrentTick();
+        }
+    }), 1);
     return true;
 }
 
-startForgeHammerEffects();
+/**
+ * RSC 配方机 tick 钩子（若版本支持）。
+ * 在默认配方 tick 之后延迟检测，避免 operation 尚未创建。
+ */
+function onTick(location, ticker) {
+    trackHammer(location);
+    try {
+        var loc = location;
+        Bukkit.getScheduler().runTask(PLUGIN, new RunnableImpl({
+            run: function() {
+                try {
+                    if (isProcessing(loc)) {
+                        maybePlayEffects(loc);
+                    }
+                } catch (e) {}
+            }
+        }));
+    } catch (e) {}
+    return null;
+}
+
+function onPlace(event) {
+    try {
+        trackHammer(event.getBlock().getLocation());
+    } catch (e) {}
+}
+
+function onBreak(event) {
+    try {
+        untrackHammer(event.getBlock().getLocation());
+    } catch (e) {}
+}
+
+startEffectTask();

@@ -4,5 +4,6 @@ item:
   id: minecraft:iron_sword
   count: 1
   components:
-    minecraft:attribute_modifiers: '[{amount:39.0d,id:"minecraft:base_attack_damage",operation:"add_value",slot:"mainhand",type:"minecraft:attack_damage"},{amount:117.0d,id:"minecraft:base_attack_speed",operation:"add_value",slot:"mainhand",type:"minecraft:attack_speed"}]'
+    minecraft:attribute_modifiers: '[{amount:49.0d,id:"minecraft:base_attack_damage",operation:"add_value",slot:"mainhand",type:"minecraft:attack_damage"},{amount:117.0d,id:"minecraft:base_attack_speed",operation:"add_value",slot:"mainhand",type:"minecraft:attack_speed"}]'
+    minecraft:unbreakable: '{}'
   schema_version: 1

@@ -52,7 +52,7 @@ function ensureCoreListeners() {
             var needForce = false;
             try {
                 if (PLUGIN.gltcSpellCoreListener == null) needForce = true;
-                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 11) needForce = true;
+                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 13) needForce = true;
             } catch (eV) {}
             CAST_API.ensureListeners(needForce);
         }

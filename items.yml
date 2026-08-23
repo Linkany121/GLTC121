@@ -527,9 +527,9 @@ GLTC_银行卡:
     - '&b归属&9：&#ff25f1G&#d22af5L&#a52ff9T&#7834fdC&#584cff联&#4576ff合&#319fff协&#1ec9ff议'
     - '&#fff5b3一张能够用于能源流面板上兑换物资的能源储蓄证明，'
     - '&#fff5b3通过此凭证，你能够证明你拥有充分的物资筹备、货物规划与财富投资技巧。'
-    - '&f[&e!&f]&#fff5b3该凭证需插入能源流拇指终端机将通用材料转化为信用点。'
-    - '&7该卡制作后绑定第一名接触者，一人一卡，凭证及其包含信用点无法转让与交易。'
+    - '&f[&e!&f]&#fff5b3该凭证需插入能源流拇指终端机将通用材料转化为信用点。&7一人一卡，凭证及信用点无法转让。'
     - '&f[&e凭证持有者&f]&b %玩家id%'
+    - '&f[&e信用点余额&f]&b 0△'
   script: 能源流货币/信用卡
   recipe_type: PF_ATO_GT
   recipe:
@@ -4429,8 +4429,8 @@ FKR_通古斯制式步枪:
   item:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#7e95a9古&#788ca7斯&#7282a5制&#6c78a4式&#666fa3步&#6065a1枪"
-    material: crossbow
-    modelId: 1210207
+    material: 工具武器/通用枪械
+    material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的枪械，手感优秀，数值平庸；'
@@ -4457,8 +4457,8 @@ FKR_通古斯战壕霰弹:
   item:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#979296古&#aa8582斯&#bd786e战&#cf6a5a壕&#e25d46霰&#f55032弹"
-    material: crossbow
-    modelId: 1210208
+    material: 工具武器/通用枪械
+    material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的霰弹枪，手感优秀，爆发力强；'
@@ -4485,8 +4485,8 @@ FKR_通古斯涡轮式单兵机枪:
   item:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#92a5bd古&#a1acd0斯&#afb2e3涡&#beb9f6轮&#cbaae6式&#d786b3单&#e46280兵&#f03e4d机&#fc1a1a枪"
-    material: crossbow
-    modelId: 1210209
+    material: 工具武器/通用枪械
+    material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的单兵化大火力机枪；'
@@ -4513,8 +4513,8 @@ FKR_通古斯防御型脉冲手铳:
   item:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#70a9b5古&#5cb3c1斯&#49bccc防&#35c6d7御&#26d1df型&#1ddce4脉&#13e8e9冲&#0af3ed手&#00fff2铳"
-    material: crossbow
-    modelId: 1210210
+    material: 工具武器/通用枪械
+    material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构自卫手铳，能够发射高温脉冲；'
@@ -4541,8 +4541,8 @@ FKR_通古斯制式轨道信标投递器:
   item:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#7a8fa8古&#707fa5斯&#6770a3制&#6e5f92式&#9a4e66轨&#c53d3b道&#f12c0f信&#fd3603标&#f94d07投&#f6650c递&#f27c10器"
-    material: crossbow
-    modelId: 1210211
+    material: 工具武器/通用枪械
+    material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3利用通用枪械结构打造的信标发射器；'
@@ -4573,8 +4573,8 @@ FKR_通古斯过载式步枪:
   item:
     glow: true
     name: "&#a30000F&#e00000K&#ff0000R&#ff0000T &#849faa通&#8d8d96古&#967a82斯&#9f686e过&#a7565b载&#b04447式&#b93133渐&#c21f1f强&#cb1b1b鼓&#d31616点&#dc1212反&#e50d0d卫&#ee0909星&#f60404步&#ff0000枪"
-    material: crossbow
-    modelId: 1210212
+    material: 工具武器/通用枪械
+    material_type: saveditem
     lore:
     - '&b归属&9：&#a30000缪&#b50000尔&#c80000罗&#da0000素&#ed0000烘&#ff0000炉&#f30000精&#e60000密&#da0000工&#cd0000坊'
     - '&#fff5b3由通古斯锭为底端架构的拥有巨型火力的步枪；'
@@ -4767,7 +4767,7 @@ FKR_隐兰狂玉唤剑葫:
     - '&f[&#96d6a7特效&f] &f焰眸：在前方高空召唤法阵，法阵在3秒内每0.5秒对敌人位置发射一道红剑落下造成造成 &c50x&#54ccff&lSIT&c伤害 &f，单次最多5道，冷却6秒。'
     - '&f红剑的伤害根据红剑的数量变化，一道时每把造成造成 &c50x&#54ccff&lSIT&c伤害 &f，五道时每把造成造成 &c10x&#54ccff&lSIT&c伤害 &f。'
     - '&f[&e心霆&f] &f到达9层后，自动进入持续10秒的心霆状态，缓慢升空，期间内只能左键施展剑霆。'
-    - '&f[&#96d6a7特效&f] &f剑霆：发射一簇剧烈的雷魂剑，对目光所视目标落雷造成造成 &c10x&#54ccff&lSIT&c伤害 &f。'
+    - '&f[&#96d6a7特效&f] &f剑霆：撕开视线尽头的空间，召唤一道剧烈的雷暴造成 &c10x&#54ccff&lSIT&c伤害 &f。'
   script: 武器/隐兰狂玉唤剑葫
   recipe_type: PF_DZC
   recipe:

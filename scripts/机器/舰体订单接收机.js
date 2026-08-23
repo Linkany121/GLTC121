@@ -7,6 +7,7 @@ var Material = Java.type("org.bukkit.Material");
 var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
 var Player = Java.type("org.bukkit.entity.Player");
 var InventoryClickEvent = Java.type("org.bukkit.event.inventory.InventoryClickEvent");
+var InventoryCreativeEvent = Java.type("org.bukkit.event.inventory.InventoryCreativeEvent");
 var InventoryCloseEvent = Java.type("org.bukkit.event.inventory.InventoryCloseEvent");
 var InventoryDragEvent = Java.type("org.bukkit.event.inventory.InventoryDragEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
@@ -17,7 +18,7 @@ var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 
 // ---------------- 可调参数 ----------------
-var ORDER_ITEM_ID = "SKEY_订单";              // 订单物品ID（发布机生成的非粘液订单）
+var ORDER_ITEM_ID = "skey_订单";              // 订单标识（PDC 识别，与 items.yml / 发布机一致）
 var GUI_TITLE = "§b舰体订单接收机";
 
 // 3行菜单（0-26）
@@ -26,8 +27,23 @@ var ORDER_SLOTS = [12, 13, 14];                // 第2行第4,5,6格：订单放
 var CONFIRM_SLOT = 16;                         // 第2行第8格：绿色玻璃确认按钮
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var DATA_DIR = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/舰体货币");
-if (!DATA_DIR.exists()) DATA_DIR.mkdirs();
+
+function loadShipCurrencyApi() {
+    if (PLUGIN.gltcShipCurrencyApi != null) return PLUGIN.gltcShipCurrencyApi;
+    try {
+        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/机器/_舰体货币.js";
+        var apiFile = new File(path);
+        if (!apiFile.exists()) return null;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(apiFile.toPath()))).toString();
+        PLUGIN.gltcShipCurrencyApi = (0, eval)(code);
+        return PLUGIN.gltcShipCurrencyApi;
+    } catch (e) {
+        Bukkit.getLogger().warning("[GLTC] 加载舰体货币模块失败: " + e);
+        return null;
+    }
+}
+var CURRENCY_API = loadShipCurrencyApi();
 
 var SF_ITEM_KEY = new NamespacedKey("slimefun", "slimefun_item");
 // 订单 PDC Key（与发布机脚本保持一致）
@@ -53,48 +69,15 @@ var C_V = hex("ff8f4d");
 var C_X = hex("ff3d3d");
 var C_GOLD = hex("fff5b3");
 
-// ---------------- 舰体货币数据读写（与发布机一致） ----------------
+// ---------------- 舰体货币读写（共用 _舰体货币.js） ----------------
 
 function getShipCurrency(uuid) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    if (!file.exists()) return {I: 0, V: 0, X: 0};
-    try {
-        var bytes = Files.readAllBytes(file.toPath());
-        var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var charBuffer = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes));
-        var data = JSON.parse(charBuffer.toString());
-        return {I: data.I || 0, V: data.V || 0, X: data.X || 0};
-    } catch (e) {
-        return {I: 0, V: 0, X: 0};
-    }
-}
-
-function setShipCurrency(uuid, data) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    try {
-        var lines = new java.util.ArrayList();
-        lines.add(JSON.stringify({I: data.I || 0, V: data.V || 0, X: data.X || 0}, null, 2));
-        Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
-    } catch (e) {
-        Bukkit.getLogger().warning("[GLTC] 保存舰体货币失败 uuid=" + uuid + ": " + e);
-    }
-}
-
-// 全局共享锁（挂在插件对象上，与发布机/访问站共用），防止并发读写同一货币文件丢更新
-function getCurrencyLock() {
-    if (PLUGIN.gltcCurrencyLock == null) PLUGIN.gltcCurrencyLock = new java.lang.Object();
-    return PLUGIN.gltcCurrencyLock;
+    return CURRENCY_API ? CURRENCY_API.getShipCurrency(uuid) : {I: 0, V: 0, X: 0};
 }
 
 function addShipCurrency(uuid, type, amount) {
-    return Java.synchronized(getCurrencyLock(), function() {
-        var data = getShipCurrency(uuid);
-        if (type === "I") data.I += amount;
-        else if (type === "V") data.V += amount;
-        else if (type === "X") data.X += amount;
-        setShipCurrency(uuid, data);
-        return data;
-    })();
+    if (!CURRENCY_API) return {I: 0, V: 0, X: 0};
+    return CURRENCY_API.addShipCurrency(uuid, type, amount);
 }
 
 // ---------------- 工具函数 ----------------
@@ -244,7 +227,28 @@ var CONFIRM_BUTTON;
 })();
 
 var activeInventories = new java.util.HashSet();
-var _listenerRegistered = false;
+
+function getActiveInventories() {
+    return activeInventories;
+}
+
+function isReceiverFreeSlot(slot) {
+    for (var i = 0; i < ORDER_SLOTS.length; i++) {
+        if (ORDER_SLOTS[i] === slot) return true;
+    }
+    return false;
+}
+
+function shouldCancelReceiverDrag(event, topInv) {
+    var topSize = topInv.getSize();
+    var rawSlots = event.getRawSlots();
+    var it = rawSlots.iterator();
+    while (it.hasNext()) {
+        var raw = it.next();
+        if (raw < topSize && !isReceiverFreeSlot(raw)) return true;
+    }
+    return false;
+}
 
 function onUse(event) {
     var player;
@@ -261,7 +265,7 @@ function onUse(event) {
     inv.setItem(CONFIRM_SLOT, CONFIRM_BUTTON.clone());
     // 第2行中间3格（12,13,14）：订单放置槽，留空
 
-    activeInventories.add(inv);
+    getActiveInventories().add(inv);
     player.openInventory(inv);
 }
 
@@ -278,13 +282,18 @@ function countInPlayerInventory(player, need) {
     return total;
 }
 
-// 从玩家背包扣除某需求项（先校验充足，再扣除）
+// 从玩家背包扣除某需求项；失败时返回已扣物品列表供回滚
 function takeFromPlayerInventory(player, need) {
+    var taken = [];
     var remain = need.amount;
     var inv = player.getInventory();
     for (var i = 0; i < inv.getSize() && remain > 0; i++) {
         var s = inv.getItem(i);
         if (!matchNeed(need, s)) continue;
+        var takeAmt = s.getAmount() <= remain ? s.getAmount() : remain;
+        var piece = s.clone();
+        piece.setAmount(takeAmt);
+        taken.push(piece);
         if (s.getAmount() <= remain) {
             remain -= s.getAmount();
             inv.setItem(i, null);
@@ -293,29 +302,41 @@ function takeFromPlayerInventory(player, need) {
             remain = 0;
         }
     }
-    return remain === 0;
+    return {ok: remain === 0, taken: taken};
+}
+
+function restoreTakenItems(player, takenList) {
+    for (var i = 0; i < takenList.length; i++) {
+        var stacks = takenList[i];
+        for (var j = 0; j < stacks.length; j++) {
+            var leftover = player.getInventory().addItem(stacks[j]);
+            var dropIt = leftover.values().iterator();
+            while (dropIt.hasNext()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), dropIt.next());
+            }
+        }
+    }
 }
 
 // 单张订单交付：返回 null=成功，字符串=失败原因
 function deliverOne(player, data) {
     var needs = data.items;
-    // 先校验背包物资是否全部充足
     for (var i = 0; i < needs.length; i++) {
         var avail = countInPlayerInventory(player, needs[i]);
         if (avail < needs[i].amount) {
             return "§c背包中 §e" + needs[i].itemId + " §f×" + needs[i].amount + " §c不足（当前 §e" + avail + "§c）！";
         }
     }
-    // 扣除物资
-    var deliveredCount = 0;
-    for (var i = 0; i < needs.length; i++) {
-        if (takeFromPlayerInventory(player, needs[i])) {
-            deliveredCount += needs[i].amount;
+    var allTaken = [];
+    for (var j = 0; j < needs.length; j++) {
+        var result = takeFromPlayerInventory(player, needs[j]);
+        if (!result.ok) {
+            restoreTakenItems(player, allTaken);
+            return "§c交付失败：物资扣除异常，已回滚已扣物品。";
         }
+        allTaken.push(result.taken);
     }
-    // 发放货币
-    var uuid = player.getUniqueId().toString();
-    addShipCurrency(uuid, data.rewardType, data.rewardAmount);
+    addShipCurrency(player.getUniqueId().toString(), data.rewardType, data.rewardAmount);
     return null;
 }
 
@@ -373,18 +394,26 @@ function processDeliver(player, inv) {
 // ---------------- 事件监听注册 ----------------
 
 function registerListeners() {
-    if (_listenerRegistered) return;
-    _listenerRegistered = true;
+    if (PLUGIN.gltcOrderReceiverRegistered === true) {
+        try {
+            InventoryClickEvent.getHandlerList().unregister(PLUGIN.gltcOrderReceiverListener);
+            InventoryDragEvent.getHandlerList().unregister(PLUGIN.gltcOrderReceiverListener);
+            InventoryCloseEvent.getHandlerList().unregister(PLUGIN.gltcOrderReceiverListener);
+        } catch (eUnreg) {}
+    }
 
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcOrderReceiverListener = listenerInstance;
+    PLUGIN.gltcOrderReceiverRegistered = true;
 
     // InventoryClickEvent
     Bukkit.getPluginManager().registerEvent(
         InventoryClickEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
+            if (event instanceof InventoryCreativeEvent) return;
             var topInv = event.getView().getTopInventory();
-            if (!activeInventories.contains(topInv)) return;
+            if (!getActiveInventories().contains(topInv)) return;
 
             var player = event.getWhoClicked();
             if (!(player instanceof Player)) return;
@@ -414,13 +443,13 @@ function registerListeners() {
         }, PLUGIN
     );
 
-    // InventoryDragEvent：UI 保护
+    // InventoryDragEvent：仅拦截拖向受保护槽位
     Bukkit.getPluginManager().registerEvent(
         InventoryDragEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
             var topInv = event.getView().getTopInventory();
-            if (!activeInventories.contains(topInv)) return;
-            event.setCancelled(true);
+            if (!getActiveInventories().contains(topInv)) return;
+            if (shouldCancelReceiverDrag(event, topInv)) event.setCancelled(true);
         }, PLUGIN
     );
 
@@ -429,6 +458,7 @@ function registerListeners() {
         InventoryCloseEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
             var inv = event.getInventory();
+            var activeInventories = getActiveInventories();
             if (!activeInventories.contains(inv)) return;
 
             var player = event.getPlayer();

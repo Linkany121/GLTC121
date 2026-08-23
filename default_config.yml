@@ -1,5 +1,5 @@
 # 首次加载后会复制到：
-#   plugins/RykenSlimefunCustomizer/addon_configs/GLTC121/config.yml
+#   plugins/RykenSlimefunCustomizer/addon_configs/GLTC/config.yml
 # 服主请修改 addon_configs 目录下的 config.yml；勿改附属包内此模板（更新会覆盖）。
 
 # 粒子浓度(GLI) 术式最终伤害修正，玩家不可提升 默认1（允许范围 0.01~100）

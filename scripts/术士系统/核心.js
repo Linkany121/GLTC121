@@ -865,6 +865,16 @@ function applyMageAttributes(player) {
 /**
  * 脉冲伤害：带击杀归因，忽略最终减伤与粒子折射
  */
+function schedulePulseMetaCleanup(target) {
+    try {
+        Bukkit.getScheduler().runTask(PLUGIN, function() {
+            try { target.removeMetadata(PULSE_META, PLUGIN); } catch (e0) {}
+        });
+    } catch (e1) {
+        try { target.removeMetadata(PULSE_META, PLUGIN); } catch (e2) {}
+    }
+}
+
 function dealPulseDamage(target, amount, attacker) {
     if (!target || amount <= 0) return;
     try {
@@ -877,9 +887,8 @@ function dealPulseDamage(target, amount, attacker) {
             var hp = Math.max(0, target.getHealth() - amount);
             target.setHealth(hp);
         } catch (e2) {}
-    } finally {
-        try { target.removeMetadata(PULSE_META, PLUGIN); } catch (e3) {}
     }
+    schedulePulseMetaCleanup(target);
 }
 
 function isPulseDamage(entity) {

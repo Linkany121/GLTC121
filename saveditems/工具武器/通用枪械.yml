@@ -1,0 +1,11 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  DataVersion: 4671
+  id: minecraft:crossbow
+  count: 1
+  components:
+    minecraft:attribute_modifiers: '[{amount:0.02d,id:"ankinbt:custom_1787469176409",operation:"add_value",slot:"mainhand",type:"minecraft:movement_speed"}]'
+    minecraft:unbreakable: '{}'
+    minecraft:damage_resistant: '{types:"#minecraft:is_fire"}'
+    minecraft:charged_projectiles: '[{components:{"minecraft:intangible_projectile":{}},count:1,id:"minecraft:arrow"}]'
+  schema_version: 1

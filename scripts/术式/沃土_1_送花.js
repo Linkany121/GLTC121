@@ -14,6 +14,7 @@ var File = java.io.File;
 var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
+var JString = Java.type("java.lang.String");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 
@@ -58,6 +59,8 @@ var MAX_DISTANCE = 32;
 var HIT_HALF = 0.45;
 /** 出生点相对眼睛向前偏移（格） */
 var SPAWN_FORWARD = 0.7;
+/** 碰撞检测间隔（tick）；位移仍每 tick */
+var HIT_CHECK_EVERY = 2;
 /** 飞行展示体材质（默认虞美人） */
 var FLOWER_MAT = null;
 try { FLOWER_MAT = Material.matchMaterial("POPPY"); } catch (e0) {}
@@ -119,55 +122,112 @@ function getSessionApi() {
     return UTIL && UTIL.spellSession ? UTIL.spellSession : null;
 }
 
-/** uuid -> { alive, task, display, sessionToken }[] —— 允许多弹并存 */
-function projectileStore() {
-    try {
-        if (PLUGIN.gltc_songhua_proj != null) return PLUGIN.gltc_songhua_proj;
-    } catch (e0) {}
-    var m = {};
-    try { PLUGIN.gltc_songhua_proj = m; } catch (e1) {}
-    return m;
+function uuidKey(uuid) {
+    return JString.valueOf(String(uuid));
 }
 
-function stopProjectile(st, invokeSessionEnd) {
+function sharedMap(field) {
+    try {
+        var existing = PLUGIN[field];
+        if (existing != null && (existing instanceof java.util.concurrent.ConcurrentHashMap)) {
+            return existing;
+        }
+    } catch (e0) {}
+    var map = new java.util.concurrent.ConcurrentHashMap();
+    try { PLUGIN[field] = map; } catch (e1) {}
+    return map;
+}
+
+/** uuid -> { sessionToken, projectiles: ArrayList } —— 多弹并存，单主 session（#12B） */
+function playerStateStore() {
+    return sharedMap("gltc_songhua_state");
+}
+
+function getPlayerState(uuid) {
+    uuid = uuidKey(uuid);
+    var store = playerStateStore();
+    var ps = store.get(uuid);
+    if (ps == null) {
+        ps = { sessionToken: null, projectiles: new java.util.ArrayList() };
+        store.put(uuid, ps);
+    }
+    return ps;
+}
+
+function ensureMasterSession(player, uuid) {
+    var ps = getPlayerState(uuid);
+    if (ps.sessionToken != null) return ps;
+    var api = getSessionApi();
+    if (api && typeof api.begin === "function") {
+        try {
+            ps.sessionToken = api.begin(player, SPELL_ID, function() {
+                clearAllProjectiles(uuid);
+            }, { replace: false });
+        } catch (eBeg) {}
+    }
+    return ps;
+}
+
+function tryEndMasterSession(uuid) {
+    uuid = uuidKey(uuid);
+    var store = playerStateStore();
+    var ps = store.get(uuid);
+    if (ps == null) return;
+    if (ps.projectiles != null && ps.projectiles.size() > 0) return;
+    if (ps.sessionToken) {
+        var api = getSessionApi();
+        if (api && typeof api.end === "function") {
+            try { api.end(uuid, ps.sessionToken, false); } catch (eEnd) {}
+        }
+        ps.sessionToken = null;
+    }
+    try { store.remove(uuid); } catch (eRm) {}
+}
+
+function stopProjectile(st) {
     if (!st) return;
     st.alive = false;
     try { if (st.task != null) st.task.cancel(); } catch (e0) {}
     try { removeDisplay(st.display); } catch (e1) {}
     st.display = null;
-    if (invokeSessionEnd && st.sessionToken) {
-        try {
-            var api = getSessionApi();
-            if (api && typeof api.end === "function") api.end(st.ownerUuid, st.sessionToken, false);
-        } catch (e2) {}
-    }
-    st.sessionToken = null;
 }
 
 function clearAllProjectiles(uuid) {
-    uuid = String(uuid);
-    var store = projectileStore();
-    var list = store[uuid];
-    if (!list || list.length === 0) return;
-    for (var i = 0; i < list.length; i++) stopProjectile(list[i], false);
-    try { delete store[uuid]; } catch (e) { store[uuid] = []; }
+    uuid = uuidKey(uuid);
+    var store = playerStateStore();
+    var ps = store.get(uuid);
+    if (ps == null) return;
+    var list = ps.projectiles;
+    if (list != null) {
+        for (var i = 0; i < list.size(); i++) stopProjectile(list.get(i));
+        list.clear();
+    }
+    if (ps.sessionToken) {
+        var api = getSessionApi();
+        if (api && typeof api.end === "function") {
+            try { api.end(uuid, ps.sessionToken, false); } catch (e2) {}
+        }
+        ps.sessionToken = null;
+    }
+    try { store.remove(uuid); } catch (eR) {}
 }
 
 function detachProjectile(uuid, st) {
-    uuid = String(uuid);
-    var store = projectileStore();
-    var list = store[uuid];
-    if (!list) return;
-    var kept = [];
-    for (var i = 0; i < list.length; i++) {
-        if (list[i] !== st) kept.push(list[i]);
-    }
-    if (kept.length === 0) {
-        try { delete store[uuid]; } catch (e) { store[uuid] = []; }
-    } else {
-        store[uuid] = kept;
-    }
+    uuid = uuidKey(uuid);
+    var ps = playerStateStore().get(uuid);
+    if (ps == null || ps.projectiles == null) return;
+    try { ps.projectiles.remove(st); } catch (eRm) {}
+    tryEndMasterSession(uuid);
 }
+
+try {
+    if (UTIL && typeof UTIL.registerDirectClearHook === "function") {
+        UTIL.registerDirectClearHook(SPELL_ID, function(p) {
+            if (!p) return;
+            clearAllProjectiles(p.getUniqueId().toString());
+        });
+    }
+} catch (eHook) {}
 
 ({
     id: SPELL_ID,
@@ -187,26 +247,9 @@ function detachProjectile(uuid, st) {
         var ticks = 0;
         var display = spawnFlowerDisplay(world, loc);
 
-        var st = {
-            alive: true,
-            task: null,
-            display: display,
-            sessionToken: null,
-            ownerUuid: uuid
-        };
-        var store = projectileStore();
-        if (!store[uuid]) store[uuid] = [];
-        store[uuid].push(st);
-
-        var api = getSessionApi();
-        if (api && typeof api.begin === "function") {
-            try {
-                // replace:false —— 允许多朵并存；切术/退服由 onClear 全清
-                st.sessionToken = api.begin(player, SPELL_ID, function() {
-                    clearAllProjectiles(uuid);
-                }, { replace: false });
-            } catch (eBeg) {}
-        }
+        var st = { alive: true, task: null, display: display };
+        var ps = ensureMasterSession(player, uuid);
+        ps.projectiles.add(st);
 
         try { world.playSound(eye, Sound.BLOCK_PINK_PETALS_PLACE, 0.9, 1.2); } catch (eS) {
             try { world.playSound(eye, Sound.BLOCK_GRASS_PLACE, 0.9, 1.35); } catch (eS2) {}
@@ -223,36 +266,40 @@ function detachProjectile(uuid, st) {
                     var sx = dir.getX() * SPEED_PER_TICK;
                     var sy = dir.getY() * SPEED_PER_TICK;
                     var sz = dir.getZ() * SPEED_PER_TICK;
-                    var hitSolid = false;
-                    try {
-                        var mid = loc.clone().add(sx * 0.5, sy * 0.5, sz * 0.5);
-                        if (mid.getBlock().getType().isSolid()) hitSolid = true;
-                    } catch (eM) {}
                     loc.add(sx, sy, sz);
                     moveDisplay(st.display, loc);
                     try { world.spawnParticle(Particle.CHERRY_LEAVES, loc, 2, 0.05, 0.05, 0.05, 0); } catch (eP) {}
-                    try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
 
-                    var hitEnt = null;
-                    var near = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF);
-                    var it = near.iterator();
-                    while (it.hasNext()) {
-                        var ent = it.next();
-                        if (!(ent instanceof LivingEntity)) continue;
-                        if (ent instanceof Player && ent.getUniqueId().toString() === uuid) continue;
-                        hitEnt = ent;
-                        break;
-                    }
+                    var doHitCheck = (HIT_CHECK_EVERY <= 1) || (ticks % HIT_CHECK_EVERY === 0) || (ticks >= MAX_TICKS);
+                    if (doHitCheck) {
+                        var hitSolid = false;
+                        try {
+                            var mid = loc.clone().add(-sx * 0.5, -sy * 0.5, -sz * 0.5);
+                            if (mid.getBlock().getType().isSolid()) hitSolid = true;
+                        } catch (eM) {}
+                        try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
 
-                    if (hitEnt || hitSolid || ticks >= MAX_TICKS) {
-                        var caster = findOnline(uuid) || player;
-                        if (hitEnt) dealHit(hitEnt, dmg, caster, mageApi, spellInfo);
-                        hitFx(world, loc);
-                        stopProjectile(st, true);
-                        detachProjectile(uuid, st);
+                        var hitEnt = null;
+                        var near = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF);
+                        var it = near.iterator();
+                        while (it.hasNext()) {
+                            var ent = it.next();
+                            if (!(ent instanceof LivingEntity)) continue;
+                            if (ent instanceof Player && ent.getUniqueId().toString() === uuid) continue;
+                            hitEnt = ent;
+                            break;
+                        }
+
+                        if (hitEnt || hitSolid || ticks >= MAX_TICKS) {
+                            var caster = findOnline(uuid) || player;
+                            if (hitEnt) dealHit(hitEnt, dmg, caster, mageApi, spellInfo);
+                            hitFx(world, loc);
+                            stopProjectile(st);
+                            detachProjectile(uuid, st);
+                        }
                     }
                 } catch (ex) {
-                    stopProjectile(st, true);
+                    stopProjectile(st);
                     detachProjectile(uuid, st);
                 }
             }

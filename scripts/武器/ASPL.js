@@ -1,3 +1,9 @@
+var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
+var Bukkit = Java.type("org.bukkit.Bukkit");
+var EventPriority = Java.type("org.bukkit.event.EventPriority");
+var Listener = Java.type("org.bukkit.event.Listener");
+var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
+var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 
 var SIT_DAMAGE_MULT = 5;
 var ABILITY_POWER_DEFAULT = 10;
@@ -30,6 +36,22 @@ var waterDust = new DustOptions(Color.fromRGB(80, 200, 255), 1.2);
 var TYPE_LEVITATION = PotionEffectType.getByName("LEVITATION");
 
 var cdMap = new java.util.HashMap();
+
+function isHolding(player) {
+    var item = player.getInventory().getItemInMainHand();
+    if (!item || item.getType() === org.bukkit.Material.AIR) return false;
+    var sfItem = SlimefunItem.getByItem(item);
+    return sfItem != null && sfItem.getId() === "FKR_ASPL";
+}
+function wasHolding(stack) {
+    if (!stack || stack.getType() === org.bukkit.Material.AIR) return false;
+    var sfItem = SlimefunItem.getByItem(stack);
+    return sfItem != null && sfItem.getId() === "FKR_ASPL";
+}
+function clearWeaponState(player) {
+    if (player == null) return;
+    cdMap.remove(player.getUniqueId().toString());
+}
 function getAbilityPower() {
     try { return getAddonConfig().getInt(ABILITY_POWER_CONFIG_KEY, ABILITY_POWER_DEFAULT); } catch (e) { return ABILITY_POWER_DEFAULT; }
 }
@@ -62,6 +84,19 @@ function notifyAbilityDamage(player, item, damage) {
     var mode = getDamageNotifyMode();
     if (mode === "none") return;
     var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item) + " §f造成 §c" + formatAbilityDamage(damage) + " §f伤害！";
+    if (mode === "actionbar") {
+        try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
+    } else {
+        player.sendMessage(msg);
+    }
+}
+function notifyAbilityDamageSummary(player, item, totalDamage, hitCount) {
+    if (player == null || !player.isOnline() || hitCount <= 0 || totalDamage <= 0) return;
+    var mode = getDamageNotifyMode();
+    if (mode === "none") return;
+    var msg = GLTC_DAMAGE_MSG_PREFIX + "使用 " + getWeaponDisplayName(item)
+        + " §f对 §e" + hitCount + " §f个目标共造成 §c"
+        + formatAbilityDamage(totalDamage) + " §f伤害！";
     if (mode === "actionbar") {
         try { player.sendActionBar(msg); } catch (e) { player.sendMessage(msg); }
     } else {
@@ -176,7 +211,7 @@ function onUse(event) {
                 _world.playSound(_originLoc, "entity.lightning_bolt.thunder", 1.0, 1.0);
                 _world.playSound(_teleportTarget, "entity.lightning_bolt.thunder", 1.0, 1.0);
             } catch (e) {
-                org.bukkit.Bukkit.broadcastMessage("§c[ASPL-传送错误] " + e);
+                plugin.getLogger().warning("[ASPL] 传送失败: " + e);
             }
         }
     });
@@ -228,13 +263,37 @@ function triggerWaterBlast(world, loc, player) {
 
     // 12米内所有生物：飘浮1秒(等级6) + 5x SIT 伤害
     var weaponItem = player.getInventory().getItemInMainHand();
+    var sitDmg = calcSitDamage(SIT_DAMAGE_MULT);
+    var totalDmg = 0;
+    var hitCount = 0;
     var targets = world.getNearbyEntities(loc, BLAST_RADIUS, BLAST_RADIUS, BLAST_RADIUS);
     var it = targets.iterator();
     while (it.hasNext()) {
         var ent = it.next();
         if (ent instanceof org.bukkit.entity.LivingEntity && ent !== player) {
-            dealSitDamage(ent, player, weaponItem, SIT_DAMAGE_MULT);
-            ent.addPotionEffect(new PotionEffect(TYPE_LEVITATION, LEVITATION_TICKS, LEVITATION_LEVEL, false, true, true));
+            ent.setNoDamageTicks(0);
+            ent.damage(sitDmg, player);
+            totalDmg += sitDmg;
+            hitCount++;
+            if (TYPE_LEVITATION != null) {
+                ent.addPotionEffect(new PotionEffect(TYPE_LEVITATION, LEVITATION_TICKS, LEVITATION_LEVEL, false, true, true));
+            }
         }
     }
+    notifyAbilityDamageSummary(player, weaponItem, totalDmg, hitCount);
 }
+
+function onLoad() {
+    return {
+        PlayerItemHeldEvent: function(evt) {
+            try {
+                var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
+                if (wasHolding(prev)) clearWeaponState(evt.getPlayer());
+            } catch (e) {}
+        },
+        PlayerQuitEvent: function(evt) {
+            try { clearWeaponState(evt.getPlayer()); } catch (e) {}
+        }
+    };
+}
+onLoad();

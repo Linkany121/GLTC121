@@ -4,7 +4,7 @@
 //   - 显示玩家当前 I/V/X 舰体货币余额
 //   - 3x3 网格分页显示交易选项（上一页/下一页切换）
 //   - 首行 / 最下方 / 翻页处粒子特效
-// 点击交易选项 → 扣除货币 → 给予物品（默认 1个I等货币 兑换 钻石）
+// 点击交易选项 → 扣除舰体货币 → 兑换权限凭证等物品
 // 全程不使用容器/背包 GUI
 // ============================================
 
@@ -96,8 +96,22 @@ var TRADES = [
 ];
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var DATA_DIR = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/舰体货币");
-if (!DATA_DIR.exists()) DATA_DIR.mkdirs();
+
+function loadShipCurrencyApi() {
+    if (PLUGIN.gltcShipCurrencyApi != null) return PLUGIN.gltcShipCurrencyApi;
+    try {
+        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/机器/_舰体货币.js";
+        var apiFile = new File(path);
+        if (!apiFile.exists()) return null;
+        var code = StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap(Files.readAllBytes(apiFile.toPath()))).toString();
+        PLUGIN.gltcShipCurrencyApi = (0, eval)(code);
+        return PLUGIN.gltcShipCurrencyApi;
+    } catch (e) {
+        Bukkit.getLogger().warning("[GLTC] 加载舰体货币模块失败: " + e);
+        return null;
+    }
+}
+var CURRENCY_API = loadShipCurrencyApi();
 
 // 实体标记 Key：用于识别/清理本机器生成的全息与热区
 var HOLO_KEY = new NamespacedKey("gltc", "shiplink_holo");
@@ -179,72 +193,15 @@ var C_TITLE = hex("2998ff");  // 标题 蓝
 // 消息前缀（与舰体订单发布机一致）
 var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F§F协§x§1§E§C§9§F§F议§f] ";
 
-// ---------------- 舰体货币读写（与订单机一致） ----------------
-
-// 全局共享锁（挂在插件对象上，与发布机/接收机共用），防止并发读写同一货币文件丢更新
-function getCurrencyLock() {
-    var ReentrantLock = Java.type("java.util.concurrent.locks.ReentrantLock");
-    try {
-        if (PLUGIN.gltcCurrencyLock == null || !ReentrantLock.class.isInstance(PLUGIN.gltcCurrencyLock)) {
-            PLUGIN.gltcCurrencyLock = new ReentrantLock();
-        }
-        return PLUGIN.gltcCurrencyLock;
-    } catch (e) {
-        if (PLUGIN.gltcCurrencyLock == null) PLUGIN.gltcCurrencyLock = new java.lang.Object();
-        return PLUGIN.gltcCurrencyLock;
-    }
-}
-
-function withCurrencyLock(fn) {
-    var lock = getCurrencyLock();
-    try {
-        var ReentrantLock = Java.type("java.util.concurrent.locks.ReentrantLock");
-        if (ReentrantLock.class.isInstance(lock)) {
-            lock.lock();
-            try { return fn(); } finally { lock.unlock(); }
-        }
-    } catch (e0) {}
-    try {
-        if (typeof Java.synchronized === "function") {
-            return Java.synchronized(lock, fn)();
-        }
-    } catch (e1) {}
-    return fn();
-}
-
-// 原子执行"读-改-写"：在共享锁内读取、修改并写回，避免并发时丢更新
-function modifyShipCurrency(uuid, modifier) {
-    return withCurrencyLock(function() {
-        var data = getShipCurrency(uuid);
-        var result = modifier(data);
-        setShipCurrency(uuid, data);
-        return result;
-    });
-}
+// ---------------- 舰体货币读写（与订单机共用 _舰体货币.js） ----------------
 
 function getShipCurrency(uuid) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    if (!file.exists()) return {I: 0, V: 0, X: 0};
-    try {
-        var bytes = Files.readAllBytes(file.toPath());
-        var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var charBuffer = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes));
-        var data = JSON.parse(charBuffer.toString());
-        return {I: data.I || 0, V: data.V || 0, X: data.X || 0};
-    } catch (e) {
-        return {I: 0, V: 0, X: 0};
-    }
+    return CURRENCY_API ? CURRENCY_API.getShipCurrency(uuid) : {I: 0, V: 0, X: 0};
 }
 
-function setShipCurrency(uuid, data) {
-    var file = new File(DATA_DIR.getAbsolutePath() + "/" + uuid + ".json");
-    try {
-        var lines = new java.util.ArrayList();
-        lines.add(JSON.stringify({I: data.I || 0, V: data.V || 0, X: data.X || 0}, null, 2));
-        Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
-    } catch (e) {
-        Bukkit.getLogger().warning("[GLTC] 保存舰体货币失败 uuid=" + uuid + ": " + e);
-    }
+function modifyShipCurrency(uuid, modifier) {
+    if (!CURRENCY_API) return null;
+    return CURRENCY_API.modifyShipCurrency(uuid, modifier);
 }
 
 // ---------------- 位置工具 ----------------
@@ -653,6 +610,11 @@ function showAccessPanel(loc, player, page) {
     ppdc.set(PAGE_KEY, PersistentDataType.STRING, "toggle");
     if (ownerUuid != null) {
         ppdc.set(OWNER_KEY, PersistentDataType.STRING, ownerUuid);
+        var panelForPage = getPlayerPanel(ownerUuid);
+        if (panelForPage != null) {
+            if (panelForPage.entityIds == null) panelForPage.entityIds = [];
+            try { panelForPage.entityIds.push(pih.getUniqueId().toString()); } catch (ePageId) {}
+        }
     }
 
     // 提示行
@@ -903,8 +865,7 @@ function registerListeners() {
                 if (isOurMachine(loc) || hasPanel(loc)) {
                     var owner = getPanelOwner(loc);
                     removeAllPanelEntities(loc);
-                    // 取消该玩家面板的粒子任务（含删记录）
-                    if (owner != null) cancelPanelTask(owner);
+                    if (owner != null) deletePlayerPanel(owner);
                 }
             } catch (e) {}
         }, PLUGIN

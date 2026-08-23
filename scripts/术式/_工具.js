@@ -304,25 +304,29 @@ function dealParticleSpellDamage(target, amount, attacker, spellInfo) {
  */
 function dealPulseSpellDamage(target, amount, attacker, spellInfo, mageApi) {
     if (!target || !(target instanceof LivingEntity) || !(amount > 0) || !attacker) return;
+    var plugin = getPlugin();
+    if (!plugin) return;
+    ensureSpellDamageListener();
+
+    var info = {
+        ring: spellInfo && spellInfo.ring != null ? spellInfo.ring : 1,
+        name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
+        kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
+        damageType: DMG_TYPE_PULSE,
+        attackerUuid: attacker.getUniqueId().toString()
+    };
     try {
+        target.setNoDamageTicks(0);
+        target.setMetadata(META_SPELL_HIT, new FixedMetadataValue(plugin, info));
         if (mageApi && typeof mageApi.dealPulseDamage === "function") {
             mageApi.dealPulseDamage(target, amount, attacker);
         } else {
-            target.setNoDamageTicks(0);
             target.damage(amount, attacker);
         }
     } catch (e) {
         try { target.damage(amount); } catch (e2) {}
     }
-    try {
-        var info = {
-            ring: spellInfo && spellInfo.ring != null ? spellInfo.ring : 1,
-            name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
-            kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
-            damageType: DMG_TYPE_PULSE
-        };
-        announceSpellHit(attacker, info, amount);
-    } catch (e3) {}
+    scheduleSpellHitMetaCleanup(target, plugin);
 }
 
 /**
@@ -509,6 +513,36 @@ function findOnlineByUuid(uuid) {
     return null;
 }
 
+/**
+ * 主手是否为已登记施术道具（数量须为 1）。
+ * 所有术式触发入口应先过此关，避免与异能武器左右键冲突。
+ */
+function isHoldingMageStaff(player) {
+    if (!player) return false;
+    try {
+        var hand = player.getInventory().getItemInMainHand();
+        if (hand == null) return false;
+        try {
+            if (hand.getType() == null || String(hand.getType().name()) === "AIR") return false;
+        } catch (eAir) {}
+        if (hand.getAmount() !== 1) return false;
+        var plug = getPlugin();
+        try {
+            if (plug != null && plug.gltcCastApi != null
+                && typeof plug.gltcCastApi.isMageStaffItem === "function") {
+                return !!plug.gltcCastApi.isMageStaffItem(hand);
+            }
+        } catch (eApi) {}
+        try {
+            var sf = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem").getByItem(hand);
+            if (sf == null) return false;
+            var id = String(sf.getId());
+            return id === "VASA_木质法杖" || id === "VASA_辉墨摇篮";
+        } catch (eSf) {}
+    } catch (e) {}
+    return false;
+}
+
 function makeSessionToken(uuid, spellId) {
     return String(uuid) + "|" + String(spellId) + "|" + Date.now() + "|" + Math.floor(Math.random() * 1e9);
 }
@@ -535,7 +569,7 @@ function setSpellStacks(owner, spellId, target, value) {
         try { store.remove(key); } catch (e0) {}
         return 0;
     }
-    store.put(key, java.lang.Integer.valueOf(v));
+    store.put(key, java.lang.Integer.parseInt(String(Math.floor(v)), 10));
     return v;
 }
 
@@ -704,8 +738,15 @@ function onSpellContextChange(player, keepSpellId, reason) {
     });
     if (r === "hotbar" || r === "quit" || r === "hold") {
         try { clearSpellStacks(player, null, null); } catch (e) {}
-        try { clearActiveLeftClick(player); } catch (eLc) {}
     }
+    // 左键钩子：未保留同术式时一律清掉（含开环/切术），避免空手或持武器仍能触发
+    try {
+        var uuid = javaUuidKey(playerUuidOf(player));
+        var ent = spellActiveLeftClickStore().get(uuid);
+        if (ent == null || !keep || String(ent.spellId) !== keep) {
+            clearActiveLeftClick(player);
+        }
+    } catch (eLc) {}
     try { runDirectClearHooks(player, keep); } catch (eDc) {}
     return n;
 }
@@ -784,6 +825,8 @@ function javaUuidKey(uuid) {
  */
 function registerActiveLeftClick(player, spellId, runnable) {
     if (!player || !spellId || runnable == null) return false;
+    // 注册时也要求手持施术道具，防止异常路径挂上左键钩子
+    if (!isHoldingMageStaff(player)) return false;
     var uuid = javaUuidKey(playerUuidOf(player));
     spellActiveLeftClickStore().put(uuid, {
         spellId: String(spellId),
@@ -813,6 +856,8 @@ function hasActiveLeftClick(player) {
 /** 施术核心左键入口：同步 Runnable + 脉冲 metadata（环绕 tick 可 consumeSpellSignal 兜底） */
 function dispatchActiveLeftClick(player) {
     if (!player) return false;
+    // 必须手持施术道具，才能触发有状态术式左键
+    if (!isHoldingMageStaff(player)) return false;
     var uuid = javaUuidKey(playerUuidOf(player));
     var ent = null;
     try { ent = spellActiveLeftClickStore().get(uuid); } catch (e0) {}
@@ -822,7 +867,7 @@ function dispatchActiveLeftClick(player) {
     var now = Date.now();
     var prev = gate.get(uuid);
     if (prev != null && now - Number(prev) < LEFT_CLICK_GATE_MS) return true;
-    gate.put(uuid, java.lang.Long.valueOf(now));
+    gate.put(uuid, java.lang.Long.parseLong(String(Math.floor(now)), 10));
 
     pulseSpellSignal(player, ent.spellId, "lclick");
     try { ent.runnable.run(); } catch (e1) {
@@ -865,6 +910,8 @@ function runDirectClearHooks(player, keepSpellId) {
  */
 function handleSpellLeftClick(player, getSelectedSpellId) {
     if (!player) return false;
+    // 统一门槛：未手持施术道具时不触发任何术式左键
+    if (!isHoldingMageStaff(player)) return false;
     if (dispatchActiveLeftClick(player)) return true;
     var sid = null;
     try {
@@ -906,6 +953,7 @@ var SPELL_SESSION_API = {
     clearActiveLeftClick: clearActiveLeftClick,
     hasActiveLeftClick: hasActiveLeftClick,
     dispatchActiveLeftClick: dispatchActiveLeftClick,
+    isHoldingMageStaff: isHoldingMageStaff,
     setSpellSignal: setSpellSignal,
     hasSpellSignal: hasSpellSignal,
     pulseSpellSignal: pulseSpellSignal,
@@ -954,6 +1002,7 @@ publishHitAnnounceApi();
     clearActiveLeftClick: clearActiveLeftClick,
     hasActiveLeftClick: hasActiveLeftClick,
     dispatchActiveLeftClick: dispatchActiveLeftClick,
+    isHoldingMageStaff: isHoldingMageStaff,
     setSpellSignal: setSpellSignal,
     hasSpellSignal: hasSpellSignal,
     pulseSpellSignal: pulseSpellSignal,

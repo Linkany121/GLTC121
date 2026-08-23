@@ -3,7 +3,20 @@ var Bukkit = Java.type("org.bukkit.Bukkit");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+var _EDBE_GET_DAMAGER = (function () {
+    try { return EntityDamageByEntityEvent.getMethod("getDamager"); } catch (e) { return null; }
+})();
+function edbeDamager(event) {
+    if (event == null) return null;
+    try { if (!(event instanceof EntityDamageByEntityEvent)) return null; } catch (e0) { return null; }
+    if (_EDBE_GET_DAMAGER != null) {
+        try { return _EDBE_GET_DAMAGER.invoke(event); } catch (e1) {}
+    }
+    try { return event.getDamager(); } catch (e2) {}
+    return null;
+}
 var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
+var PlayerItemHeldEvent = Java.type("org.bukkit.event.player.PlayerItemHeldEvent");
 var Player = Java.type("org.bukkit.entity.Player");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -16,8 +29,10 @@ var Location = Java.type("org.bukkit.Location");
 var Vector = Java.type("org.bukkit.util.Vector");
 var UUID = java.util.UUID;
 var BukkitRunnable = Java.type("org.bukkit.scheduler.BukkitRunnable");
+var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
-var ITEM_ID = "FKR_伏地";            // 粘液科技物品ID
+var FUDI_ITEM_ID = "FKR_伏地";
+var META_FUDI_MARK_TASK = "gltc_fudi_mark_task";
 var SIT_MARK_MULT = 4;               // 标记伤害：4x SIT
 var SIT_HIT_MULT = 4;                // 下砸伤害：4x SIT
 var ABILITY_POWER_DEFAULT = 10;
@@ -98,7 +113,7 @@ function onUse(event) {
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === Material.AIR) return;
     var sfItem = SlimefunItem.getByItem(item);
-    if (!sfItem || sfItem.getId() !== ITEM_ID) return;
+    if (!sfItem || sfItem.getId() !== FUDI_ITEM_ID) return;
     var uuid = player.getUniqueId().toString();
     var now = Date.now();
     if (cdMap.containsKey(uuid) && (now - cdMap.get(uuid)) < COOLDOWN_MS) {
@@ -139,18 +154,29 @@ function onUse(event) {
         player.sendActionBar("§7视野内未发现敌人");
     }
 }
+function wasHolding(stack) {
+    if (!stack || stack.getType() === Material.AIR) return false;
+    var sfItem = SlimefunItem.getByItem(stack);
+    return sfItem != null && sfItem.getId() === FUDI_ITEM_ID;
+}
+function clearWeaponState(player) {
+    if (player == null) return;
+    var uuid = player.getUniqueId().toString();
+    cdMap.remove(uuid);
+}
+
 function onEntityDamageByEntity(event) {
     try {
         if (event.isCancelled()) return;
         var entity = event.getEntity();
         if (!(entity instanceof LivingEntity) || entity.isDead()) return;
-        var damager = event.getDamager();
+        var damager = edbeDamager(event);
         if (!(damager instanceof Player)) return;
         var player = damager;
         var item = player.getInventory().getItemInMainHand();
         if (!item || item.getType() === Material.AIR) return;
         var sfItem = SlimefunItem.getByItem(item);
-        if (!sfItem || sfItem.getId() !== ITEM_ID) return;
+        if (!sfItem || sfItem.getId() !== FUDI_ITEM_ID) return;
         var cd = 1.0;
         try {
             cd = player.getAttackCooldown();
@@ -163,55 +189,12 @@ function onEntityDamageByEntity(event) {
             marked.remove(eid);
             return;
         }
-        var slow = entity.getPotionEffect(SLOWNESS);
-        if (slow == null) return;
         marked.remove(eid);
         summonBlackBlock(entity, player);
     } catch (e) {
     }
 }
-// 监听器防重注册：脚本热重载时先注销旧实例，避免叠加注册导致一次事件被处理多次
-// RSC 在异步线程（RSC-Load-Thread）加载脚本，registerEvent / unregister 等主线程 API
-// 必须延迟到主线程执行；监听器实例用局部变量直接传入，避免依赖插件对象动态属性
-// 读取（异步加载时可能取到 null 导致 "Listener cannot be null"）。
-var fudiListener = new (Java.extend(Listener, {}))();
-// 用 Java.extend(Runnable) 创建显式 Runnable，避免 runTask 重载歧义
-var RunnableImpl = Java.extend(Java.type('java.lang.Runnable'));
-var initFudiListener = new RunnableImpl({
-    run: function() {
-        if (plugin.gltcFudiRegistered === true && plugin.gltcFudiListener != null) {
-            try {
-                EntityDamageByEntityEvent.getHandlerList().unregister(plugin.gltcFudiListener);
-            } catch (e) {}
-            try {
-                PlayerQuitEvent.getHandlerList().unregister(plugin.gltcFudiListener);
-            } catch (e2) {}
-        }
-        plugin.gltcFudiListener = fudiListener;
-        plugin.gltcFudiRegistered = true;
-        Bukkit.getPluginManager().registerEvent(
-            EntityDamageByEntityEvent,
-            fudiListener,
-            EventPriority.NORMAL,
-            function (l, event) {
-                onEntityDamageByEntity(event);
-            },
-            plugin
-        );
-        Bukkit.getPluginManager().registerEvent(
-            PlayerQuitEvent,
-            fudiListener,
-            EventPriority.MONITOR,
-            function (l, event) {
-                try {
-                    cdMap.remove(event.getPlayer().getUniqueId().toString());
-                } catch (e) {}
-            },
-            plugin
-        );
-    }
-});
-Bukkit.getScheduler().runTask(plugin, initFudiListener);
+// 标记环定时任务
 function summonBlackBlock(target, player) {
     var world = target.getWorld();
     var tLoc = target.getLocation();
@@ -324,9 +307,9 @@ function markRing(ent) {
 }
 function startMarkTask() {
     try {
-        if (plugin.gltcFudiMarkTaskId != null) {
-            Bukkit.getScheduler().cancelTask(Number(plugin.gltcFudiMarkTaskId));
-            plugin.gltcFudiMarkTaskId = null;
+        if (plugin.hasMetadata(META_FUDI_MARK_TASK)) {
+            try { Bukkit.getScheduler().cancelTask(Number(plugin.getMetadata(META_FUDI_MARK_TASK).get(0).value())); } catch (e0) {}
+            try { plugin.removeMetadata(META_FUDI_MARK_TASK, plugin); } catch (e1) {}
         }
     } catch (e0) {}
 
@@ -352,9 +335,11 @@ function startMarkTask() {
             } catch (e) {}
         }
     });
-    plugin.gltcFudiMarkTaskId = new task().runTaskTimer(plugin, 5, 5).getTaskId();
+    try {
+        plugin.setMetadata(META_FUDI_MARK_TASK, new FixedMetadataValue(plugin, new task().runTaskTimer(plugin, 5, 5).getTaskId()));
+    } catch (eId) {}
 }
-// RSC 在异步线程加载脚本，runTaskTimer 是主线程 API，需延迟到主线程启动
+var RunnableImpl = Java.extend(Java.type('java.lang.Runnable'));
 var startMarkRunnable = new RunnableImpl({
     run: function() { startMarkTask(); }
 });
@@ -370,3 +355,48 @@ function rotateAroundAxis(vec, axis, angle) {
     var rz = z * c + (1 - c) * dot * az + s * (ax * y - ay * x);
     return new Vector(rx, ry, rz);
 }
+
+// 监听器防重注册：热重载先注销旧实例；registerEvent 须在主线程执行
+var fudiListener = new (Java.extend(Listener, {}))();
+var initFudiListener = new RunnableImpl({
+    run: function() {
+        if (plugin.gltcFudiRegistered === true && plugin.gltcFudiListener != null) {
+            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.gltcFudiListener); } catch (e) {}
+            try { PlayerItemHeldEvent.getHandlerList().unregister(plugin.gltcFudiListener); } catch (e1) {}
+            try { PlayerQuitEvent.getHandlerList().unregister(plugin.gltcFudiListener); } catch (e2) {}
+        }
+        plugin.gltcFudiListener = fudiListener;
+        plugin.gltcFudiRegistered = true;
+        Bukkit.getPluginManager().registerEvent(
+            EntityDamageByEntityEvent,
+            fudiListener,
+            EventPriority.NORMAL,
+            function (l, event) {
+                try { onEntityDamageByEntity(event); } catch (e) {}
+            },
+            plugin
+        );
+        Bukkit.getPluginManager().registerEvent(
+            PlayerItemHeldEvent,
+            fudiListener,
+            EventPriority.MONITOR,
+            function (l, evt) {
+                try {
+                    var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
+                    if (wasHolding(prev)) clearWeaponState(evt.getPlayer());
+                } catch (e) {}
+            },
+            plugin
+        );
+        Bukkit.getPluginManager().registerEvent(
+            PlayerQuitEvent,
+            fudiListener,
+            EventPriority.MONITOR,
+            function (l, event) {
+                try { clearWeaponState(event.getPlayer()); } catch (e) {}
+            },
+            plugin
+        );
+    }
+});
+Bukkit.getScheduler().runTask(plugin, initFudiListener);

@@ -1,12 +1,70 @@
-
 var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
 var Bukkit = Java.type("org.bukkit.Bukkit");
+var Material = Java.type("org.bukkit.Material");
 var NamespacedKey = Java.type("org.bukkit.NamespacedKey");
 var PersistentDataType = Java.type("org.bukkit.persistence.PersistentDataType");
-var Material = Java.type("org.bukkit.Material");
+var SF_ITEM_KEY = new NamespacedKey("slimefun", "slimefun_item");
+var APPEARANCE_KEY = new NamespacedKey("gltc", "gun_appearance");
+function copyPdcStringEntries(fromPdc, toPdc) {
+    var keys = fromPdc.getKeys();
+    var it = keys.iterator();
+    while (it.hasNext()) {
+        var key = it.next();
+        try {
+            if (fromPdc.has(key, PersistentDataType.STRING)) {
+                toPdc.set(key, PersistentDataType.STRING, fromPdc.get(key, PersistentDataType.STRING));
+            }
+        } catch (e) {}
+    }
+}
+function getSlimefunId(stack) {
+    if (!stack || stack.getType() === Material.AIR) return null;
+    try {
+        var meta = stack.getItemMeta();
+        if (meta) {
+            var pdc = meta.getPersistentDataContainer();
+            if (pdc.has(SF_ITEM_KEY, PersistentDataType.STRING)) {
+                return pdc.get(SF_ITEM_KEY, PersistentDataType.STRING);
+            }
+        }
+    } catch (e) {}
+    var sf = SlimefunItem.getByItem(stack);
+    return sf ? sf.getId() : null;
+}
+function applyGunAppearance(stack, targetMaterial, appearanceCode) {
+    if (!stack || stack.getType() === Material.AIR || targetMaterial == null) return false;
+    try {
+        var oldMeta = stack.getItemMeta();
+        if (oldMeta == null) return false;
+        var displayName = oldMeta.hasDisplayName() ? oldMeta.getDisplayName() : null;
+        var lore = oldMeta.hasLore() ? oldMeta.getLore() : null;
+        var customModelData = oldMeta.hasCustomModelData() ? oldMeta.getCustomModelData() : null;
+        var oldPdc = oldMeta.getPersistentDataContainer();
+        var preserved = false;
+        try { preserved = stack.setType(targetMaterial, true); } catch (ePaper) {}
+        if (!preserved) stack.setType(targetMaterial);
+        var meta = stack.getItemMeta();
+        if (meta == null) return false;
+        if (displayName != null) meta.setDisplayName(displayName);
+        if (lore != null) meta.setLore(lore);
+        if (customModelData != null) {
+            try { meta.setCustomModelData(customModelData); } catch (eCmd) {}
+        }
+        copyPdcStringEntries(oldPdc, meta.getPersistentDataContainer());
+        if (appearanceCode) {
+            meta.getPersistentDataContainer().set(APPEARANCE_KEY, PersistentDataType.STRING, appearanceCode);
+        }
+        stack.setItemMeta(meta);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
 var Player = Java.type("org.bukkit.entity.Player");
 var InventoryClickEvent = Java.type("org.bukkit.event.inventory.InventoryClickEvent");
+var InventoryCreativeEvent = Java.type("org.bukkit.event.inventory.InventoryCreativeEvent");
 var InventoryCloseEvent = Java.type("org.bukkit.event.inventory.InventoryCloseEvent");
 var InventoryDragEvent = Java.type("org.bukkit.event.inventory.InventoryDragEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
@@ -39,32 +97,37 @@ var APPEARANCE_NAMES = {
     "CROSSBOW": "弩"
 };
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var SF_ITEM_KEY = new NamespacedKey("slimefun", "slimefun_item");
-var APPEARANCE_KEY = new NamespacedKey("gltc", "gun_appearance"); // 存储已选外观
 var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F§F协§x§1§E§C§9§F§F议§f] ";
 var activeInventories = new java.util.HashSet();
-var invOwnerMap = new java.util.HashMap();
-var invAppearanceMap = new java.util.HashMap();
-var _listenerRegistered = false;
-function getSlimefunId(stack) {
-    if (!stack || stack.getType() === Material.AIR) return null;
-    try {
-        var meta = stack.getItemMeta();
-        if (meta) {
-            var pdc = meta.getPersistentDataContainer();
-            if (pdc.has(SF_ITEM_KEY, PersistentDataType.STRING)) {
-                return pdc.get(SF_ITEM_KEY, PersistentDataType.STRING);
-            }
-        }
-    } catch (e) {}
-    var sf = SlimefunItem.getByItem(stack);
-    return sf ? sf.getId() : null;
+var appearanceSelectionMap = new java.util.HashMap();
+
+function getActiveInventories() {
+    return activeInventories;
+}
+
+function getAppearanceMap() {
+    return appearanceSelectionMap;
+}
+
+function shouldCancelGunDrag(event, topInv) {
+    var topSize = topInv.getSize();
+    var rawSlots = event.getRawSlots();
+    var it = rawSlots.iterator();
+    while (it.hasNext()) {
+        var raw = it.next();
+        if (raw < topSize && raw !== GUN_SLOT) return true;
+    }
+    return false;
+}
+function idEquals(a, b) {
+    if (!a || !b) return false;
+    return String(a).toLowerCase() === String(b).toLowerCase();
 }
 function isGun(stack) {
     var id = getSlimefunId(stack);
     if (!id) return false;
     for (var i = 0; i < GUN_IDS.length; i++) {
-        if (GUN_IDS[i] === id) return true;
+        if (idEquals(id, GUN_IDS[i])) return true;
     }
     return false;
 }
@@ -84,7 +147,7 @@ var CONFIRM_BUTTON;
         "§7将需要更换材质的枪械放入，",
         "§7点击上方按钮选择意愿材质后，",
         "§7点击此处确认更换。",
-        "§c§o注意：切换材质不影响枪械性能，且不影响冷却。"
+        "§c§o注意：切换材质不影响枪械性能、冷却与模型数据。"
     ));
     CONFIRM_BUTTON.setItemMeta(meta);
 })();
@@ -126,14 +189,13 @@ function onUse(event) {
     inv.setItem(15, buildAppearanceButton(15, null));
     inv.setItem(GUN_SLOT, GUN_PLACEHOLDER.clone());
     inv.setItem(CONFIRM_SLOT, CONFIRM_BUTTON.clone());
-    activeInventories.add(inv);
-    invOwnerMap.put(inv, player.getUniqueId().toString());
-    invAppearanceMap.put(inv, null);
+    getActiveInventories().add(inv);
+    getAppearanceMap().put(inv, null);
     player.openInventory(inv);
 }
 function processChange(player, inv) {
     var gunStack = inv.getItem(GUN_SLOT);
-    var selectedMatName = invAppearanceMap.get(inv);
+    var selectedMatName = getAppearanceMap().get(inv);
     if (!selectedMatName) {
         player.sendMessage(GLTC_PREFIX + "§c请先选择一个目标材质！");
         return;
@@ -161,7 +223,10 @@ function processChange(player, inv) {
         return;
     }
     try {
-        gunStack.setType(targetMaterial);
+        if (!applyGunAppearance(gunStack, targetMaterial, selectedMatName)) {
+            player.sendMessage(GLTC_PREFIX + "§c更换外观时发生错误！");
+            return;
+        }
         var loc = player.getLocation();
         try { loc.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, loc, 10, 0.4, 0.4, 0.4, 0.15); } catch (e) {}
         try { loc.getWorld().playSound(loc, "block.anvil.use", 0.8, 1.5); } catch (e) {}
@@ -177,15 +242,24 @@ function refreshAppearanceButtons(inv, selectedMatName) {
     inv.setItem(15, buildAppearanceButton(15, selectedMatName));
 }
 function registerListeners() {
-    if (_listenerRegistered) return;
-    _listenerRegistered = true;
+    if (PLUGIN.gltcGunAppearanceRegistered === true) {
+        try {
+            InventoryClickEvent.getHandlerList().unregister(PLUGIN.gltcGunAppearanceListener);
+            InventoryDragEvent.getHandlerList().unregister(PLUGIN.gltcGunAppearanceListener);
+            InventoryCloseEvent.getHandlerList().unregister(PLUGIN.gltcGunAppearanceListener);
+        } catch (eUnreg) {}
+    }
+
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcGunAppearanceListener = listenerInstance;
+    PLUGIN.gltcGunAppearanceRegistered = true;
     Bukkit.getPluginManager().registerEvent(
         InventoryClickEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
+            if (event instanceof InventoryCreativeEvent) return;
             var topInv = event.getView().getTopInventory();
-            if (!activeInventories.contains(topInv)) return;
+            if (!getActiveInventories().contains(topInv)) return;
             var player = event.getWhoClicked();
             if (!(player instanceof Player)) return;
             var clickedInv = event.getClickedInventory();
@@ -198,7 +272,7 @@ function registerListeners() {
                     else if (slot === 13) matName = "IRON_SWORD";
                     else if (slot === 15) matName = "CROSSBOW";
                     if (matName) {
-                        invAppearanceMap.put(topInv, matName);
+                        getAppearanceMap().put(topInv, matName);
                         refreshAppearanceButtons(topInv, matName);
                         try { player.playSound(player.getLocation(), "ui.button.click", 0.5, 1.5); } catch (e) {}
                     }
@@ -263,14 +337,15 @@ function registerListeners() {
         InventoryDragEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
             var topInv = event.getView().getTopInventory();
-            if (!activeInventories.contains(topInv)) return;
-            event.setCancelled(true);
+            if (!getActiveInventories().contains(topInv)) return;
+            if (shouldCancelGunDrag(event, topInv)) event.setCancelled(true);
         }, PLUGIN
     );
     Bukkit.getPluginManager().registerEvent(
         InventoryCloseEvent, listenerInstance, EventPriority.NORMAL,
         function(l, event) {
             var inv = event.getInventory();
+            var activeInventories = getActiveInventories();
             if (!activeInventories.contains(inv)) return;
 
             var player = event.getPlayer();
@@ -286,11 +361,17 @@ function registerListeners() {
                 }
             }
             activeInventories.remove(inv);
-            invOwnerMap.remove(inv);
-            invAppearanceMap.remove(inv);
+            getAppearanceMap().remove(inv);
         }, PLUGIN
     );
 }
 function tick(info) {
 }
-registerListeners();
+(function scheduleAppearanceListeners() {
+    var RunnableImpl = Java.extend(Java.type("java.lang.Runnable"));
+    Bukkit.getScheduler().runTask(PLUGIN, new RunnableImpl({
+        run: function() {
+            registerListeners();
+        }
+    }));
+})();

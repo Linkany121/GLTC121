@@ -6,7 +6,20 @@ var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
+var _EDBE_GET_DAMAGER = (function () {
+    try { return EntityDamageByEntityEvent.getMethod("getDamager"); } catch (e) { return null; }
+})();
+function edbeDamager(event) {
+    if (event == null) return null;
+    try { if (!(event instanceof EntityDamageByEntityEvent)) return null; } catch (e0) { return null; }
+    if (_EDBE_GET_DAMAGER != null) {
+        try { return _EDBE_GET_DAMAGER.invoke(event); } catch (e1) {}
+    }
+    try { return event.getDamager(); } catch (e2) {}
+    return null;
+}
 var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
+var PlayerItemHeldEvent = Java.type("org.bukkit.event.player.PlayerItemHeldEvent");
 var Player = Java.type("org.bukkit.entity.Player");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -21,7 +34,7 @@ var BarStyle = Java.type("org.bukkit.boss.BarStyle");
 var UUIDClass = Java.type("java.util.UUID");
 var plugin = Java.type('org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer').INSTANCE;
 
-var ITEM_ID = "FKR_风墟龙冕";
+var FENGXU_ITEM_ID = "FKR_风墟龙冕";
 var ABILITY_POWER_DEFAULT = 10;
 var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
 var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
@@ -29,6 +42,8 @@ var DAMAGE_NOTIFY_DEFAULT = "chat";
 var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 // 气斩/剑气造成伤害时的实体标记，用于防止 EntityDamageByEntityEvent 递归触发气斩
 var META_SWORD_QI_DAMAGE = "fx_sword_qi_damage";
+var META_FENGXU_TASK_IDS = "gltc_fengxu_task_ids";
+var fengxuTaskIds = [];
 
 // === 药水效果类型 ===
 var TYPE_LEVITATION = PotionEffectType.getByName("LEVITATION");
@@ -151,6 +166,22 @@ function dealSitDamage(target, player, item, sitMult) {
     return dmg;
 }
 
+function wasHolding(stack) {
+    if (!stack || stack.getType() === Material.AIR) return false;
+    var sfItem = SlimefunItem.getByItem(stack);
+    return sfItem != null && sfItem.getId() === FENGXU_ITEM_ID;
+}
+function clearWeaponState(player) {
+    if (player == null) return;
+    var uuid = player.getUniqueId().toString();
+    angleIndexMap.remove(uuid);
+    windVeinMap.remove(uuid);
+    windVeinDecayMap.remove(uuid);
+    leftClickCdMap.remove(uuid);
+    cherryModeMap.remove(uuid);
+    removeWindVeinBar(uuid);
+}
+
 // ===================================================================
 // 辅助：检查方块是否阻挡
 // ===================================================================
@@ -177,7 +208,7 @@ function isHoldingItem(player) {
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === Material.AIR) return false;
     var sfItem = SlimefunItem.getByItem(item);
-    return sfItem != null && sfItem.getId() === ITEM_ID;
+    return sfItem != null && sfItem.getId() === FENGXU_ITEM_ID;
 }
 
 function isCherryMode(uuid) {
@@ -553,79 +584,6 @@ function fireVerticalBeam(world, start, dir, player) {
 }
 
 // ===================================================================
-// 事件监听器注册（左键检测）
-// 参考 伏地.js 的热重载安全注册模式
-// ===================================================================
-var fengxuListener = new (Java.extend(Listener, {}))();
-var RunnableImpl = Java.extend(Java.type('java.lang.Runnable'));
-var initFengxuListener = new RunnableImpl({
-    run: function() {
-        // 热重载时先注销旧监听器
-        if (plugin.fengxuListenerRegistered === true && plugin.fengxuListener != null) {
-            try { PlayerInteractEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e) {}
-            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e) {}
-            try { PlayerQuitEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e) {}
-        }
-        plugin.fengxuListener = fengxuListener;
-        plugin.fengxuListenerRegistered = true;
-
-        // 注册 PlayerInteractEvent：检测左键空气/方块
-        Bukkit.getPluginManager().registerEvent(
-            PlayerInteractEvent,
-            fengxuListener,
-            EventPriority.NORMAL,
-            function (l, event) {
-                try {
-                    var actionName = event.getAction().name();
-                    if (actionName !== "LEFT_CLICK_AIR" && actionName !== "LEFT_CLICK_BLOCK") return;
-                    var hand = event.getHand();
-                    if (hand == null || hand.name() !== "HAND") return;
-                    var player = event.getPlayer();
-                    if (!isHoldingItem(player)) return;
-                    tryAirSlash(player);
-                } catch (e) {}
-            },
-            plugin
-        );
-
-        // 注册 EntityDamageByEntityEvent：检测左键攻击实体
-        Bukkit.getPluginManager().registerEvent(
-            EntityDamageByEntityEvent,
-            fengxuListener,
-            EventPriority.NORMAL,
-            function (l, event) {
-                try {
-                    if (event.isCancelled()) return;
-                    var damager = event.getDamager();
-                    if (!(damager instanceof Player)) return;
-                    if (!isHoldingItem(damager)) return;
-                    // 气斩/剑气自身造成的伤害不再次触发气斩
-                    if (event.getEntity().hasMetadata(META_SWORD_QI_DAMAGE)) return;
-                    tryAirSlash(damager);
-                } catch (e) {}
-            },
-            plugin
-        );
-
-        Bukkit.getPluginManager().registerEvent(
-            PlayerQuitEvent,
-            fengxuListener,
-            EventPriority.MONITOR,
-            function (l, event) {
-                try {
-                    var uuid = event.getPlayer().getUniqueId().toString();
-                    windVeinMap.remove(uuid);
-                    windVeinDecayMap.remove(uuid);
-                    removeWindVeinBar(uuid);
-                } catch (e) {}
-            },
-            plugin
-        );
-    }
-});
-Bukkit.getScheduler().runTask(plugin, initFengxuListener);
-
-// ===================================================================
 // 风脉 BossBar 显示（无 key 传统 BossBar，热重载无冲突；TAB 无法覆盖）
 // ===================================================================
 function updateWindVeinBar(uuid, player, stacks, remainSec) {
@@ -670,13 +628,22 @@ function ensureDecayTask() {
     }
 }
 function startWindVeinDecay() {
-    // 热重载/重启时先取消旧任务，避免重复任务
+    function cancelIdList(ids) {
+        if (ids == null) return;
+        try {
+            for (var ci = 0; ci < ids.length; ci++) {
+                try { Bukkit.getScheduler().cancelTask(Number(ids[ci])); } catch (eC) {}
+            }
+        } catch (e1) {}
+    }
+    cancelIdList(fengxuTaskIds);
     try {
-        if (plugin.fengxuDecayTaskId != null) {
-            Bukkit.getScheduler().cancelTask(Number(plugin.fengxuDecayTaskId));
-            plugin.fengxuDecayTaskId = null;
+        if (plugin.hasMetadata(META_FENGXU_TASK_IDS)) {
+            cancelIdList(plugin.getMetadata(META_FENGXU_TASK_IDS).get(0).value());
+            plugin.removeMetadata(META_FENGXU_TASK_IDS, plugin);
         }
     } catch (e0) {}
+    fengxuTaskIds = [];
     if (windVeinDecayTask != null) {
         try { windVeinDecayTask.cancel(); } catch (e) {}
         windVeinDecayTask = null;
@@ -745,11 +712,84 @@ function startWindVeinDecay() {
             }
         }
     });
-    // 立即启动，每秒执行一次（delay=0，避免5秒空窗期导致风脉先衰减完）
+  // 立即启动，每秒执行一次（delay=0，避免5秒空窗期导致风脉先衰减完）
     windVeinDecayTask = new DecayTask().runTaskTimer(plugin, 0, 20);
-    try { plugin.fengxuDecayTaskId = windVeinDecayTask.getTaskId(); } catch (eId) {}
+    fengxuTaskIds.push(windVeinDecayTask.getTaskId());
+    try {
+        plugin.setMetadata(META_FENGXU_TASK_IDS, new FixedMetadataValue(plugin, fengxuTaskIds));
+    } catch (eMeta) {}
 }
+var RunnableImpl = Java.extend(Java.type('java.lang.Runnable'));
 var startDecayRunnable = new RunnableImpl({
     run: function() { startWindVeinDecay(); }
 });
 Bukkit.getScheduler().runTask(plugin, startDecayRunnable);
+
+var fengxuListener = new (Java.extend(Listener, {}))();
+var initFengxuListener = new RunnableImpl({
+    run: function() {
+        if (plugin.fengxuListenerRegistered === true && plugin.fengxuListener != null) {
+            try { PlayerInteractEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e) {}
+            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e1) {}
+            try { PlayerItemHeldEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e2) {}
+            try { PlayerQuitEvent.getHandlerList().unregister(plugin.fengxuListener); } catch (e3) {}
+        }
+        plugin.fengxuListener = fengxuListener;
+        plugin.fengxuListenerRegistered = true;
+        Bukkit.getPluginManager().registerEvent(
+            PlayerInteractEvent,
+            fengxuListener,
+            EventPriority.NORMAL,
+            function (l, event) {
+                try {
+                    var actionName = event.getAction().name();
+                    if (actionName !== "LEFT_CLICK_AIR" && actionName !== "LEFT_CLICK_BLOCK") return;
+                    var hand = event.getHand();
+                    if (hand == null || hand.name() !== "HAND") return;
+                    var player = event.getPlayer();
+                    if (!isHoldingItem(player)) return;
+                    tryAirSlash(player);
+                } catch (e) {}
+            },
+            plugin
+        );
+        Bukkit.getPluginManager().registerEvent(
+            EntityDamageByEntityEvent,
+            fengxuListener,
+            EventPriority.NORMAL,
+            function (l, event) {
+                try {
+                    if (event.isCancelled()) return;
+                    var damager = edbeDamager(event);
+                    if (!(damager instanceof Player)) return;
+                    if (!isHoldingItem(damager)) return;
+                    if (event.getEntity().hasMetadata(META_SWORD_QI_DAMAGE)) return;
+                    tryAirSlash(damager);
+                } catch (e) {}
+            },
+            plugin
+        );
+        Bukkit.getPluginManager().registerEvent(
+            PlayerItemHeldEvent,
+            fengxuListener,
+            EventPriority.MONITOR,
+            function (l, evt) {
+                try {
+                    var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
+                    if (wasHolding(prev)) clearWeaponState(evt.getPlayer());
+                } catch (e) {}
+            },
+            plugin
+        );
+        Bukkit.getPluginManager().registerEvent(
+            PlayerQuitEvent,
+            fengxuListener,
+            EventPriority.MONITOR,
+            function (l, event) {
+                try { clearWeaponState(event.getPlayer()); } catch (e) {}
+            },
+            plugin
+        );
+    }
+});
+Bukkit.getScheduler().runTask(plugin, initFengxuListener);

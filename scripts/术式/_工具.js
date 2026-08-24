@@ -14,7 +14,11 @@ var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 var META_SPELL_HIT = "gltc_spell_hit_info";
 var META_SPELL_DMG_LISTENER = "gltc_spell_dmg_listener";
 /** 伤害监听器版本：升高后强制重挂，以便热重载吃到新播报格式 */
-var SPELL_DMG_LISTENER_VER = 3;
+var SPELL_DMG_LISTENER_VER = 4;
+
+/** 会话持续类型：unprojected=未投射（开环不清）；projected=已投射（开环清除） */
+var SESSION_UNPROJECTED = "unprojected";
+var SESSION_PROJECTED = "projected";
 
 var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
 /** 常规提示 &#fff5b3 */
@@ -56,20 +60,65 @@ function damageTypeLabel(type) {
 
 /**
  * 统一命中播报。
- * info: { name, ring?, damageType, kind? }  kind=ability 时不写「x环术式」
+ * info: { name, ring?, damageType, kind?, targetName?, aggregate? }
+ * aggregate: { count, total } → AOE 汇总
  */
 function formatSpellHitMessage(info, finalDmg) {
     info = info || {};
     var typeLabel = damageTypeLabel(info.damageType || info.type);
     var amt = C_DMG + formatDamage(finalDmg);
-    if (info.kind === "ability") {
-        var an = info.name ? String(info.name) : "未知技能";
-        return GLTC_PREFIX + C_SPELL + an + C_MSG + " 造成了 " + amt + " " + typeLabel;
+    var name = info.name ? String(info.name) : (info.kind === "ability" ? "未知技能" : "未知术式");
+
+    if (info.aggregate && info.aggregate.count > 1) {
+        return GLTC_PREFIX + C_MSG + "成功施展 " + C_SPELL + name
+            + C_MSG + " 对 " + C_SPELL + info.aggregate.count + C_MSG + "个目标 造成了总共 "
+            + C_DMG + formatDamage(info.aggregate.total) + C_MSG + " " + typeLabel;
     }
-    var ring = info.ring != null ? info.ring : 1;
-    var name = info.name ? String(info.name) : "未知术式";
-    return GLTC_PREFIX + C_SPELL + ring + "环术式 " + name
-        + C_MSG + " 造成了 " + amt + " " + typeLabel;
+
+    var target = info.targetName ? String(info.targetName) : "目标";
+    if (info.kind === "erosion") {
+        return GLTC_PREFIX + C_MSG + "侵蚀反噬对 " + C_SPELL + target
+            + C_MSG + " 造成了 " + amt + " " + typeLabel;
+    }
+    if (info.kind === "ability") {
+        return GLTC_PREFIX + C_MSG + "成功施展 " + C_SPELL + name
+            + C_MSG + " 对 " + C_SPELL + target + C_MSG + " 造成了 " + amt + " " + typeLabel;
+    }
+    return GLTC_PREFIX + C_MSG + "成功施展 " + C_SPELL + name
+        + C_MSG + " 对 " + C_SPELL + target + C_MSG + " 造成了 " + amt + " " + typeLabel;
+}
+
+function entityDisplayName(ent) {
+    if (!ent) return "目标";
+    try {
+        if (ent.getCustomName && ent.getCustomName()) return String(ent.getCustomName());
+    } catch (e0) {}
+    try {
+        if (ent.getName) return String(ent.getName());
+    } catch (e1) {}
+    try {
+        if (ent.getType) return String(ent.getType().name());
+    } catch (e2) {}
+    return "目标";
+}
+
+/** AOE 汇总播报：同一 tick 内合并 */
+function announceSpellHitAggregate(attacker, info, hits) {
+    if (!attacker || !hits || hits.length === 0) return;
+    if (hits.length === 1) {
+        var h = hits[0];
+        var singleInfo = {};
+        for (var k in info) singleInfo[k] = info[k];
+        singleInfo.targetName = h.targetName || entityDisplayName(h.target);
+        announceSpellHit(attacker, singleInfo, h.damage);
+        return;
+    }
+    var total = 0;
+    for (var i = 0; i < hits.length; i++) total += Number(hits[i].damage) || 0;
+    var aggInfo = {};
+    for (var k2 in info) aggInfo[k2] = info[k2];
+    aggInfo.aggregate = { count: hits.length, total: total };
+    announceSpellHit(attacker, aggInfo, total);
 }
 
 function announceSpellHit(attacker, info, finalDmg) {
@@ -197,14 +246,59 @@ function ensureSpellDamageListener() {
                 } catch (eP) {}
                 if (attacker == null || !attacker.isOnline()) return;
 
+                var announceInfo = {};
+                for (var ak in info) announceInfo[ak] = info[ak];
+                if (!announceInfo.targetName) announceInfo.targetName = entityDisplayName(victim);
+
+                if (info.batchKey) {
+                    try {
+                        var batchMap = plugin.gltcSpellHitBatch;
+                        if (batchMap == null) {
+                            batchMap = new java.util.concurrent.ConcurrentHashMap();
+                            plugin.gltcSpellHitBatch = batchMap;
+                        }
+                        var bKey = String(info.batchKey);
+                        var list2 = batchMap.get(bKey);
+                        if (list2 == null) {
+                            list2 = new java.util.ArrayList();
+                            batchMap.put(bKey, list2);
+                        }
+                        var hit = new java.util.HashMap();
+                        hit.put("damage", java.lang.Double.valueOf(finalDmg));
+                        hit.put("targetName", java.lang.String.valueOf(announceInfo.targetName));
+                        list2.add(hit);
+                        var pending = batchMap.get(bKey + "|pending");
+                        if (pending == null) {
+                            batchMap.put(bKey + "|pending", java.lang.Boolean.TRUE);
+                            Bukkit.getScheduler().runTask(plugin, function() {
+                                try {
+                                    var hits = batchMap.remove(bKey);
+                                    batchMap.remove(bKey + "|pending");
+                                    if (hits == null || hits.isEmpty()) return;
+                                    var arr = [];
+                                    for (var hi = 0; hi < hits.size(); hi++) {
+                                        var ent2 = hits.get(hi);
+                                        arr.push({
+                                            damage: Number(ent2.get("damage")),
+                                            targetName: String(ent2.get("targetName"))
+                                        });
+                                    }
+                                    announceSpellHitAggregate(attacker, announceInfo, arr);
+                                } catch (eBatch) {}
+                            });
+                        }
+                        return;
+                    } catch (eBatchOuter) {}
+                }
+
                 try {
                     if (typeof plugin.gltcAnnounceSpellHit === "function") {
-                        plugin.gltcAnnounceSpellHit(attacker, info, finalDmg);
+                        plugin.gltcAnnounceSpellHit(attacker, announceInfo, finalDmg);
                     } else {
-                        announceSpellHit(attacker, info, finalDmg);
+                        announceSpellHit(attacker, announceInfo, finalDmg);
                     }
                 } catch (eA) {
-                    announceSpellHit(attacker, info, finalDmg);
+                    announceSpellHit(attacker, announceInfo, finalDmg);
                 }
             } catch (ex) {}
         }, plugin
@@ -226,7 +320,9 @@ function dealPhysicalSpellDamage(target, amount, attacker, spellInfo) {
         name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
         kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
         damageType: DMG_TYPE_PHYSICAL,
-        attackerUuid: attacker.getUniqueId().toString()
+        attackerUuid: attacker.getUniqueId().toString(),
+        targetName: spellInfo && spellInfo.targetName ? String(spellInfo.targetName) : entityDisplayName(target),
+        batchKey: spellInfo && spellInfo.batchKey ? String(spellInfo.batchKey) : null
     };
     try {
         target.setNoDamageTicks(0);
@@ -258,8 +354,8 @@ function scheduleSpellHitMetaCleanup(target, plugin) {
 }
 
 /**
- * 粒子术式伤害：MAGIC 成因，吃粒子折射 + 最终减伤（不走脉冲），播报实际最终伤害。
- * spellInfo: { ring, name, kind? }
+ * 粒子术式伤害：坚守者音波尖啸（SONIC_BOOM）模型，吃粒子折射，播报实际最终伤害。
+ * spellInfo: { ring, name, kind?, batchKey? }
  */
 function dealParticleSpellDamage(target, amount, attacker, spellInfo) {
     if (!target || !(target instanceof LivingEntity) || !(amount > 0) || !attacker) return;
@@ -272,16 +368,19 @@ function dealParticleSpellDamage(target, amount, attacker, spellInfo) {
         name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
         kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
         damageType: DMG_TYPE_PARTICLE,
-        attackerUuid: attacker.getUniqueId().toString()
+        attackerUuid: attacker.getUniqueId().toString(),
+        targetName: spellInfo && spellInfo.targetName ? String(spellInfo.targetName) : entityDisplayName(target),
+        batchKey: spellInfo && spellInfo.batchKey ? String(spellInfo.batchKey) : null
     };
     try {
+        target.setMetadata("gltc_spell_particle_hit", new FixedMetadataValue(plugin, true));
         target.setNoDamageTicks(0);
         target.setMetadata(META_SPELL_HIT, new FixedMetadataValue(plugin, info));
         var dealt = false;
         try {
             var DamageSource = Java.type("org.bukkit.damage.DamageSource");
             var DamageType = Java.type("org.bukkit.damage.DamageType");
-            var src = DamageSource.builder(DamageType.MAGIC)
+            var src = DamageSource.builder(DamageType.SONIC_BOOM)
                 .withCausingEntity(attacker)
                 .withDirectEntity(attacker)
                 .build();
@@ -289,12 +388,16 @@ function dealParticleSpellDamage(target, amount, attacker, spellInfo) {
             dealt = true;
         } catch (eDs) {}
         if (!dealt) {
-            // 无 DamageSource API：至少吃最终减伤；折射依赖 MAGIC 成因可能吃不到
-            target.damage(amount, attacker);
+            try { target.damage(amount, attacker); } catch (eFb) { target.damage(amount); }
         }
     } catch (e) {
         try { target.damage(amount); } catch (e2) {}
     }
+    try {
+        Bukkit.getScheduler().runTask(plugin, function() {
+            try { target.removeMetadata("gltc_spell_particle_hit", plugin); } catch (eRm) {}
+        });
+    } catch (eRm2) {}
     scheduleSpellHitMetaCleanup(target, plugin);
 }
 
@@ -313,7 +416,9 @@ function dealPulseSpellDamage(target, amount, attacker, spellInfo, mageApi) {
         name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
         kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
         damageType: DMG_TYPE_PULSE,
-        attackerUuid: attacker.getUniqueId().toString()
+        attackerUuid: attacker.getUniqueId().toString(),
+        targetName: spellInfo && spellInfo.targetName ? String(spellInfo.targetName) : entityDisplayName(target),
+        batchKey: spellInfo && spellInfo.batchKey ? String(spellInfo.batchKey) : null
     };
     try {
         target.setNoDamageTicks(0);
@@ -633,16 +738,13 @@ var SPELL_STACK_API = {
 
 /**
  * 开始一段术式状态会话。
- * @param player 玩家
- * @param spellId 术式 ID
- * @param onClear function(player|null, reason) 清痕迹；需可重复调用
- * @param opts.replace 默认 true：同术式旧会话先清掉（重施）
- * @returns token 字符串，自然结束时请 endSpellSession
+ * @param opts.persistence "unprojected"|"projected" — 开环时是否保留（默认 projected）
  */
 function beginSpellSession(player, spellId, onClear, opts) {
     if (!player || !spellId || typeof onClear !== "function") return null;
     opts = opts || {};
     var uuid = playerUuidOf(player);
+    var persistence = opts.persistence != null ? String(opts.persistence) : SESSION_PROJECTED;
     if (opts.replace !== false) {
         clearSpellSessions(uuid, { onlySpellId: String(spellId), reason: "replace" });
     }
@@ -651,6 +753,7 @@ function beginSpellSession(player, spellId, onClear, opts) {
     list.push({
         token: token,
         spellId: String(spellId),
+        persistence: persistence,
         clear: onClear
     });
     spellSessionStore().put(String(uuid), list);
@@ -687,6 +790,7 @@ function endSpellSession(playerOrUuid, token, invokeClear) {
  * 按条件清理会话并执行 onClear。
  * opts.exceptSpellId — 保留该术式
  * opts.onlySpellId — 只清该术式
+ * opts.onlyProjected — true 时只清已投射会话
  * opts.reason — switch | cast | replace | quit | hotbar | ring | hold | manual
  */
 function clearSpellSessions(playerOrUuid, opts) {
@@ -697,6 +801,7 @@ function clearSpellSessions(playerOrUuid, opts) {
     if (list == null || list.length === 0) return 0;
     var exceptId = opts.exceptSpellId != null ? String(opts.exceptSpellId) : null;
     var onlyId = opts.onlySpellId != null ? String(opts.onlySpellId) : null;
+    var onlyProjected = opts.onlyProjected === true;
     var reason = opts.reason != null ? String(opts.reason) : "manual";
     var p = findOnlineByUuid(uuid);
     var kept = [];
@@ -708,6 +813,9 @@ function clearSpellSessions(playerOrUuid, opts) {
         if (onlyId != null) drop = (sid === onlyId);
         else if (exceptId != null) drop = (sid !== exceptId);
         else drop = true;
+        if (drop && onlyProjected && ent.persistence === SESSION_UNPROJECTED) {
+            drop = false;
+        }
         if (drop) {
             n++;
             try { ent.clear(p, reason); } catch (e) {
@@ -726,20 +834,21 @@ function clearSpellSessions(playerOrUuid, opts) {
 }
 
 /**
- * 切选中 / 施放其他术：清掉「非 keepSpellId」的会话痕迹（层数不在此清）。
- * reason 为 hotbar|quit|hold 时额外清空该玩家全部层数。
+ * 切选中 / 施放其他术：清掉其他术式的左右键与已投射持续体；未投射持续体保留。
+ * 开环(reason=ring)：仅清左右键钩子 + 已投射持续体，保留未投射。
  */
 function onSpellContextChange(player, keepSpellId, reason) {
     var keep = keepSpellId ? String(keepSpellId) : "";
     var r = reason || "switch";
-    var n = clearSpellSessions(player, {
-        exceptSpellId: keep,
-        reason: r
-    });
+    var clearOpts = { exceptSpellId: keep, reason: r };
+    if (r === "ring") {
+        clearOpts = { onlyProjected: true, reason: r };
+    }
+    var n = clearSpellSessions(player, clearOpts);
     if (r === "hotbar" || r === "quit" || r === "hold") {
         try { clearSpellStacks(player, null, null); } catch (e) {}
+        try { clearSpellSessions(player, { reason: r }); } catch (e2) {}
     }
-    // 左键钩子：未保留同术式时一律清掉（含开环/切术），避免空手或持武器仍能触发
     try {
         var uuid = javaUuidKey(playerUuidOf(player));
         var ent = spellActiveLeftClickStore().get(uuid);
@@ -747,7 +856,16 @@ function onSpellContextChange(player, keepSpellId, reason) {
             clearActiveLeftClick(player);
         }
     } catch (eLc) {}
-    try { runDirectClearHooks(player, keep); } catch (eDc) {}
+    if (r === "ring" || r === "switch" || r === "cast") {
+        try {
+            var uuid2 = javaUuidKey(playerUuidOf(player));
+            var ent2 = spellActiveLeftClickStore().get(uuid2);
+            if (ent2 == null || !keep || String(ent2.spellId) !== keep) {
+                clearActiveLeftClick(player);
+            }
+        } catch (eLc2) {}
+    }
+    try { runDirectClearHooks(player, keep, r); } catch (eDc) {}
     return n;
 }
 
@@ -881,13 +999,11 @@ function directClearHookStore() {
     return sharedJavaMap("gltc_spell_direct_clear_hooks");
 }
 
-function registerDirectClearHook(spellId, handler) {
-    if (!spellId || handler == null) return;
-    directClearHookStore().put(String(spellId), handler);
-}
-
-function runDirectClearHooks(player, keepSpellId) {
+function runDirectClearHooks(player, keepSpellId, reason) {
     if (!player) return 0;
+    var r = reason || "";
+    // 兜底钩子仅在离手/退服/换栏时全清；开环/切术由会话 API 处理
+    if (r !== "hotbar" && r !== "quit" && r !== "hold") return 0;
     var keep = keepSpellId ? String(keepSpellId) : "";
     var store = directClearHookStore();
     var n = 0;
@@ -896,12 +1012,30 @@ function runDirectClearHooks(player, keepSpellId) {
         while (it.hasNext()) {
             var e = it.next();
             if (String(e.getKey()) === keep) continue;
-            try { e.getValue()(player); n++; } catch (ex) {
+            try {
+                var hook = e.getValue();
+                if (hook && typeof hook === "object" && hook.clear != null) hook.clear(player);
+                else hook(player);
+                n++;
+            } catch (ex) {
                 try { Bukkit.getLogger().warning("[GLTC术式] directClear " + e.getKey() + ": " + ex); } catch (e2) {}
             }
         }
     } catch (eIt) {}
     return n;
+}
+
+function registerDirectClearHook(spellId, handler, opts) {
+    if (!spellId || handler == null) return;
+    opts = opts || {};
+    var entry = handler;
+    if (typeof handler === "function") {
+        entry = {
+            persistence: opts.persistence != null ? String(opts.persistence) : SESSION_PROJECTED,
+            clear: handler
+        };
+    }
+    directClearHookStore().put(String(spellId), entry);
 }
 
 /**
@@ -979,9 +1113,13 @@ publishHitAnnounceApi();
     damageTypeLabel: damageTypeLabel,
     formatSpellHitMessage: formatSpellHitMessage,
     announceSpellHit: announceSpellHit,
+    announceSpellHitAggregate: announceSpellHitAggregate,
+    entityDisplayName: entityDisplayName,
     DMG_TYPE_PHYSICAL: DMG_TYPE_PHYSICAL,
     DMG_TYPE_PARTICLE: DMG_TYPE_PARTICLE,
     DMG_TYPE_PULSE: DMG_TYPE_PULSE,
+    SESSION_UNPROJECTED: SESSION_UNPROJECTED,
+    SESSION_PROJECTED: SESSION_PROJECTED,
     ensureSpellDamageListener: ensureSpellDamageListener,
     dealPhysicalSpellDamage: dealPhysicalSpellDamage,
     dealParticleSpellDamage: dealParticleSpellDamage,

@@ -1,26 +1,11 @@
 /**
- * ============================================================
- *  GLTC 术士装备加成表（仅菜单组件）—— 只认粘液物品 ID
- * ============================================================
+ * GLTC 术士装备加成表（UGW）
  *
- * 【菜单倒数第二行】36~44
- *   潜能激发(36) | 蓝玻(37)
- *   | 核心心区(38) | 生控中枢(39) | 粒术中转(40)   ← 三类互不通用
- *   | 术式辅助×4(41-44)                            ← 四槽互通
+ * 类型 A~E 对应槽位：
+ *   A 潜能模组 | B 核心心区 | C 生控中枢 | D 粒术中转 | E 术式辅助×4
  *
- * 【判定规则】
- *   只检查物品的粘液 ID 是否在下方 GEAR_REGISTRY 中登记，
- *   且 entry.category 与槽位 category 一致。
- *   不读 PDC、不读 lore、不看材质。
- *
- * 【新增】
- *   1. items.yml 做好物品，记下 ID
- *   2. 在 GEAR_REGISTRY 加一条（category + bonuses）
- *
- * bonuses 可用键：
- *   particlePower, pituitaryCapacity, cardiovascular, particleRefraction,
- *   meleeDamage, maxHealth, armor, toughness, speed, reach, finalDamageReduction
- * ============================================================
+ * [简易UGW]：在 GEAR_REGISTRY 登记粘液 ID + 固定 bonuses
+ * [常规UGW]：addon_configs/GLTC/术式组件/{A|B|C|D|E}/{id}.json
  */
 
 var EQUIP_SLOT_DEFS = [
@@ -85,11 +70,19 @@ var EQUIP_SLOT_DEFS = [
 var SEPARATOR_GUI_SLOT = 37;
 
 var CATEGORY_NAMES = {
-    potential: "潜能激发模组",
-    core_heart: "核心心区组件",
-    bio_hub: "生控中枢组件",
-    particle_hub: "粒术中转组件",
-    assist: "术式辅助组件"
+    potential: "A · 潜能模组",
+    core_heart: "B · 核心心区组件",
+    bio_hub: "C · 生控中枢组件",
+    particle_hub: "D · 粒术中转组件",
+    assist: "E · 术式辅助组件"
+};
+
+var CATEGORY_LETTER = {
+    potential: "A",
+    core_heart: "B",
+    bio_hub: "C",
+    particle_hub: "D",
+    assist: "E"
 };
 
 // -------------------- 组件登记（粘液 ID → 配置）--------------------
@@ -167,6 +160,7 @@ function emptySlotsArray() {
     EQUIP_SLOT_DEFS: EQUIP_SLOT_DEFS,
     SEPARATOR_GUI_SLOT: SEPARATOR_GUI_SLOT,
     CATEGORY_NAMES: CATEGORY_NAMES,
+    CATEGORY_LETTER: CATEGORY_LETTER,
     GEAR_REGISTRY: GEAR_REGISTRY,
     registerGear: registerGear,
     unregisterGear: unregisterGear,

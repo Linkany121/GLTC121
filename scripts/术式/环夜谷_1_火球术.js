@@ -144,14 +144,19 @@ function explodeAt(world, loc, dmg, caster, spellInfo) {
     playExplodeSound(world, loc);
 
     var casterUuid = caster.getUniqueId().toString();
+    var batchKey = spellInfo && spellInfo.name
+        ? casterUuid + "|" + spellInfo.name + "|" + Date.now()
+        : null;
     var near = world.getNearbyEntities(loc, EXPLODE_HALF, EXPLODE_HALF, EXPLODE_HALF);
     var it = near.iterator();
     while (it.hasNext()) {
         var ent = it.next();
         if (!(ent instanceof LivingEntity)) continue;
         if (ent instanceof Player && ent.getUniqueId().toString() === casterUuid) continue;
+        var hitInfo = { ring: spellInfo.ring, name: spellInfo.name };
+        if (batchKey) hitInfo.batchKey = batchKey;
         if (UTIL && UTIL.dealPhysicalSpellDamage) {
-            UTIL.dealPhysicalSpellDamage(ent, dmg, caster, spellInfo);
+            UTIL.dealPhysicalSpellDamage(ent, dmg, caster, hitInfo);
         } else {
             try { ent.damage(dmg, caster); } catch (e5) { try { ent.damage(dmg); } catch (e6) {} }
         }

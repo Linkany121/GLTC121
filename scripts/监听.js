@@ -112,6 +112,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
                     try {
                         var api = PLUGIN.gltcMageApi != null ? PLUGIN.gltcMageApi : MAGE_API;
                         if (api && typeof api.applyMageAttributes === "function") api.applyMageAttributes(p);
+                        if (api && typeof api.refillParticlesToCap === "function") api.refillParticlesToCap(p);
                     } catch (e) {}
                 }, 20);
             } catch (e2) {}
@@ -138,12 +139,15 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
 
                 var cause = event.getCause();
                 var causeName = cause ? cause.name() : "";
-                if (causeName === "SONIC_BOOM" || causeName === "MAGIC" || causeName === "INDIRECT_MAGIC") {
+                var isSpellParticle = false;
+                try { isSpellParticle = entity.hasMetadata("gltc_spell_particle_hit"); } catch (eSp) {}
+                // 粒子折射：仅术式粒子伤害（SONIC_BOOM / 术式标记）
+                if (isSpellParticle || causeName === "SONIC_BOOM") {
                     var refract = stats.particleRefraction || 0;
                     if (refract > 0) dmg = dmg * (1 - Math.min(0.95, refract));
                 }
 
-                // 最终减伤：普通 + 粒子 都吃；脉冲已在上方跳过；硬顶 90%
+                // 最终减伤：脉冲以外所有伤害；脉冲已在上方跳过
                 var fdr = stats.finalDamageReduction || 0;
                 if (fdr > 0) dmg = dmg * (1 - Math.min(0.90, fdr));
 

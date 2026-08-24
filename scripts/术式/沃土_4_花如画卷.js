@@ -493,7 +493,7 @@ function launchAll(player, stForced) {
         try {
             wave.sessionToken = api.begin(player, SPELL_ID, function() {
                 stopFlyingWave(uuid, false);
-            }, { replace: false });
+            }, { replace: false, persistence: UTIL && UTIL.SESSION_PROJECTED ? UTIL.SESSION_PROJECTED : "projected" });
         } catch (eBeg) {}
     }
 
@@ -635,7 +635,7 @@ function castFlowerScroll(player, mageApi) {
         try {
             st.sessionToken = api.begin(player, SPELL_ID, (function(captured) {
                 return function() { stopOrbitSession(uuid, captured, false); };
-            })(st), { replace: true });
+            })(st), { replace: true, persistence: UTIL && UTIL.SESSION_UNPROJECTED ? UTIL.SESSION_UNPROJECTED : "unprojected" });
         } catch (eBeg) {
             Bukkit.getLogger().warning("[GLTC花如画卷] beginSession: " + eBeg);
         }
@@ -702,7 +702,7 @@ try {
         UTIL.registerDirectClearHook(SPELL_ID, function(p) {
             if (!p) return;
             clearAll(uuidKey(p.getUniqueId().toString()));
-        });
+        }, { persistence: UTIL.SESSION_UNPROJECTED });
     }
 } catch (eHook) {}
 

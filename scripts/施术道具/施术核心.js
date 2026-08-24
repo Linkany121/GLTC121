@@ -1,15 +1,11 @@
 /**
- * 施术核心（选术环）
- * - 每位玩家独立 runTaskTimer：刷粒子 + 文字跟随
- * - 站立右键：施术；开环且对准槽则选槽；开环未对准则关环并施术
- * - 站立左键：开环时选槽；否则 dispatchActiveLeftClick（见 术式/_工具.js）
- * - 蹲下右键：开关选术环；唤出成功时同时触发施术道具护身技（onSneakUse）；绝不施术
- * - 开选术环 / 换手持：清术式会话效果；层数仅在换栏/离手/退服时清
- * - 右键：Interact + SF onUse 双入口，靠 debounce 去重
- * - 所有术式相关触发（施术 / 选术环 / 术式左键 / 护身）均要求主手持施术道具
- *
- * AI 新建术式/道具规范：scripts/_AI术式与施术道具生成指南.js
- * 禁止在本文件添加具体术式 ID 或术式专用逻辑。
+ * 施术核心（选术环）— 重构版
+ * - 蹲下右键：开关选术环；开环成功时触发施术道具护身技；绝不施术
+ * - 选术环开启时：左/右/蹲下左键仅用于对准槽位确认；未对准则无反应
+ * - 选术环开启时：蹲下右键仅关闭选术环
+ * - 选术环关闭时：左/右键由当前选中术式决定；蹲下右键开启选术环
+ * - 开环：清除术式左右键逻辑与已投射持续体；未投射持续体保留
+ * - 所有术式相关操作须主手持施术道具（数量=1）
  */
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -1617,27 +1613,41 @@ function resolveCastCost(player, spell) {
     return { cost: cost, baseCost: baseCost, ring: ring, level: level, erosion: erosion };
 }
 
-/** 侵蚀自伤：直扣生命（按最大生命百分比，不吃护甲） */
-function applyErosionSelfDamage(player, erosion) {
+/** 侵蚀自伤：脉冲伤害模型 + 播报 */
+function applyErosionSelfDamage(player, erosion, spellName) {
     if (!(erosion > 0) || !player || !player.isOnline()) return 0;
     var maxHp = getPlayerMaxHealth(player);
     if (!(maxHp > 0)) return 0;
     var dmg = erosion * EROSION_HP_PCT * maxHp;
     if (!(dmg > 0)) return 0;
+
+    var util = null;
     try {
-        var next = Number(player.getHealth()) - dmg;
-        if (next <= 0) {
-            try { player.setHealth(0); } catch (e0) {
-                try { player.damage(Math.max(dmg, 1000)); } catch (e1) {}
-            }
+        util = evalScriptExport("术式/_工具.js");
+    } catch (eU) {}
+
+  try {
+        if (util && util.ensureSpellDamageListener) util.ensureSpellDamageListener();
+        if (util && util.dealPulseSpellDamage) {
+            util.dealPulseSpellDamage(player, dmg, player, {
+                name: spellName || "侵蚀反噬",
+                kind: "erosion",
+                targetName: player.getName()
+            }, MAGE_API);
+            return dmg;
+        }
+    } catch (ePulse) {}
+
+    try {
+        if (MAGE_API && typeof MAGE_API.dealPulseDamage === "function") {
+            MAGE_API.dealPulseDamage(player, dmg, player);
         } else {
-            player.setHealth(next);
+            var next = Number(player.getHealth()) - dmg;
+            if (next <= 0) player.setHealth(0);
+            else player.setHealth(next);
         }
     } catch (e2) {
-        try {
-            player.setNoDamageTicks(0);
-            player.damage(dmg);
-        } catch (e3) {}
+        try { player.damage(dmg); } catch (e3) {}
     }
     return dmg;
 }
@@ -1744,13 +1754,14 @@ function tryCastSelected(player, opts) {
             return { ok: false };
         }
 
-        var erosionDmg = 0;
-        if (resolved.erosion > 0) {
-            erosionDmg = applyErosionSelfDamage(player, resolved.erosion);
-        }
-
         var ring = resolved.ring;
         var spellName = spell.name || spellPlainName(spellId) || spellId;
+
+        var erosionDmg = 0;
+        if (resolved.erosion > 0) {
+            erosionDmg = applyErosionSelfDamage(player, resolved.erosion, spellName);
+        }
+
         player.sendMessage(GLTC_PREFIX + C_MSG + "消耗 §b" + cost + C_MSG + "粒子 使用 "
             + C_SPELL + ring + "环术式 " + spellName);
         if (resolved.erosion > 0 && erosionDmg > 0) {
@@ -1769,10 +1780,10 @@ function tryCastSelected(player, opts) {
 }
 
 /**
- * 操作约定：
- *   站立右键 → 施术（环开着则选槽）
- *   站立左键 → 环开着选槽；否则术式左键钩子（如花如画卷投掷）
- *   蹲下右键 → 开关选术环；唤出成功时同时触发 onSneakUse；绝不施术
+ * 操作约定（工作区规范）：
+ *   蹲下右键 → 关环（已开）/ 开环+护身（未开）；绝不施术
+ *   开环时 左/右/蹲下左 → 仅对准槽位时选术；未对准无反应
+ *   关环时 左/右 → 术式自身逻辑
  */
 function handleStaffUse(player, opts) {
     if (!player || !(player instanceof Player)) return;
@@ -1783,39 +1794,29 @@ function handleStaffUse(player, opts) {
     try { lastMainStaffMap.put(mapUuidKey(uuid), java.lang.Boolean.TRUE); } catch (eLs) {}
 
     if (player.isSneaking()) {
-        // 宽限内：刚开/关过，忽略连触（防止开环立刻被第二次事件关掉）
         if (inRingToggleGrace(player)) return;
-
-        // 已开环 → 只关闭，不放技能、不施术
         if (isRingOpen(uuid)) {
             toggleSpellRing(player);
             return;
         }
-        // 先打宽限再开环：避免开环过程中二次事件读到已开状态后立刻关掉
         markRingActionCd(player);
         markRingToggleGrace(player);
         var opened = openSpellRing(player);
         if (opened) {
-            // 开环成功：写短时 token，由道具脚本在本上下文领取护身（勿跨上下文调 JS）
-            try {
-                setMetaLong(player, "gltc_staff_sneak_ability_token", Date.now());
-            } catch (eTok) {}
+            try { setMetaLong(player, "gltc_staff_sneak_ability_token", Date.now()); } catch (eTok) {}
+            var hooks = mergeStaffOpts(player, opts);
+            if (hooks.onSneakUse != null) invokeStaffConsumer(hooks.onSneakUse, player);
         }
         return;
     }
-    // 假开环会挡施术：先治愈
+
     clearGhostRingIfNeeded(uuid);
     if (isRingOpen(uuid)) {
-        // 对准槽 → 选术；未对准 → 关环并施术（避免环开着却施不出）
         var handRing = player.getInventory().getItemInMainHand();
         var dataRing = getStaffMeta(handRing);
         var slot = (dataRing != null) ? findLookedSlot(player, dataRing.capacity) : -1;
-        if (slot >= 0) {
-            trySelectLookedSlot(player);
-            return;
-        }
-        closeSpellRing(player);
-        markRingToggleGrace(player);
+        if (slot >= 0) trySelectLookedSlot(player);
+        return;
     }
     tryCastSelected(player, opts);
 }
@@ -1842,19 +1843,18 @@ function handleStaffLeftClick(player) {
     if (!player || !(player instanceof Player)) return false;
     if (!isMageStaffItem(player.getInventory().getItemInMainHand())) return false;
     if (!requireSingleStaff(player)) return true;
-    // 蹲下左键不触发术式逻辑（蹲下仅右键管选术环）
-    if (player.isSneaking()) return true;
     var uuid = String(player.getUniqueId().toString());
     clearGhostRingIfNeeded(uuid);
     if (isRingOpen(uuid)) {
         trySelectLookedSlot(player);
         return true;
     }
+    if (player.isSneaking()) return true;
     trySpellLeftClick(player);
     return true;
 }
 
-var SPELL_CORE_LISTENER_VER = 13;
+var SPELL_CORE_LISTENER_VER = 14;
 
 function resetSpellCoreRingState() {
     try {

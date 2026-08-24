@@ -51,7 +51,7 @@ var SCHOOL_DISPLAY = {
 };
 
 var EMPTY_SPELL_SHULKER = "LIGHT_GRAY_SHULKER_BOX";
-var LOCKED_SPELL_SHULKER = "GRAY_SHULKER_BOX";
+var LOCKED_SPELL_SHULKER = "OBSIDIAN";
 
 var SPELL_REGISTRY = {};
 var SPELL_BOOK_IDS = {};
@@ -136,7 +136,7 @@ function getEmptySpellShulkerMaterial() {
 }
 
 function getLockedSpellShulkerMaterial() {
-    return materialByName(LOCKED_SPELL_SHULKER, "GRAY_SHULKER_BOX");
+    return materialByName(LOCKED_SPELL_SHULKER, "OBSIDIAN");
 }
 
 function getSchoolDisplayName(school) {

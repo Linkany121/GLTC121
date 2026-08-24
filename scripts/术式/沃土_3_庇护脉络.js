@@ -47,7 +47,7 @@ var SPELL_ID = "VASA_庇护脉络";
 var SPELL_NAME = "庇护脉络";
 /** 环数 */
 var SPELL_RING = 3;
-/** 粒子消耗 */
+/** 保留字段（当前无粒子消耗） */
 var SPELL_COST = 10;
 /** 冷却（毫秒） */
 var SPELL_COOLDOWN_MS = 16000;
@@ -181,6 +181,13 @@ function applyRandomBuff(player) {
 }
 
 function dealHit(ent, dmg, caster, mageApi, spellInfo) {
+    try {
+        var bridge = PLUGIN.gltcSpellUtilBridge;
+        if (bridge != null) {
+            bridge.dealParticleSpellDamage(ent, dmg, caster, spellInfo.ring, spellInfo.name);
+            return;
+        }
+    } catch (eBr) {}
     if (UTIL && UTIL.dealParticleSpellDamage) {
         UTIL.dealParticleSpellDamage(ent, dmg, caster, spellInfo);
     } else {

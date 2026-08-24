@@ -1,7 +1,7 @@
 /**
  * VASA 木质施术道具
  * - 站立右键：施术
- * - 蹲下右键：选术环
+ * - 蹲下右键 / 蹲下左键：打开施术 GUI
  * - 特效：施术后脚下小型蒸汽爆炸
  *
  * Graal 跨脚本不能安全复用他上下文的 JS API。
@@ -52,7 +52,7 @@ function ensureCoreListeners() {
             var needForce = false;
             try {
                 if (PLUGIN.gltcSpellCoreListener == null) needForce = true;
-                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 13) needForce = true;
+                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 22) needForce = true;
             } catch (eV) {}
             CAST_API.ensureListeners(needForce);
         }

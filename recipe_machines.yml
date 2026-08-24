@@ -22106,12 +22106,11 @@ FKR_锻造锤:
         2:
           material_type: slimefun
           material: tswk2
-          amount: 16
+          amount: 24
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
-
+          amount: 24
       output:
         1:
           material_type: slimefun
@@ -22132,7 +22131,7 @@ FKR_锻造锤:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
+          amount: 24
       output:
         1:
           material_type: slimefun
@@ -22152,11 +22151,11 @@ FKR_锻造锤:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
+          amount: 24
         4:
           material_type: slimefun
           material: TSzjg
-          amount: 48
+          amount: 32
       output:
         1:
           material_type: slimefun
@@ -22173,15 +22172,15 @@ FKR_锻造锤:
         2:
           material_type: slimefun
           material: TSgj5
-          amount: 16
+          amount: 48
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 16
+          amount: 48
         4:
           material_type: slimefun
           material: lscs3
-          amount: 24
+          amount: 32
       output:
         1:
           material_type: slimefun
@@ -22198,11 +22197,11 @@ FKR_锻造锤:
         2:
           material_type: slimefun
           material: UMPV_浮沉盐海的阖眸
-          amount: 5
+          amount: 8
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
+          amount: 24
       output:
         1:
           material_type: slimefun
@@ -22223,7 +22222,7 @@ FKR_锻造锤:
         3:
           material_type: slimefun
           material: lsyq4
-          amount: 16
+          amount: 32
         4:
           material_type: slimefun
           material: lscs3
@@ -22414,7 +22413,7 @@ FKR_零件灌钮组装车床:
           amount: 1
         2:
           material_type: slimefun
-          material: FKR_星轨发射器
+          material: FKR_星轨信标
           amount: 2
       output:
         1:

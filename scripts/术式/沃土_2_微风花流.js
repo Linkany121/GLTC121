@@ -47,7 +47,7 @@ var SPELL_ID = "VASA_微风花流";
 var SPELL_NAME = "微风花流";
 /** 环数 */
 var SPELL_RING = 2;
-/** 粒子消耗 */
+/** 保留字段（当前无粒子消耗） */
 var SPELL_COST = 3;
 /** 冷却（毫秒） */
 var SPELL_COOLDOWN_MS = 3000;
@@ -156,10 +156,20 @@ function applyBlind(ent) {
 }
 
 function dealHit(ent, dmg, caster, mageApi, spellInfo) {
-    if (UTIL && UTIL.dealParticleSpellDamage) {
-        UTIL.dealParticleSpellDamage(ent, dmg, caster, spellInfo);
-    } else {
-        try { ent.damage(dmg, caster); } catch (e) {}
+    var dealt = false;
+    try {
+        var bridge = PLUGIN.gltcSpellUtilBridge;
+        if (bridge != null) {
+            bridge.dealParticleSpellDamage(ent, dmg, caster, spellInfo.ring, spellInfo.name);
+            dealt = true;
+        }
+    } catch (eBr) {}
+    if (!dealt) {
+        if (UTIL && UTIL.dealParticleSpellDamage) {
+            UTIL.dealParticleSpellDamage(ent, dmg, caster, spellInfo);
+        } else {
+            try { ent.damage(dmg, caster); } catch (e) {}
+        }
     }
     applyBlind(ent);
 }

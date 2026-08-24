@@ -174,7 +174,7 @@ function pane(mat, name, loreArr, glow) {
 }
 
 function spellLockedPane(index) {
-    var mat = Material.GRAY_SHULKER_BOX;
+    var mat = Material.OBSIDIAN;
     try {
         if (SPELL_CFG && typeof SPELL_CFG.getLockedSpellShulkerMaterial === "function") {
             mat = SPELL_CFG.getLockedSpellShulkerMaterial();

@@ -98,7 +98,7 @@ var GEAR_REGISTRY = {
         name: "测试强化",
         bonuses: {
             particlePower: 0.1,
-            pituitaryCapacity: 1
+            cardiovascular: 0.02
         }
     }
 

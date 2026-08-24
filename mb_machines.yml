@@ -181,7 +181,7 @@ ATO_GT:
           amount: 1
         2:
           material_type: slimefun
-          material: AL_B1
+          material: AL_A3
           amount: 1
       output:
          material_type: slimefun

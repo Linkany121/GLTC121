@@ -3801,7 +3801,7 @@ ls_FKR介绍2:
     - '&#fff5b3护具与武器，采用&f[&#96bed6等级&f]&#fff5b3划分，等级越高，越难以制作、效果越好。'
     - '&#fff5b3特殊武器，例如拥有技能的&e异能武器&#fff5b3与&e枪械&#fff5b3、&e施术用具&#fff5b3等，'
     - '&#fff5b3将采用&f[&#96bed6序列&f]&#fff5b3划分，序列越高，越难以制作、强度越高、技能越复杂。'
-    - '&#fff5b3不同的特殊武器，有不同的描述词条，例如枪械的&f[&#96d6a7参数&f]&#fff5b3将描述枪械的子弹伤害、换弹时间等，施术用具的&f[&#96d6a7能耗&f]&#fff5b3将描述用具的粒子消耗、冷却。'
+    - '&#fff5b3不同的特殊武器，有不同的描述词条，例如枪械的&f[&#96d6a7参数&f]&#fff5b3将描述枪械的子弹伤害、换弹时间等，施术用具的&f[&#96d6a7能耗&f]&#fff5b3将描述用具的术式冷却等。'
     - '&#fff5b3同时，GLTC所有的武器、护甲与工具都将由FKRT制作，归属也属于FKRT，但有时会额外标注材料的来源。'
   recipe_type: NULL
   amount: 1
@@ -4626,11 +4626,11 @@ FKR_伏地:
         2:
           material_type: slimefun
           material: tswk2
-          amount: 16
+          amount: 24
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
+          amount: 24
 
 FKR_风墟龙冕:
   lateInit: false
@@ -4667,7 +4667,7 @@ FKR_风墟龙冕:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
+          amount: 24
 
 FKR_无锋破军:
   lateInit: false
@@ -4704,11 +4704,11 @@ FKR_无锋破军:
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
-        3:
+          amount: 24
+        4:
           material_type: slimefun
           material: TSzjg
-          amount: 48
+          amount: 32
 
 FKR_ASPL:
   lateInit: false
@@ -4740,11 +4740,11 @@ FKR_ASPL:
         2:
           material_type: slimefun
           material: UMPV_浮沉盐海的阖眸
-          amount: 5
+          amount: 8
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 12
+          amount: 24
 
 FKR_隐兰狂玉唤剑葫:
   lateInit: false
@@ -4762,12 +4762,12 @@ FKR_隐兰狂玉唤剑葫:
     - '&#fff5b3群星时代，个人武力的孱弱也无法阻止文明与传承的跌宕。'
     - '  &#31c7e7兰&#34c0e8香&#37bae8隐&#39b3e9幽&#3cade9谷&#3fa6ea，&#42a0ea玉&#4599eb骨&#4893eb自&#4a8ceb疏&#4d86ec狂&#507fed，&#5378ed葫&#5672ee中&#586bee剑&#5b65ef鸣&#5e5eef.&#6158f0.&#6451f0.&#674bf1一&#6944f1念&#6c3ef2出&#6f37f2！'
     - '&f[&#96bed6序列&f] &f异能武器 第五'
-    - '&f[&#96d6a7特效&f] &f满冷却左键施展剑光，右键施展焰眸，每次施展增加1层&e[心霆]&f。'
-    - '&f[&#96d6a7特效&f] &f剑光：向前发射一道剑光，命中后召唤白剑从天而降造成造成 &c7x&#54ccff&lSIT&c伤害 &f。'
-    - '&f[&#96d6a7特效&f] &f焰眸：在前方高空召唤法阵，法阵在3秒内每0.5秒对敌人位置发射一道红剑落下造成造成 &c50x&#54ccff&lSIT&c伤害 &f，单次最多5道，冷却6秒。'
-    - '&f红剑的伤害根据红剑的数量变化，一道时每把造成造成 &c50x&#54ccff&lSIT&c伤害 &f，五道时每把造成造成 &c10x&#54ccff&lSIT&c伤害 &f。'
-    - '&f[&e心霆&f] &f到达9层后，自动进入持续10秒的心霆状态，缓慢升空，期间内只能左键施展剑霆。'
-    - '&f[&#96d6a7特效&f] &f剑霆：撕开视线尽头的空间，召唤一道剧烈的雷暴造成 &c10x&#54ccff&lSIT&c伤害 &f。'
+    - '&f[&#96d6a7特效&f] &f左键施展剑光，右键施展焰眸，每次施展增加1层&e[心霆]&f。'
+    - '&f[&#96d6a7特效&f] &f剑光：召唤瞬息向前的剑光，命中后召唤白剑小范围造成 &c7x&#54ccff&lSIT&c伤害 &f。'
+    - '&f[&#96d6a7特效&f] &f焰眸：召唤火眼，自动向前寻找目标并升空展开法阵，法阵在3秒内每0.5秒对敌人位置发射一道红剑落下造成造成 &c50x&#54ccff&lSIT&c伤害 &f，单次最多5道，冷却6秒。'
+    - '&f红剑的伤害根据数量变化，一道时每把造成 &c50x&#54ccff&lSIT&c伤害 &f，五道时每把造成 &c10x&#54ccff&lSIT&c伤害 &f。'
+    - '&f[&e心霆&f] &f9层后立刻自动进入10秒的心霆状态并缓慢升空，期间内只能左键施展剑霆。'
+    - '&f[&#96d6a7特效&f] &f剑霆：撕开视线尽头的空间，炸出迅疾剧烈的雷暴，大范围造成 &c10x&#54ccff&lSIT&c伤害 &f。'
   script: 武器/隐兰狂玉唤剑葫
   recipe_type: PF_DZC
   recipe:
@@ -4779,15 +4779,15 @@ FKR_隐兰狂玉唤剑葫:
         2:
           material_type: slimefun
           material: TSgj5
-          amount: 16
+          amount: 48
         3:
           material_type: slimefun
           material: TSxl5
-          amount: 16
+          amount: 48
         4:
           material_type: slimefun
           material: lscs3
-          amount: 24
+          amount: 32
 
 FKR_咀嚼曾世的晚梦:
   lateInit: false
@@ -4826,7 +4826,7 @@ FKR_咀嚼曾世的晚梦:
         3:
           material_type: slimefun
           material: lsyq4
-          amount: 16
+          amount: 32
         4:
           material_type: slimefun
           material: lscs3
@@ -7417,6 +7417,30 @@ VASA介绍02:
   recipe_type: NULL
   amount: 1
 
+VASA介绍03:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#e0e5ff存&#cbd8f4档&#b6cbe8信&#a1bedd息 &#811eff环&#7450fd夜&#6782fa谷&#5ab4f8巅&#4de6f5峰&#41ecf5术&#36c7f8士&#2ba2fa学&#217dfd会"
+    material: BOOK
+    modelId: 1210393
+    glow: true
+    lore:
+    - '&b星座&9：&#4a9dff噬&#4981ff空&#4865ff座'
+    - '&#fff5b3施术流程：'
+    - '&#fff5b3首先，你需要一个 施术道具 ，只有手持施术道具时，才能进行相关操作。'
+    - '&#fff5b3当你手持施术道具时，蹲下右键/蹲下左键，能够打开施术 GUI。'
+    - '&#fff5b3施术 GUI 中：'
+    - '&#fff5b3点击已装填的术式槽 = 选中该术式并关闭 GUI。'
+    - '&#fff5b3GUI 关闭后：'
+    - '&#fff5b3蹲下左键/蹲下右键 = 再次打开施术 GUI。'
+    - '&#fff5b3右键 = 常规术式的施展。'
+    - '&#fff5b3左键 = 部分术式的额外效果。'
+    - '&#fff5b3每个施术道具有不同的可刻录槽位，这决定了可刻录的术式的数量。'
+    - '&#fff5b3你需要将 施术道具 放入 术式刻录仪 中，将 术式载体 刻录进入 施术道具 。'
+  recipe_type: NULL
+  amount: 1
+
 VASA_驭粒终端:
   lateInit: false
   item_group: B_C0
@@ -7465,23 +7489,6 @@ VASA_测试戒指:
     - '&#fff5b3测试用强化组件；只能装入粒术中转组件槽。'
     - '&f[&#96d6a7类型&f]&#fff5b3粒术中转组件'
     - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1 · 松垂体容量 +1'
-
-VASA_粒子补充剂:
-  lateInit: false
-  item_group: B_C0
-  item:
-    name: "&#9ad8ff涵&#7ec8ff粒&#62b8ff子&#46a8ff补&#2a98ff充&#0e88ff剂"
-    material: honey_bottle
-    glow: true
-    lore:
-    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&f[&#96d6a7类型&f]&#fff5b3消耗品'
-    - '&f[&#96d6a7效果&f]&#fff5b3右键使用，回复 §b20 §f粒子'
-    - '&f[&#96d6a7上限&f]&#fff5b3不超过松垂体容量'
-    - '&f[&e!&f]&#e1ccbd粒子已满时不会消耗。'
-  script: 道具工具/粒子补充剂
-  recipe_type: NULL
-  amount: 1
 
 ####################
 ##施术道具
@@ -7558,7 +7565,7 @@ VASA_送花:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 1环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 构造并发射一朵向前快速飞行的花'
+    - '&f[&#96d6a7效果&f]&#fff5b3 构造并发射一朵向前快速飞行的花朵。'
     - '&f[&#96d6a7伤害&f]&#fff5b3 1.2 倍粒子伤害'
     - '&f[&#96d6a7能耗&f]&#fff5b3 1 粒子'
     - '&f[&#96d6a7冷却&f]&#fff5b3 1 秒'
@@ -7632,7 +7639,7 @@ VASA_火球术:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 环夜谷标准流派'
     - '&f[&#96bed6环数&f]&#fff5b3 1环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 立刻构造出一颗快速向前飞行的火焰团'
+    - '&f[&#96d6a7效果&f]&#fff5b3 通过粒子碰撞出火焰，并使其向前飞行造成伤害。'
     - '&f[&#96d6a7伤害&f]&#fff5b3&#d8b0a7 1&#d4a69c倍&#d09d91系&#cb9386数&#c7897c的&#c37f71物&#bf7666理&#ba6c5b伤&#b66250害 &f'
     - '&f[&#96d6a7能耗&f]&#fff5b3 1 粒子'
     - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'

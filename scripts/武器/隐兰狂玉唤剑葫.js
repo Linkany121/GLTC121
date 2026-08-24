@@ -6,8 +6,8 @@
 //               单次最多 5 道，冷却 6 秒。每把伤害 = 总伤害 / 实际道数
 //   心霆机制  ：每次施展(剑光/焰眸)增加 1 层 [心霆]；到达 10 层后自动进入
 //               持续 10 秒的心霆状态，期间缓慢升空，只能左键施展剑霆
-//   剑霆(心霆状态左键)：发射一簇雷魂剑，对途径敌人造成 100 伤害，
-//               爆炸后再额外造成一次 100 伤害
+//   剑霆(心霆状态左键)：在视线位置(最长40米)中心放射黑/深红/红射线 +
+//               黄紫白爆炸 + 落雷；半径 5 内敌人 10x SIT
 // 监听方式：自注册 PlayerInteractEvent，热重载安全注册（参考 风墟龙冕.js）
 // ===================================================================
 
@@ -38,7 +38,7 @@ var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
 var Particle = Java.type("org.bukkit.Particle");
 var Color = Java.type("org.bukkit.Color");
-var DustOptions = Java.type("org.bukkit.Particle.DustOptions");
+var DustOptions = Java.type("org.bukkit.Particle$DustOptions");
 var PotionEffect = Java.type("org.bukkit.potion.PotionEffect");
 var PotionEffectType = Java.type("org.bukkit.potion.PotionEffectType");
 var Vector = Java.type("org.bukkit.util.Vector");
@@ -70,11 +70,15 @@ var TYPE_LEVITATION = PotionEffectType.getByName("LEVITATION");
 var TYPE_SLOW_FALLING = PotionEffectType.getByName("SLOW_FALLING");
 
 // === 粒子颜色常量 ===
-var WHITE_DUST     = new DustOptions(Color.fromRGB(255, 255, 255), 1.4);   // 白剑
+var WHITE_DUST     = new DustOptions(Color.fromRGB(255, 255, 255), 1.0);   // 白剑高光
 var RED_DUST       = new DustOptions(Color.fromRGB(255, 60, 60), 1.5);      // 红剑
 var RED_DUST_BIG   = new DustOptions(Color.fromRGB(255, 40, 40), 2.2);      // 法阵/红爆
-var THUNDER_DUST   = new DustOptions(Color.fromRGB(130, 90, 255), 1.6);     // 雷魂剑
-var THUNDER_DUST2  = new DustOptions(Color.fromRGB(255, 220, 90), 1.4);     // 雷魂剑(亮芯)
+var BLACK_DUST     = new DustOptions(Color.fromRGB(18, 18, 18), 1.3);       // 剑霆射线（黑）
+var DARK_RED_DUST  = new DustOptions(Color.fromRGB(120, 8, 18), 1.5);      // 剑霆射线（深红）
+var DARK_RED_DUST2 = new DustOptions(Color.fromRGB(90, 4, 12), 1.2);       // 剑霆中心点
+var THUNDER_DUST   = new DustOptions(Color.fromRGB(130, 90, 255), 1.6);     // 紫色
+var THUNDER_DUST2  = new DustOptions(Color.fromRGB(255, 220, 90), 1.4);     // 黄色
+var THUNDER_WHITE  = new DustOptions(Color.fromRGB(255, 255, 255), 1.5);    // 白色爆炸
 
 // 彩色粒子发射。
 // 重要背景：经过对同目录 破军.js 的实测验证，"Particle.DUST 字面量 + DustOptions data"
@@ -121,10 +125,10 @@ var AOE_RADIUS          = 3;     // 范围伤害半径（直径 4）
 // 剑光参数（左键）
 // ===================================================================
 var SIT_JIANGUANG_MULT    = 7;    // 白剑：7x SIT
-var JIANGUANG_RANGE       = 32;   // 剑光最大射程
-var JIANGUANG_SWORD_DROP_HEIGHT = 8; // 白剑召唤高度(米)
+var JIANGUANG_RANGE       = 26;   // 剑光最大射程
+var JIANGUANG_SWORD_DROP_HEIGHT = 10; // 白剑召唤高度(米)
 var JIANGUANG_SWORD_DROP_TICK   = 8; // 白剑落地时长(tick)
-var JIANGUANG_CD_MS       = 400;  // 剑光点击再装填
+var JIANGUANG_CD_MS       = 300;  // 剑光点击再装填
 
 // ===================================================================
 // 焰眸参数（右键）
@@ -138,13 +142,17 @@ var YANMOU_HEIGHT_ABOVE   = 15;   // 法阵中心在目标/最高地面之上 y+
 var YANMOU_RADIUS         = 7.5;  // 法阵半径（直径 15）
 var YANMOU_SWORD_DROP_TICK = 10;  // 红剑落地时长(tick)
 var YANMOU_CAST_TICK      = 10;   // 红球飞行 / 法阵展开 各 0.5 秒
-var JIANTING_BLAST_DELAY  = 4;    // 剑霆终点二次爆炸延迟(tick)
 
 // ===================================================================
-// 雷魂剑参数（心霆状态左键）
+// 剑霆参数（心霆状态左键）
 // ===================================================================
-var SIT_JIANTING_MULT   = 10;    // 剑霆：10x SIT
-var JIANTING_RANGE      = 32;    // 剑霆最远距离（米）
+var SIT_JIANTING_MULT      = 10;   // 剑霆：10x SIT
+var JIANTING_RANGE         = 32;   // 剑霆最远距离（米）
+var JIANTING_AOE_RADIUS    = 5;    // 剑霆伤害半径
+var JIANTING_RAY_COUNT     = 24;   // 放射射线数量
+var JIANTING_RAY_LENGTH    = 2.5;    // 射线总长度（格）
+var JIANTING_RAY_STEP      = 1;  // 每 tick 延伸长度（格）
+var JIANTING_THUNDER_COUNT = 6;    // 落雷道数
 
 // ===================================================================
 // 文字提示（全部可配置，支持 § 颜色码与 {n} 占位符）
@@ -213,12 +221,14 @@ function resolvePlayer(playerOrId) {
         if (playerOrId instanceof Player) {
             return playerOrId.isOnline() ? playerOrId : null;
         }
-        var idStr = String(playerOrId);
-        try { return Bukkit.getPlayer(UUID.fromString(idStr)); } catch (eUuid) {}
-        return Bukkit.getPlayer(playerOrId);
-    } catch (e) {
-        return null;
-    }
+        // Graal：Bukkit.getPlayer(UUID|String) 重载歧义，改用无歧义的 getEntity(UUID)
+        var id = (typeof playerOrId === "string" || playerOrId instanceof java.lang.String)
+            ? UUID.fromString(String(playerOrId))
+            : playerOrId;
+        var ent = Bukkit.getEntity(id);
+        if (ent instanceof Player && ent.isOnline()) return ent;
+    } catch (e) {}
+    return null;
 }
 
 // ===================================================================
@@ -245,28 +255,65 @@ function matchItemId(actualId, expectedId) {
     return false;
 }
 
-// Graal 兼容射线：勿将 JS 函数传给 rayTrace 的 Entity 过滤器
+// Graal 兼容射线：rayTraceEntities 返回单个 RayTraceResult，不是 List
+function isBlockSolid(block) {
+    if (block == null) return false;
+    try {
+        var type = block.getType();
+        if (type == null) return false;
+        try { return !type.isAir(); } catch (eAir) {
+            return type !== Material.AIR && type !== Material.CAVE_AIR && type !== Material.VOID_AIR;
+        }
+    } catch (e) { return false; }
+}
+function foreachNearby(entities, fn) {
+    if (entities == null || fn == null) return;
+    try {
+        var it = entities.iterator();
+        while (it.hasNext()) {
+            try { fn(it.next()); } catch (eOne) {}
+        }
+        return;
+    } catch (eIt) {}
+    try {
+        var arr = entities.toArray();
+        for (var i = 0; i < arr.length; i++) {
+            try { fn(arr[i]); } catch (eOne2) {}
+        }
+    } catch (eArr) {}
+}
 function rayTraceLivingAhead(world, origin, direction, maxDistance, player) {
     var result = { loc: null, entity: null, distance: maxDistance };
     if (world == null || origin == null || direction == null) return result;
     var dir = direction.clone().normalize();
     var maxDist = maxDistance > 0 ? maxDistance : 1;
+    // 实体射线：API 返回 RayTraceResult（勿当 List 用 .size/.get）
     try {
-        var hits = world.rayTraceEntities(origin, dir, maxDist, 0.5);
-        if (hits != null) {
-            for (var hi = 0; hi < hits.size(); hi++) {
-                var ent = hits.get(hi);
-                if (!(ent instanceof LivingEntity) || ent.isDead()) continue;
-                if (isSamePlayer(ent, player)) continue;
-                result.entity = ent;
-                result.loc = ent.getLocation();
+        var entHit = world.rayTraceEntities(origin, dir, maxDist, 0.5);
+        if (entHit != null) {
+            var hitEnt = null;
+            try { hitEnt = entHit.getHitEntity(); } catch (eHe) {}
+            if (hitEnt != null && (hitEnt instanceof LivingEntity) && !hitEnt.isDead() && !isSamePlayer(hitEnt, player)) {
+                result.entity = hitEnt;
+                result.loc = hitEnt.getLocation();
                 try {
-                    result.distance = origin.toVector().distance(ent.getLocation().toVector());
-                } catch (eDist) {}
+                    result.distance = origin.toVector().distance(hitEnt.getLocation().toVector());
+                } catch (eDist) {
+                    try { result.distance = origin.distance(result.loc); } catch (eDist2) {}
+                }
                 return result;
             }
         }
     } catch (eRay) {}
+    try {
+        var blockHit = world.rayTraceBlocks(origin, dir, maxDist, FluidCollisionMode.NEVER, true);
+        if (blockHit != null && blockHit.getHitBlock() != null && isBlockSolid(blockHit.getHitBlock())) {
+            var hitPos = blockHit.getHitPosition();
+            result.loc = new org.bukkit.Location(world, hitPos.getX(), hitPos.getY(), hitPos.getZ());
+            try { result.distance = origin.distance(result.loc); } catch (eDist3) {}
+            return result;
+        }
+    } catch (eBlockRay) {}
     var step = 0.4;
     var steps = Math.ceil(maxDist / step);
     var stepVec = dir.clone().multiply(step);
@@ -275,20 +322,23 @@ function rayTraceLivingAhead(world, origin, direction, maxDistance, player) {
         tracer.add(stepVec);
         try {
             var block = world.getBlockAt(tracer);
-            if (block != null && block.getType() != null && !block.getType().isAir()) {
+            if (isBlockSolid(block)) {
                 result.loc = tracer.clone();
                 result.distance = (s + 1) * step;
                 return result;
             }
         } catch (eBlk) {}
         try {
-            var nearby = world.getNearbyEntities(tracer, 0.45, 0.45, 0.45);
-            for (var ni = 0; ni < nearby.size(); ni++) {
-                var nearEnt = nearby.get(ni);
-                if (!(nearEnt instanceof LivingEntity) || nearEnt.isDead()) continue;
-                if (isSamePlayer(nearEnt, player)) continue;
-                result.entity = nearEnt;
-                result.loc = nearEnt.getLocation();
+            var found = null;
+            foreachNearby(world.getNearbyEntities(tracer, 0.45, 0.45, 0.45), function (nearEnt) {
+                if (found != null) return;
+                if (!(nearEnt instanceof LivingEntity) || nearEnt.isDead()) return;
+                if (isSamePlayer(nearEnt, player)) return;
+                found = nearEnt;
+            });
+            if (found != null) {
+                result.entity = found;
+                result.loc = found.getLocation();
                 result.distance = (s + 1) * step;
                 return result;
             }
@@ -426,16 +476,14 @@ function aoeDamageParam(world, hitPoint, player, radius, dmg) {
     var hitCount = 0;
     var totalDamage = 0;
     withAbilityDamage(player, function () {
-        var targets = world.getNearbyEntities(hitPoint, radius, radius, radius);
-        for (var ti = 0; ti < targets.size(); ti++) {
-            var ent = targets.get(ti);
-            if (!(ent instanceof LivingEntity) || isSamePlayer(ent, player) || ent.isDead()) continue;
+        foreachNearby(world.getNearbyEntities(hitPoint, radius, radius, radius), function (ent) {
+            if (!(ent instanceof LivingEntity) || isSamePlayer(ent, player) || ent.isDead()) return;
             ent.setNoDamageTicks(0);
             ent.damage(dmg, player);
             hitCount++;
             totalDamage += dmg;
             hitAny = true;
-        }
+        });
     });
     if (hitCount > 0) {
         notifyAbilityDamageSummary(player, item, totalDamage, hitCount);
@@ -444,23 +492,102 @@ function aoeDamageParam(world, hitPoint, player, radius, dmg) {
 }
 
 // ===================================================================
-// 辅助：垂直下坠的粒子剑（剑尖朝下、握柄朝上），用指定颜色绘制
+// 辅助：垂直下坠的粒子剑（剑尖朝下、握柄朝上）
+//   轮廓线方案：END_ROD 勾勒剑形（消逝快、不堆叠），少量白尘点缀刃口
 //   loc = 剑尖位置；s = 尺寸倍数
 // ===================================================================
 function drawFallingSword(world, loc, dustOpt, s) {
-    var bladeLen  = 1.2 * s;
-    var guardHalf = 0.35 * s;
-    var handleLen = 0.4 * s;
-    var step = 0.15;
+    var bladeLen   = 1.5 * s;
+    var maxHalfW   = 0.18 * s;
+    var guardHalf  = 0.42 * s;
+    var handleLen  = 0.42 * s;
+    var step       = 0.2;
+
+    // 剑脊
     for (var y = 0; y <= bladeLen; y += step) {
-        spawnDust(world, loc.clone().add(0, y, 0), 1, 0, 0, 0, 0, dustOpt);
+        world.spawnParticle(Particle.END_ROD, loc.clone().add(0, y, 0), 1, 0, 0, 0, 0);
     }
-    for (var x = -guardHalf; x <= guardHalf; x += step) {
-        spawnDust(world, loc.clone().add(x, bladeLen, 0), 1, 0, 0, 0, 0, dustOpt);
+
+    // 双刃轮廓（自剑尖渐宽）
+    for (var y2 = 0; y2 <= bladeLen; y2 += step) {
+        var t = y2 / bladeLen;
+        var hw = maxHalfW * Math.pow(Math.max(t, 0.05), 0.7);
+        world.spawnParticle(Particle.END_ROD, loc.clone().add(-hw, y2, 0), 1, 0, 0, 0, 0);
+        world.spawnParticle(Particle.END_ROD, loc.clone().add(hw, y2, 0), 1, 0, 0, 0, 0);
     }
-    for (var y2 = bladeLen + 0.1; y2 <= bladeLen + handleLen; y2 += step) {
-        spawnDust(world, loc.clone().add(0, y2, 0), 1, 0, 0, 0, 0, dustOpt);
+
+    // 护手横杠
+    for (var gx = -guardHalf; gx <= guardHalf + 0.001; gx += step) {
+        world.spawnParticle(Particle.END_ROD, loc.clone().add(gx, bladeLen, 0), 1, 0, 0, 0, 0);
     }
+
+    // 握柄
+    var handleStart = bladeLen + 0.12 * s;
+    for (var hy = handleStart; hy <= handleStart + handleLen; hy += step) {
+        world.spawnParticle(Particle.END_ROD, loc.clone().add(0, hy, 0), 1, 0, 0, 0, 0);
+    }
+
+    // 剑尖 / 护手少量白尘高光（避免实心填充）
+    spawnDust(world, loc, 2, 0.03, 0.03, 0.03, 0, dustOpt);
+    spawnDust(world, loc.clone().add(0, bladeLen, 0), 2, 0.08, 0.02, 0.08, 0, dustOpt);
+}
+
+// ===================================================================
+// 剑霆：中心点 + 12 方向黑/深红/红射线，每 tick 向外延伸 1 格，总长 5 格
+// ===================================================================
+function buildJiantingRayDirections(count) {
+    var dirs = [];
+    for (var i = 0; i < count; i++) {
+        var theta = Math.random() * 2 * Math.PI;
+        var phi = Math.acos(2 * Math.random() - 1);
+        dirs.push({
+            dx: Math.sin(phi) * Math.cos(theta),
+            dy: Math.cos(phi),
+            dz: Math.sin(phi) * Math.sin(theta),
+            colorIdx: i % 3
+        });
+    }
+    return dirs;
+}
+
+function playJiantingRadialBurst(world, center) {
+    var cx = center.getX();
+    var cy = center.getY();
+    var cz = center.getZ();
+    var dirs = buildJiantingRayDirections(JIANTING_RAY_COUNT);
+    var dustByIdx = [BLACK_DUST, DARK_RED_DUST, RED_DUST];
+    var segStep = 0.22;
+
+    // 中心点
+    spawnDust(world, center, 5, 0.04, 0.04, 0.04, 0, DARK_RED_DUST2);
+    spawnDust(world, center, 3, 0.02, 0.02, 0.02, 0, BLACK_DUST);
+    try { world.spawnParticle(Particle.SMOKE, center, 2, 0.05, 0.05, 0.05, 0.01); } catch (eSm) {}
+
+    var tick = 0;
+    var maxTicks = JIANTING_RAY_LENGTH;
+    var taskRef = null;
+    var RayTask = Java.extend(BukkitRunnable, {
+        run: function () {
+            tick++;
+            var prevR = (tick - 1) * JIANTING_RAY_STEP;
+            var curR = tick * JIANTING_RAY_STEP;
+
+            for (var i = 0; i < dirs.length; i++) {
+                var d = dirs[i];
+                var dust = dustByIdx[d.colorIdx];
+                for (var r = prevR + segStep; r <= curR + 0.001; r += segStep) {
+                    var pl = new org.bukkit.Location(world,
+                        cx + d.dx * r, cy + d.dy * r, cz + d.dz * r);
+                    spawnDust(world, pl, 1, 0, 0, 0, 0, dust);
+                }
+            }
+
+            if (tick >= maxTicks) {
+                try { taskRef.cancel(); } catch (e) {}
+            }
+        }
+    });
+    taskRef = new RayTask().runTaskTimer(plugin, 0, 1);
 }
 
 // ===================================================================
@@ -612,7 +739,7 @@ function startXinTingBarTicker() {
                     var uuid = it.next();
                     var bar = getXinTingBarMap().get(uuid);
                     if (bar == null) continue;
-                    var player = Bukkit.getPlayer(UUID.fromString(uuid));
+                    var player = resolvePlayer(uuid);
                     if (player == null || !player.isOnline()) { removeXinTingBar(uuid); continue; }
 
                     var left = getXinTingStateMap().containsKey(uuid) ? getXinTingStateMap().get(uuid) : 0;
@@ -701,7 +828,7 @@ function startXinTingDecay() {
                     } else {
                         entry.setValue(stacks);
                         getXinTingDecayTickMap().put(uuid, 0); // 衰减一次，倒计时进度归 1
-                        var player = Bukkit.getPlayer(UUID.fromString(uuid));
+                        var player = resolvePlayer(uuid);
                         if (player != null && player.isOnline()) {
                             updateXinTingBar(uuid, player, stacks);
                         }
@@ -845,6 +972,46 @@ function castSwordLight(player) {
 }
 
 // ===================================================================
+// 焰眸粒子绘制（顶层函数，避免 Graal 在 BukkitRunnable 中丢失嵌套闭包）
+// ===================================================================
+function drawYanmouRunes(world, circleCenter, r) {
+    var n = 90;
+    for (var i = 0; i < n; i++) {
+        var a = (i / n) * 2 * Math.PI;
+        var pl = circleCenter.clone().add(Math.cos(a) * r, 0, Math.sin(a) * r);
+        spawnDust(world, pl, 1, 0, 0, 0, 0, RED_DUST_BIG);
+        world.spawnParticle(Particle.FLAME, pl, 1, 0, 0, 0, 0);
+        var plUp = pl.clone().add(0, 0.6, 0);
+        spawnDust(world, plUp, 1, 0, 0, 0, 0, RED_DUST_BIG);
+        world.spawnParticle(Particle.FLAME, plUp, 1, 0, 0, 0, 0);
+    }
+    var innerRadii = [r * 0.66, r * 0.4, r * 0.16];
+    for (var rr = 0; rr < innerRadii.length; rr++) {
+        var nr = 60 - rr * 12;
+        for (var j = 0; j < nr; j++) {
+            var a2 = (j / nr) * 2 * Math.PI;
+            var pl2 = circleCenter.clone().add(Math.cos(a2) * innerRadii[rr], 0, Math.sin(a2) * innerRadii[rr]);
+            spawnDust(world, pl2, 1, 0, 0, 0, 0, RED_DUST);
+            world.spawnParticle(Particle.FLAME, pl2, 1, 0, 0, 0, 0);
+        }
+    }
+    world.spawnParticle(Particle.FLAME, circleCenter, 20, 1.2, 0.4, 1.2, 0.03);
+    spawnDust(world, circleCenter, 30, 1.2, 0.4, 1.2, 0, RED_DUST);
+}
+function drawYanmouRedOrb(world, loc) {
+    for (var i = 0; i < 14; i++) {
+        var theta = Math.random() * 2 * Math.PI;
+        var phi = Math.acos(2 * Math.random() - 1);
+        var or = 0.8;
+        var ox = loc.getX() + or * Math.sin(phi) * Math.cos(theta);
+        var oy = loc.getY() + or * Math.cos(phi);
+        var oz = loc.getZ() + or * Math.sin(phi) * Math.sin(theta);
+        spawnDust(world, new org.bukkit.Location(world, ox, oy, oz), 1, 0, 0, 0, 0, RED_DUST);
+    }
+    world.spawnParticle(Particle.FLAME, loc, 3, 0.5, 0.5, 0.5, 0);
+}
+
+// ===================================================================
 // 焰眸（右键）：大型圆形红色法阵（直径15，大环+3内环），
 //   持续索敌法阵范围内敌人，在敌人上方召唤向下落的火焰红剑
 // ===================================================================
@@ -856,8 +1023,8 @@ function castFlameEye(player) {
     if (player.hasMetadata(META_YANMOU_DEDUP)) return;
     var uuid = player.getUniqueId().toString();
     var now = Date.now();
-    if (getYanmouCdMap().containsKey(uuid) && (now - getYanmouCdMap().get(uuid)) < YANMOU_COOLDOWN_MS) {
-        var remain = Math.ceil((YANMOU_COOLDOWN_MS - (now - getYanmouCdMap().get(uuid))) / 1000);
+    if (getYanmouCdMap().containsKey(uuid) && (now - Number(getYanmouCdMap().get(uuid))) < YANMOU_COOLDOWN_MS) {
+        var remain = Math.ceil((YANMOU_COOLDOWN_MS - (now - Number(getYanmouCdMap().get(uuid)))) / 1000);
         player.sendActionBar(fmtMsg(MSG_FLAME_EYE_COOLDOWN, {secs: remain}));
         return;
     }
@@ -880,31 +1047,29 @@ function castFlameEye(player) {
     var forwardXZ = eye.getDirection().clone(); forwardXZ.setY(0);
     if (forwardXZ.lengthSquared() < 0.001) forwardXZ = new Vector(1, 0, 0);
     forwardXZ.normalize();
-    var nearby = world.getNearbyEntities(eye, 20, 20, 20);
-    for (var ni = 0; ni < nearby.size(); ni++) {
-        var ent = nearby.get(ni);
-        if (!(ent instanceof LivingEntity) || isSamePlayer(ent, player) || ent.isDead()) continue;
+    foreachNearby(world.getNearbyEntities(eye, 20, 20, 20), function (ent) {
+        if (!(ent instanceof LivingEntity) || isSamePlayer(ent, player) || ent.isDead()) return;
         var eLoc = ent.getLocation();
         var rel = eLoc.toVector().subtract(eye.toVector());
         var relXZ = rel.clone(); relXZ.setY(0);
-        if (relXZ.dot(forwardXZ) <= 0) continue;
+        if (relXZ.dot(forwardXZ) <= 0) return;
         var dist = rel.length();
         if (dist <= 20 && dist > farthestDist) {
             farthestDist = dist;
             farthest = ent;
         }
-    }
+    });
 
     var circleCenter;
     if (farthest != null) {
         var fLoc = farthest.getLocation();
         var fgY = world.getHighestBlockYAt(fLoc.getBlockX(), fLoc.getBlockZ());
-        circleCenter = new (Java.type("org.bukkit.Location"))(world, fLoc.getX(), fgY + 0.5 + YANMOU_HEIGHT_ABOVE, fLoc.getZ());
+        circleCenter = new org.bukkit.Location(world, fLoc.getX(), fgY + 0.5 + YANMOU_HEIGHT_ABOVE, fLoc.getZ());
     } else {
         var centerX = eye.getX() + forwardXZ.getX() * YANMOU_FORWARD;
         var centerZ = eye.getZ() + forwardXZ.getZ() * YANMOU_FORWARD;
         var ngY = world.getHighestBlockYAt(Math.floor(centerX), Math.floor(centerZ));
-        circleCenter = new (Java.type("org.bukkit.Location"))(world, centerX, ngY + 0.5 + YANMOU_HEIGHT_ABOVE, centerZ);
+        circleCenter = new org.bukkit.Location(world, centerX, ngY + 0.5 + YANMOU_HEIGHT_ABOVE, centerZ);
     }
     var radius = YANMOU_RADIUS;
 
@@ -915,51 +1080,6 @@ function castFlameEye(player) {
     var tick = 0;
     var taskRef = null;
 
-    // 绘制法阵：大环 + 3 个内环（水平圆形，粒子密集），r 为当前半径
-    function drawRunes(r) {
-        var n = 90; // 大环粒子数（更密集）
-        // 大环（双层，+/- 小幅高度形成立体厚度）
-        for (var i = 0; i < n; i++) {
-            var a = (i / n) * 2 * Math.PI;
-            var pl = circleCenter.clone().add(Math.cos(a) * r, 0, Math.sin(a) * r);
-            spawnDust(world, pl, 1, 0, 0, 0, 0, RED_DUST_BIG);
-            world.spawnParticle(Particle.FLAME, pl, 1, 0, 0, 0, 0);
-            // 第二层略高，增加密度与立体感
-            var plUp = pl.clone().add(0, 0.6, 0);
-            spawnDust(world, plUp, 1, 0, 0, 0, 0, RED_DUST_BIG);
-            world.spawnParticle(Particle.FLAME, plUp, 1, 0, 0, 0, 0);
-        }
-        // 3 个内环（半径依次递减，粒子更密集）
-        var innerRadii = [r * 0.66, r * 0.4, r * 0.16];
-        for (var rr = 0; rr < innerRadii.length; rr++) {
-            var nr = 60 - rr * 12;
-            for (var j = 0; j < nr; j++) {
-                var a2 = (j / nr) * 2 * Math.PI;
-                var pl2 = circleCenter.clone().add(Math.cos(a2) * innerRadii[rr], 0, Math.sin(a2) * innerRadii[rr]);
-                spawnDust(world, pl2, 1, 0, 0, 0, 0, RED_DUST);
-                world.spawnParticle(Particle.FLAME, pl2, 1, 0, 0, 0, 0);
-            }
-        }
-        // 中心密集火焰
-        world.spawnParticle(Particle.FLAME, circleCenter, 20, 1.2, 0.4, 1.2, 0.03);
-        spawnDust(world, circleCenter, 30, 1.2, 0.4, 1.2, 0, RED_DUST);
-    }
-
-    // 绘制红色球状粒子（沿玩家->法阵中心路径的当前位置）
-    function drawRedOrb(loc) {
-        for (var i = 0; i < 14; i++) {
-            var theta = Math.random() * 2 * Math.PI;
-            var phi = Math.acos(2 * Math.random() - 1);
-            var or = 0.8;
-            var ox = loc.getX() + or * Math.sin(phi) * Math.cos(theta);
-            var oy = loc.getY() + or * Math.cos(phi);
-            var oz = loc.getZ() + or * Math.sin(phi) * Math.sin(theta);
-            spawnDust(world, new (Java.type("org.bukkit.Location"))(world, ox, oy, oz), 1, 0, 0, 0, 0, RED_DUST);
-        }
-        world.spawnParticle(Particle.FLAME, loc, 3, 0.5, 0.5, 0.5, 0);
-    }
-
-    // 法阵任务：红球飞行(0.5s) -> 法阵展开(0.5s) -> 持续索敌
     var EyeTask = Java.extend(BukkitRunnable, {
         run: function() {
             try {
@@ -971,68 +1091,58 @@ function castFlameEye(player) {
                 }
 
             if (phase === 0) {
-                // 阶段0：红色球状粒子从玩家自身位置飞向法阵中心（0.5秒=10tick）
                 var start = owner.getLocation().clone().add(0, 1.5, 0);
                 var end = circleCenter.clone();
                 var t = phaseTick / YANMOU_CAST_TICK;
                 if (t > 1) t = 1;
                 var ballPos = start.clone().add(end.clone().subtract(start).multiply(t));
-                drawRedOrb(ballPos);
+                drawYanmouRedOrb(world, ballPos);
                 phaseTick++;
                 if (phaseTick >= YANMOU_CAST_TICK) { phase = 1; phaseTick = 0; }
                 return;
             }
 
             if (phase === 1) {
-                // 阶段1：法阵从中心快速展开到完整半径（0.5秒）
                 var curR = radius * (phaseTick / YANMOU_CAST_TICK);
-                if (curR > 0) drawRunes(Math.max(curR, 0.3));
+                if (curR > 0) drawYanmouRunes(world, circleCenter, Math.max(curR, 0.3));
                 phaseTick++;
                 if (phaseTick >= YANMOU_CAST_TICK) { phase = 2; phaseTick = 0; }
                 return;
             }
 
-            // 阶段2：持续绘制法阵 + 索敌召唤红剑
             if (tick >= YANMOU_DURATION_TICK) {
                 try { taskRef.cancel(); } catch(e) {}
                 yanmouTaskMap.remove(ownerId);
                 return;
             }
-            drawRunes(radius);
+            drawYanmouRunes(world, circleCenter, radius);
 
-            // 每 0.5 秒一轮：根据本轮红剑数量平分 500 伤害
             if (tick % YANMOU_INTERVAL_TICK === 0) {
-                // 索敌：法阵水平投影内所有活体敌人（最多 5 道）
                 var dropLocs = new java.util.ArrayList();
-                var searchY = circleCenter.getY() - YANMOU_HEIGHT_ABOVE; // 法阵投影地面高度
+                var searchY = circleCenter.getY() - YANMOU_HEIGHT_ABOVE;
                 var searchCenter = circleCenter.clone(); searchCenter.setY(searchY + YANMOU_HEIGHT_ABOVE / 2);
                 var searchRadius = Math.max(radius, YANMOU_HEIGHT_ABOVE + radius);
-                var targets = world.getNearbyEntities(searchCenter, radius, searchRadius, radius);
-                for (var ti = 0; ti < targets.size(); ti++) {
-                    var ent = targets.get(ti);
-                    if (!(ent instanceof LivingEntity) || isSamePlayer(ent, owner) || ent.isDead()) continue;
+                foreachNearby(world.getNearbyEntities(searchCenter, radius, searchRadius, radius), function (ent) {
+                    if (!(ent instanceof LivingEntity) || isSamePlayer(ent, owner) || ent.isDead()) return;
                     var eLoc = ent.getLocation();
                     var dx = eLoc.getX() - circleCenter.getX();
                     var dz = eLoc.getZ() - circleCenter.getZ();
-                    if (dx * dx + dz * dz > radius * radius) continue;
+                    if (dx * dx + dz * dz > radius * radius) return;
                     dropLocs.add(eLoc.clone());
-                }
+                });
                 if (dropLocs.isEmpty()) {
-                    // 本轮无法阵范围内敌人：随机生成 5 道红剑
                     for (var rs = 0; rs < 5; rs++) {
                         var ra = Math.random() * 2 * Math.PI;
                         var rr = Math.sqrt(Math.random()) * radius * 0.9;
                         var rx = circleCenter.getX() + Math.cos(ra) * rr;
                         var rz = circleCenter.getZ() + Math.sin(ra) * rr;
-                        var rl = new (Java.type("org.bukkit.Location"))(
+                        dropLocs.add(new org.bukkit.Location(
                             world, rx,
                             world.getHighestBlockYAt(Math.floor(rx), Math.floor(rz)) - 0.5,
                             rz
-                        );
-                        dropLocs.add(rl);
+                        ));
                     }
                 }
-                // 最多 5 道，这一轮每把伤害 = 总伤害 / 本轮红剑数量
                 var dropCount = Number(dropLocs.size());
                 if (dropCount > 5) dropCount = 5;
                 if (dropCount <= 0) {
@@ -1046,7 +1156,6 @@ function castFlameEye(player) {
                     fallTarget.setY(world.getHighestBlockYAt(fallTarget.getBlockX(), fallTarget.getBlockZ()) - 0.5);
                     var dropHeight = circleCenter.getY() - fallTarget.getY();
                     if (dropHeight < 3) dropHeight = 3;
-                    // 下落时长与高度成正比（约每格 1.5 tick，慢速坠落更明显）
                     var dropTicks = Math.max(YANMOU_SWORD_DROP_TICK, Math.floor(dropHeight * 1.5));
                     summonFlameSwordDrop(
                         world, fallTarget, owner,
@@ -1065,8 +1174,8 @@ function castFlameEye(player) {
         }
     });
     taskRef = new EyeTask().runTaskTimer(plugin, 0, 1);
-    yanmouTaskMap.put(uuid, taskRef.getTaskId());
-    getYanmouCdMap().put(uuid, now);
+    yanmouTaskMap.put(uuid, Number(taskRef.getTaskId()));
+    getYanmouCdMap().put(uuid, Math.floor(Number(now)));
     world.playSound(player.getLocation(), SOUND_BEACON, 1.0, 0.8);
     world.playSound(circleCenter, SOUND_BEACON, 1.2, 0.6);
     addXinTingStack(player);
@@ -1078,15 +1187,16 @@ function castFlameEye(player) {
 }
 
 // ===================================================================
-// 剑霆（心霆状态左键）：在视线看向的方向召唤数道雷霆与大型紫色粒子爆发，
-//   命中目标/方块/最远 40 米处触发，命中处造成范围伤害并有粒子与声音
+// 剑霆（心霆状态左键）：
+//   自身粒子不变；视线位置(最长40米)中心放射射线(12道,5格) +
+//   黄/紫/白剧烈爆炸散开 + 数道雷电；半径5内敌人 10x SIT
 // ===================================================================
 function castSwordThunder(player) {
     var world = player.getWorld();
     var eye = player.getEyeLocation();
     var dir = eye.getDirection().normalize();
 
-    // 心霆状态释放：玩家脚下大型紫色粒子爆发 + 剑光发射声（蒸汽/扫击/气斩）
+    // 自身粒子效果（不变）
     var footLoc = player.getLocation().add(0, 0.3, 0);
     spawnDust(world, footLoc, 140, 2.4, 1.0, 2.4, 0, THUNDER_DUST);
     spawnDust(world, footLoc, 80, 2.0, 0.8, 2.0, 0, THUNDER_DUST2);
@@ -1096,61 +1206,77 @@ function castSwordThunder(player) {
     world.playSound(footLoc, SOUND_SWEEP, 0.6, 1.8);
     world.playSound(footLoc, SOUND_WITHER_SHOOT, 0.8, 1.2);
 
-    // 视线射线检测（命中目标或方块，最远 JIANTING_RANGE = 40 米）
+    // 视线落点：命中实体取实体位置，否则取射线点 / 最远 40 米
     var ray = rayTraceLivingAhead(world, eye, dir, JIANTING_RANGE, player);
-    var endLoc = null;
-    if (ray.loc != null) {
+    var endLoc;
+    if (ray.entity != null) {
+        endLoc = ray.entity.getLocation().clone().add(0, ray.entity.getHeight() * 0.5, 0);
+    } else if (ray.loc != null) {
         endLoc = ray.loc.clone();
-        if (ray.entity != null) endLoc = ray.entity.getLocation();
     } else {
         endLoc = eye.clone().add(dir.clone().multiply(JIANTING_RANGE));
     }
-    endLoc.setY(world.getHighestBlockYAt(endLoc.getBlockX(), endLoc.getBlockZ()) - 0.5);
 
-    // 数道雷霆：在命中点及周围随机召唤多道闪电
-    var thunderCount = 6;
-    for (var t = 0; t < thunderCount; t++) {
+    // 中心点 + 12 方向放射射线（每 tick 延伸 1 格，总长 5 格）
+    playJiantingRadialBurst(world, endLoc);
+
+    // 黄 / 紫 / 白剧烈爆炸散开
+    try { world.spawnParticle(Particle.FLASH, endLoc, 2, 0.2, 0.2, 0.2, 0); } catch (eFlash) {}
+    spawnDust(world, endLoc, 180, 2.8, 2.8, 2.8, 0.35, THUNDER_DUST2);   // 黄
+    spawnDust(world, endLoc, 200, 3.2, 3.2, 3.2, 0.40, THUNDER_DUST);    // 紫
+    spawnDust(world, endLoc, 160, 3.0, 3.0, 3.0, 0.38, THUNDER_WHITE);   // 白
+    spawnDust(world, endLoc, 80, 1.2, 1.2, 1.2, 0.15, DARK_RED_DUST);
+    world.spawnParticle(Particle.ELECTRIC_SPARK, endLoc, 120, 3.0, 3.0, 3.0, 0.12);
+    world.spawnParticle(Particle.END_ROD, endLoc, 40, 1.5, 1.5, 1.5, 0.08);
+    try { world.spawnParticle(Particle.EXPLOSION, endLoc, 3, 0.6, 0.6, 0.6, 0); } catch (eExp) {
+        try { world.spawnParticle(Particle.EXPLOSION_LARGE, endLoc, 2, 0.4, 0.4, 0.4, 0); } catch (eExp2) {}
+    }
+
+    // 数道雷电
+    for (var t = 0; t < JIANTING_THUNDER_COUNT; t++) {
         var strikeLoc = endLoc.clone().add(
-            (Math.random() - 0.5) * 3,
-            (Math.random() - 0.5) * 1.5,
-            (Math.random() - 0.5) * 3
+            (Math.random() - 0.5) * 4.0,
+            (Math.random() - 0.5) * 2.0,
+            (Math.random() - 0.5) * 4.0
         );
         world.strikeLightningEffect(strikeLoc);
     }
 
-    // 大型紫色粒子爆发（FLASH 可能因 Graal 重载解析失败，须 try-catch）
-    try { world.spawnParticle(Particle.FLASH, endLoc, 1, 0, 0, 0, 0, Color.fromRGB(255, 255, 255)); } catch (eFlash) {}
-    spawnDust(world, endLoc, 250, 4, 2, 4, 0.02, THUNDER_DUST);
-    spawnDust(world, endLoc, 120, 3, 1.5, 3, 0.02, THUNDER_DUST2);
-    world.spawnParticle(Particle.ELECTRIC_SPARK, endLoc, 150, 4, 2, 4, 0.06);
-    world.spawnParticle(Particle.SOUL_FIRE_FLAME, endLoc, 80, 3, 1.5, 3, 0.04);
-    // 终点第一次范围伤害
+    // 半径 5 内 10x SIT
     var thunderDmg = calcSitDamage(SIT_JIANTING_MULT);
-    var hitCenter = endLoc.clone().add(0, 1.0, 0);
-    var hitAny = aoeDamageParam(world, hitCenter, player, AOE_RADIUS, thunderDmg);
+    var hitAny = aoeDamageParam(world, endLoc, player, JIANTING_AOE_RADIUS, thunderDmg);
 
-    // 终点第二次爆炸伤害（仅终点，不做途径 AOE）
-    var ownerId = player.getUniqueId().toString();
-    var blastLoc = endLoc.clone();
-    var BlastTask = Java.extend(BukkitRunnable, {
-        run: function () {
-            var owner = resolvePlayer(ownerId);
-            if (owner == null) return;
-            spawnDust(world, blastLoc, 80, 2, 1, 2, 0.02, THUNDER_DUST2);
-            world.spawnParticle(Particle.ELECTRIC_SPARK, blastLoc, 40, 2, 1, 2, 0.05);
-            world.playSound(blastLoc, SOUND_RESPAWN_ANCHOR_EXPLODE, 1.4, 0.85);
-            aoeDamageParam(world, hitCenter, owner, AOE_RADIUS, thunderDmg);
-        }
-    });
-    new BlastTask().runTaskLater(plugin, JIANTING_BLAST_DELAY);
-
-    // 声音
-    world.playSound(endLoc, SOUND_THUNDER, 1.5, 0.7);
-    world.playSound(endLoc, SOUND_EXPLODE, 1.6, 0.8);
-    world.playSound(endLoc, SOUND_RESPAWN_ANCHOR_EXPLODE, 1.6, 0.8); // 命中处重生锚破碎声
+    world.playSound(endLoc, SOUND_THUNDER, 1.6, 0.65);
+    world.playSound(endLoc, SOUND_EXPLODE, 1.7, 0.75);
+    world.playSound(endLoc, SOUND_RESPAWN_ANCHOR_EXPLODE, 1.5, 0.8);
     if (hitAny) {
         world.playSound(player.getLocation(), SOUND_THUNDER, 1.0, 0.9);
     }
+}
+
+function handleHuanjianhuInteract(event) {
+    if (event == null) return;
+    var actionName = event.getAction().name();
+    var hand = event.getHand();
+    if (!isMainHand(hand)) return;
+    var player = event.getPlayer();
+    if (!isHoldingItem(player)) return;
+    if (actionName === "LEFT_CLICK_AIR" || actionName === "LEFT_CLICK_BLOCK") {
+        handleLeftClick(player, true);
+        return;
+    }
+    if (actionName === "RIGHT_CLICK_AIR" || actionName === "RIGHT_CLICK_BLOCK") {
+        try { event.setCancelled(true); } catch (eC) {}
+        handleRightClick(player, true);
+    }
+}
+function handleHuanjianhuMelee(event) {
+    if (event == null || event.isCancelled()) return;
+    var damager = edbeDamager(event);
+    if (!isPlayer(damager)) return;
+    if (isApplyingAbilityDamage(damager)) return;
+    if (!isHoldingItem(damager)) return;
+    handleLeftClick(damager, true);
 }
 
 // ===================================================================
@@ -1163,8 +1289,8 @@ function handleLeftClick(player, skipHoldCheck) {
     var now = Date.now();
     var uuid = player.getUniqueId().toString();
     var cdMap = getLeftClickCdMap();
-    if (cdMap.containsKey(uuid) && (now - cdMap.get(uuid)) < JIANGUANG_CD_MS) return;
-    cdMap.put(uuid, now);
+    if (cdMap.containsKey(uuid) && (now - Number(cdMap.get(uuid))) < JIANGUANG_CD_MS) return;
+    cdMap.put(uuid, Math.floor(Number(now)));
     try {
         if (isXinTingState(player)) castSwordThunder(player);
         else castSwordLight(player);
@@ -1216,15 +1342,7 @@ var initListener = new RunnableImpl({
             huanjianhuListener,
             EventPriority.NORMAL,
             function (l, event) {
-                try {
-                    var actionName = event.getAction().name();
-                    if (actionName !== "LEFT_CLICK_AIR" && actionName !== "LEFT_CLICK_BLOCK") return;
-                    var hand = event.getHand();
-                    if (hand == null || hand.name() !== "HAND") return;
-                    var player = event.getPlayer();
-                    if (!isHoldingItem(player)) return;
-                    handleLeftClick(player, true);
-                } catch (e) {
+                try { handleHuanjianhuInteract(event); } catch (e) {
                     plugin.getLogger().warning("[隐兰狂玉唤剑葫] 交互异常: " + e);
                 }
             },
@@ -1235,14 +1353,7 @@ var initListener = new RunnableImpl({
             huanjianhuListener,
             EventPriority.NORMAL,
             function (l, event) {
-                try {
-                    if (event.isCancelled()) return;
-                    var damager = edbeDamager(event);
-                    if (!isPlayer(damager)) return;
-                    if (isApplyingAbilityDamage(damager)) return;
-                    if (!isHoldingItem(damager)) return;
-                    handleLeftClick(damager, true);
-                } catch (e) {
+                try { handleHuanjianhuMelee(event); } catch (e) {
                     try { plugin.getLogger().warning("[隐兰狂玉唤剑葫] 近战左键异常: " + e); } catch (eLog) {}
                 }
             },

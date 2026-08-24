@@ -1,6 +1,6 @@
 ﻿/**
  * GLTC 术士装备菜单
- * 布局：上方数值/加点 · 倒数第二行装备 · 右下角 当前粒子+GLI
+ * 布局：上方数值/加点 · 倒数第二行装备 · 右下角 GLI
  */
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -13,10 +13,15 @@ var InventoryDragEvent = Java.type("org.bukkit.event.inventory.InventoryDragEven
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var ClickType = Java.type("org.bukkit.event.inventory.ClickType");
-var File = java.io.File;
-var Files = java.nio.file.Files;
-var StandardCharsets = java.nio.charset.StandardCharsets;
+var File = Java.type("java.io.File");
+var Files = Java.type("java.nio.file.Files");
+var StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
+var Arrays = Java.type("java.util.Arrays");
+var HashSet = Java.type("java.util.HashSet");
+var HashMap = Java.type("java.util.HashMap");
+var JBase64 = Java.type("java.util.Base64");
+var JUUID = Java.type("java.util.UUID");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 var GUI_TITLE = "§x§a§2§d§e§f§f此§x§9§9§c§c§f§f岸§x§8§f§b§a§f§f雪§x§8§6§a§8§f§f™§x§7§d§9§6§f§f智§x§8§2§8§8§f§f能§x§9§7§7§f§f§f监§x§a§c§7§5§f§f控§x§c§1§6§c§f§f终§x§d§6§6§2§f§f端";
@@ -26,14 +31,13 @@ var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2�
 /**
  * 数值区布局：
  *  8 重置潜能（右上角）
- *  9 等级  10 粒子强度  11 容量  12 心血管  13 折射  14 最终减伤  ···  17 术士潜能
+ *  9 等级  10 粒子强度  12 心血管  13 折射  14 最终减伤  ···  17 术士潜能
  *  18~23 原版白值六项  ···  26 体能潜能
- *  52 当前粒子  53 粒子浓度 GLI
+ *  53 粒子浓度 GLI
  */
 var STAT_SLOTS = {
     level: 9,
     particlePower: 10,
-    capacity: 11,
     cardio: 12,
     refraction: 13,
     finalDR: 14,
@@ -46,14 +50,12 @@ var STAT_SLOTS = {
     reach: 23,
     bodyPts: 26,
     resetPts: 8,
-    mana: 52,
     gli: 53
 };
 
 // 点击加点映射
 var MAGE_CLICK = {
     10: "particlePower",
-    11: "pituitaryCapacity",
     12: "cardiovascular",
     13: "particleRefraction",
     14: "finalDamageReduction"
@@ -67,11 +69,40 @@ var BODY_CLICK = {
     23: "reach"
 };
 
-var activeInventories = new java.util.HashSet();
+var activeInventories = new HashSet();
 /** inv -> { uuid, stats, dirty }  加点草稿，关闭时写盘 */
-var sessionByInv = new java.util.HashMap();
+var sessionByInv = new HashMap();
 var _listenerRegistered = false;
 var MAGE_API = null;
+/** hash -> 已生成头颅（clone 用）；避免重复 Java.type / JAR 扫描 */
+var _skullItemCache = new HashMap();
+var _skullJavaReady = false;
+var _skullTypes = {
+    ProfileProperty: null,
+    PlayerProfile: null,
+    GameProfile: null,
+    Property: null,
+    CraftItemStack: null,
+    DataComponents: null,
+    ResolvableProfile: null
+};
+
+/** 模块加载时一次性解析 Java 类，避免在 GUI 事件里反复 classpath 扫描 */
+function initSkullJavaTypes() {
+    if (_skullJavaReady) return;
+    _skullJavaReady = true;
+    try { _skullTypes.ProfileProperty = Java.type("org.bukkit.profile.ProfileProperty"); } catch (e0) {}
+    if (_skullTypes.ProfileProperty == null) {
+        try { _skullTypes.ProfileProperty = Java.type("com.destroystokyo.paper.profile.ProfileProperty"); } catch (e1) {}
+    }
+    try { _skullTypes.PlayerProfile = Java.type("org.bukkit.profile.PlayerProfile"); } catch (e2) {}
+    try { _skullTypes.GameProfile = Java.type("com.mojang.authlib.GameProfile"); } catch (e3) {}
+    try { _skullTypes.Property = Java.type("com.mojang.authlib.properties.Property"); } catch (e4) {}
+    try { _skullTypes.CraftItemStack = Java.type("org.bukkit.craftbukkit.inventory.CraftItemStack"); } catch (e5) {}
+    try { _skullTypes.DataComponents = Java.type("net.minecraft.core.component.DataComponents"); } catch (e6) {}
+    try { _skullTypes.ResolvableProfile = Java.type("net.minecraft.world.item.component.ResolvableProfile"); } catch (e7) {}
+}
+initSkullJavaTypes();
 
 function loadMageCore() {
     // 每次优先对齐全局单例（补充剂/施术可能已热更过核心）
@@ -144,7 +175,7 @@ function pane(mat, name, loreArr) {
     var item = new ItemStack(mat);
     var meta = item.getItemMeta();
     meta.setDisplayName(name);
-    if (loreArr && loreArr.length) meta.setLore(java.util.Arrays.asList(loreArr));
+    if (loreArr && loreArr.length) meta.setLore(Arrays.asList(loreArr));
     item.setItemMeta(meta);
     return item;
 }
@@ -165,22 +196,27 @@ function toUtf8Bytes(str) {
 function skullFromHash(hash) {
     if (hash == null || String(hash).length < 8) return null;
     var hashStr = String(hash).replace(/^http:\/\/textures\.minecraft\.net\/texture\//, "");
-    var json = '{"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/' + hashStr + '"}}}';
-    var b64 = java.util.Base64.getEncoder().encodeToString(toUtf8Bytes(json));
-    var uid = java.util.UUID.nameUUIDFromBytes(toUtf8Bytes("gltc-slot-" + hashStr));
     try {
-        var head = new ItemStack(Material.PLAYER_HEAD, 1);
-        var meta = head.getItemMeta();
-        var profile = null;
-        try { profile = Bukkit.createProfile(uid, "GLTC"); } catch (e0) {
-            try { profile = Bukkit.createPlayerProfile(uid, "GLTC"); } catch (e1) {}
-        }
-        if (profile != null) {
-            var ProfilePropertyClass = null;
-            try { ProfilePropertyClass = Java.type("org.bukkit.profile.ProfileProperty"); } catch (e2) {
-                try { ProfilePropertyClass = Java.type("com.destroystokyo.paper.profile.ProfileProperty"); } catch (e3) {}
+        var cached = _skullItemCache.get(hashStr);
+        if (cached != null) return cached.clone();
+    } catch (eCache) {}
+
+    initSkullJavaTypes();
+    var json = '{"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/' + hashStr + '"}}}';
+    var b64 = JBase64.getEncoder().encodeToString(toUtf8Bytes(json));
+    var uid = JUUID.nameUUIDFromBytes(toUtf8Bytes("gltc-slot-" + hashStr));
+    var built = null;
+
+    if (built == null) {
+        try {
+            var head = new ItemStack(Material.PLAYER_HEAD, 1);
+            var meta = head.getItemMeta();
+            var profile = null;
+            try { profile = Bukkit.createProfile(uid, "GLTC"); } catch (e0) {
+                try { profile = Bukkit.createPlayerProfile(uid, "GLTC"); } catch (e1) {}
             }
-            if (ProfilePropertyClass != null) {
+            var ProfilePropertyClass = _skullTypes.ProfileProperty;
+            if (profile != null && ProfilePropertyClass != null) {
                 var property = null;
                 try { property = new ProfilePropertyClass("textures", b64, ""); } catch (e4) {
                     try { property = new ProfilePropertyClass("textures", b64); } catch (e5) {}
@@ -191,71 +227,90 @@ function skullFromHash(hash) {
                     } catch (e6) {
                         try { profile.setProperty(property); } catch (e7) {}
                     }
+                    var PlayerProfileClass = _skullTypes.PlayerProfile;
                     try {
-                        meta.getClass().getMethod("setPlayerProfile", Java.type("org.bukkit.profile.PlayerProfile"))
-                            .invoke(meta, profile);
+                        if (PlayerProfileClass != null) {
+                            meta.getClass().getMethod("setPlayerProfile", PlayerProfileClass).invoke(meta, profile);
+                        } else {
+                            throw new Error("no PlayerProfile");
+                        }
                     } catch (e8) {
                         try { meta.setPlayerProfile(profile); } catch (e9) {
                             try { meta.setOwnerProfile(profile); } catch (e10) {}
                         }
                     }
                     head.setItemMeta(meta);
-                    return head;
+                    built = head;
                 }
             }
-        }
-    } catch (eA) {}
+        } catch (eA) {}
+    }
 
     // 方案 B：GameProfile 写入 SkullMeta.profile
-    try {
-        var headB = new ItemStack(Material.PLAYER_HEAD, 1);
-        var metaB = headB.getItemMeta();
-        var GameProfile = Java.type("com.mojang.authlib.GameProfile");
-        var Property = Java.type("com.mojang.authlib.properties.Property");
-        var gp = new GameProfile(uid, "GLTC");
-        gp.getProperties().put("textures", new Property("textures", b64));
-        var cls = metaB.getClass();
-        var fields = ["profile", "playerProfile", "serializedProfile"];
-        for (var fi = 0; fi < fields.length; fi++) {
-            try {
-                var field = cls.getDeclaredField(fields[fi]);
-                field.setAccessible(true);
-                field.set(metaB, gp);
-                headB.setItemMeta(metaB);
-                return headB;
-            } catch (eF) {}
-        }
-        // 沿父类再找一次
+    if (built == null) {
         try {
-            var f2 = cls.getSuperclass().getDeclaredField("profile");
-            f2.setAccessible(true);
-            f2.set(metaB, gp);
-            headB.setItemMeta(metaB);
-            return headB;
-        } catch (eF2) {}
-    } catch (eB) {}
+            var GameProfile = _skullTypes.GameProfile;
+            var Property = _skullTypes.Property;
+            if (GameProfile != null && Property != null) {
+                var headB = new ItemStack(Material.PLAYER_HEAD, 1);
+                var metaB = headB.getItemMeta();
+                var gp = new GameProfile(uid, "GLTC");
+                gp.getProperties().put("textures", new Property("textures", b64));
+                var cls = metaB.getClass();
+                var fields = ["profile", "playerProfile", "serializedProfile"];
+                for (var fi = 0; fi < fields.length; fi++) {
+                    try {
+                        var field = cls.getDeclaredField(fields[fi]);
+                        field.setAccessible(true);
+                        field.set(metaB, gp);
+                        headB.setItemMeta(metaB);
+                        built = headB;
+                        break;
+                    } catch (eF) {}
+                }
+                if (built == null) {
+                    try {
+                        var f2 = cls.getSuperclass().getDeclaredField("profile");
+                        f2.setAccessible(true);
+                        f2.set(metaB, gp);
+                        headB.setItemMeta(metaB);
+                        built = headB;
+                    } catch (eF2) {}
+                }
+            }
+        } catch (eB) {}
+    }
 
     // 方案 C：1.21 DataComponents.PROFILE
-    try {
-        var headC = new ItemStack(Material.PLAYER_HEAD, 1);
-        var CraftItemStack = Java.type("org.bukkit.craftbukkit.inventory.CraftItemStack");
-        var nmsItem = CraftItemStack.asNMSCopy(headC);
-        var DataComponents = Java.type("net.minecraft.core.component.DataComponents");
-        var ResolvableProfile = Java.type("net.minecraft.world.item.component.ResolvableProfile");
-        var GameProfileC = Java.type("com.mojang.authlib.GameProfile");
-        var PropertyC = Java.type("com.mojang.authlib.properties.Property");
-        var gpC = new GameProfileC(uid, "GLTC");
-        gpC.getProperties().put("textures", new PropertyC("textures", b64));
-        var resolvable = null;
-        try { resolvable = new ResolvableProfile(gpC); } catch (eR) {
-            try { resolvable = ResolvableProfile.createResolved(gpC); } catch (eR2) {}
-        }
-        if (resolvable != null) {
-            nmsItem.set(DataComponents.PROFILE, resolvable);
-            return CraftItemStack.asBukkitCopy(nmsItem);
-        }
-    } catch (eC) {}
+    if (built == null) {
+        try {
+            var CraftItemStack = _skullTypes.CraftItemStack;
+            var DataComponents = _skullTypes.DataComponents;
+            var ResolvableProfile = _skullTypes.ResolvableProfile;
+            var GameProfileC = _skullTypes.GameProfile;
+            var PropertyC = _skullTypes.Property;
+            if (CraftItemStack != null && DataComponents != null && ResolvableProfile != null
+                && GameProfileC != null && PropertyC != null) {
+                var headC = new ItemStack(Material.PLAYER_HEAD, 1);
+                var nmsItem = CraftItemStack.asNMSCopy(headC);
+                var gpC = new GameProfileC(uid, "GLTC");
+                gpC.getProperties().put("textures", new PropertyC("textures", b64));
+                var resolvable = null;
+                try { resolvable = new ResolvableProfile(gpC); } catch (eR) {
+                    try { resolvable = ResolvableProfile.createResolved(gpC); } catch (eR2) {}
+                }
+                if (resolvable != null) {
+                    nmsItem.set(DataComponents.PROFILE, resolvable);
+                    built = CraftItemStack.asBukkitCopy(nmsItem);
+                }
+            }
+        } catch (eC) {}
+    }
 
+    if (built != null) {
+        try { _skullItemCache.put(hashStr, built.clone()); } catch (ePut) {}
+        return built;
+    }
     try {
         Bukkit.getLogger().warning("[GLTC术士] 空槽头颅生成失败 hash=" + hashStr.substring(0, 12) + "...");
     } catch (eLog) {}
@@ -276,7 +331,7 @@ function buildEmptySlot(slotDef) {
             var meta = skull.getItemMeta();
             if (meta != null) {
                 meta.setDisplayName(name);
-                meta.setLore(java.util.Arrays.asList(loreArr));
+                meta.setLore(Arrays.asList(loreArr));
                 skull.setItemMeta(meta);
             }
         } catch (eMeta) {}
@@ -372,9 +427,18 @@ function getSpentPts(base, pool, statKey) {
     try {
         if (typeof MAGE_API.ensureSpentMaps === "function") MAGE_API.ensureSpentMaps(base);
     } catch (e0) {}
+    var sf = statKey + "Spent";
+    if (base[sf] != null) return Math.max(0, Math.floor(Number(base[sf]) || 0));
     var map = pool === "body" ? base.bodySpent : base.mageSpent;
     if (!map) return 0;
     return Math.max(0, Math.floor(Number(map[statKey]) || 0));
+}
+
+function gearSlotItem(slot) {
+    if (!slot) return null;
+    if (typeof MAGE_API.getGearSlotItem === "function") return MAGE_API.getGearSlotItem(slot);
+    var b64 = typeof slot === "string" ? slot : slot.item;
+    return b64 ? MAGE_API.itemFromBase64(b64) : null;
 }
 
 function getEquipBonuses(player) {
@@ -418,9 +482,8 @@ function refreshStatIcons(inv, player) {
 
     inv.setItem(STAT_SLOTS.level, pane(Material.EXPERIENCE_BOTTLE, "§d术士等级 §f+ " + formatNum(total.mageLevel), [
         descLine("驭粒熟练度：" + formatNum(total.proficiency)),
-        descLine("环数 ＜ 术士等级：粒子消耗减半（取整，最低1）"),
-        descLine("环数 ＞ 术士等级：释放时计算侵蚀等级：环数 - 术士等级"),
-        descLine("释放时，粒子消耗*侵蚀等级倍，且受到侵蚀等级*20%最大生命的脉冲伤害"),
+        descLine("环数 ＞ 术士等级：侵蚀等级 = 环数 - 等级"),
+        descLine("侵蚀时：术式冷却 × 侵蚀等级；自伤 = 侵蚀 × 20% 最大生命（脉冲）"),
         descLine("术士等级提升时获得潜能")
     ]));
 
@@ -432,15 +495,6 @@ function refreshStatIcons(inv, player) {
         Number(equip.particlePower) || 0, false,
         optMaxPoints(mageOpt.particlePower),
         hardCapOf("particlePower", false)
-    ));
-    inv.setItem(STAT_SLOTS.capacity, buildAttrPane(
-        Material.GLASS_BOTTLE, "§b", "松垂体容量", total.pituitaryCapacity,
-        ["提升粒子容量上限，施术会消耗粒子"],
-        getSpentPts(base, "mage", "pituitaryCapacity"),
-        (mageOpt.pituitaryCapacity && mageOpt.pituitaryCapacity.per) || 8,
-        Number(equip.pituitaryCapacity) || 0, false,
-        optMaxPoints(mageOpt.pituitaryCapacity),
-        hardCapOf("pituitaryCapacity", false)
     ));
     inv.setItem(STAT_SLOTS.cardio, buildAttrPane(
         Material.REDSTONE, "§c", "心血管强度", total.cardiovascular,
@@ -472,13 +526,6 @@ function refreshStatIcons(inv, player) {
         optMaxPoints(mageOpt.finalDamageReduction) || 24,
         hardCapOf("finalDamageReduction", true)
     ));
-
-    var manaLore = [
-        descLine("受松垂体容量影响，能通过引导术式与道具补充")
-    ];
-    if (saveTip) manaLore.push(saveTip);
-    inv.setItem(STAT_SLOTS.mana, pane(Material.LAPIS_LAZULI,
-        "§9当前粒子 §f+ " + formatNum(total.currentParticles) + "/" + formatNum(total.pituitaryCapacity), manaLore));
 
     var magePtsLore = [
         descLine("用于提升驭粒相关能力的潜能，"),
@@ -572,32 +619,31 @@ function paintMenu(inv, player) {
     var defs = getSlotDefs();
     for (var s = 0; s < defs.length; s++) {
         var def = defs[s];
-        var b64 = gear.slots[s];
-        if (b64) {
-            var item = MAGE_API.itemFromBase64(b64);
-            if (item) { inv.setItem(def.gui, item); continue; }
-        }
+        var item = gearSlotItem(gear.slots[s]);
+        if (item) { inv.setItem(def.gui, item); continue; }
         inv.setItem(def.gui, buildEmptySlot(def));
     }
     refreshStatIcons(inv, player);
 }
 
-function syncAllRelatedData(player, refillParticles) {
+function syncAllRelatedData(player) {
     if (!player || !(player instanceof Player)) return;
     if (!loadMageCore() || !MAGE_API) return;
     var uuid = String(player.getUniqueId().toString());
     try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
     try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
+}
+
+/** 延後到下一 tick，避免在 InventoryClick/Close 事件堆疊中阻塞主執行緒 */
+function scheduleSyncAllRelatedData(player) {
+    if (!player || !(player instanceof Player)) return;
     try {
-        if (refillParticles && typeof MAGE_API.refillParticlesToCap === "function") {
-            MAGE_API.refillParticlesToCap(player);
-        } else if (typeof MAGE_API.getTotalStats === "function") {
-            var stats = MAGE_API.getTotalStats(player, true);
-            var cur = Number(MAGE_API.getCurrentParticles(uuid)) || 0;
-            var cap = Number(stats.pituitaryCapacity) || 0;
-            if (cur > cap) MAGE_API.setCurrentParticles(uuid, cap);
-        }
-    } catch (e2) {}
+        Bukkit.getScheduler().runTask(PLUGIN, function() {
+            try { syncAllRelatedData(player); } catch (e) {}
+        });
+    } catch (eSch) {
+        syncAllRelatedData(player);
+    }
 }
 
 function openMageMenu(player) {
@@ -609,10 +655,9 @@ function openMageMenu(player) {
         player.sendMessage(GLTC_PREFIX + "§c装备加成表未加载。");
         return;
     }
-    // 打开前刷新全部相关数据
-    syncAllRelatedData(player, false);
-
     var uuid = String(player.getUniqueId().toString());
+    try { MAGE_API.invalidatePlayerCache(uuid); } catch (eInv) {}
+    scheduleSyncAllRelatedData(player);
     var inv = Bukkit.createInventory(null, 54, GUI_TITLE);
     var stats = cloneData(MAGE_API.getPlayerStats(uuid));
     try {
@@ -658,11 +703,11 @@ function takeOneFromInventorySlot(inv, slot) {
 }
 
 /** 找第一个空且类型匹配的装备槽 */
-function findEmptyEquipSlot(stack, gear) {
+function findEmptyEquipSlot(stack, gear, playerUuid) {
     var defs = getSlotDefs();
     for (var i = 0; i < defs.length; i++) {
         if (gear.slots[i]) continue;
-        if (MAGE_API.canEquipInSlot(stack, i)) return i;
+        if (MAGE_API.canEquipInSlot(stack, i, playerUuid)) return i;
     }
     return -1;
 }
@@ -674,18 +719,25 @@ function equipFromPlayerInv(player, top, bottom, slot) {
 
     var uuid = player.getUniqueId().toString();
     var gear = MAGE_API.getPlayerGear(uuid);
-    var idx = findEmptyEquipSlot(stack, gear);
+    var idx = findEmptyEquipSlot(stack, gear, uuid);
     if (idx < 0) {
         player.sendMessage(GLTC_PREFIX + "§c没有可装配的空槽（类型不匹配或已满）。");
         return;
     }
     var one = takeOneFromInventorySlot(bottom, slot);
     if (!one) return;
+    if (typeof MAGE_API.dedupeUgwOnEquip === "function") {
+        one = MAGE_API.dedupeUgwOnEquip(player, one);
+    }
+    if (typeof MAGE_API.syncUgwLore === "function") {
+        one = MAGE_API.syncUgwLore(one);
+    }
+    var ugwId = typeof MAGE_API.getUgwIdFromItem === "function" ? MAGE_API.getUgwIdFromItem(one) : null;
     var defs = getSlotDefs();
-    gear.slots[idx] = MAGE_API.itemToBase64(one);
+    gear.slots[idx] = { ugwId: ugwId, item: MAGE_API.itemToBase64(one) };
     MAGE_API.savePlayerGear(uuid, gear);
     try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
-    try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
+    scheduleSyncAllRelatedData(player);
     top.setItem(defs[idx].gui, one.clone());
     refreshStatIcons(top, player);
     player.sendMessage(GLTC_PREFIX + "§a已装备至 §e" + defs[idx].label);
@@ -694,16 +746,19 @@ function equipFromPlayerInv(player, top, bottom, slot) {
 function unequipToPlayerInv(player, top, idx) {
     var uuid = player.getUniqueId().toString();
     var gear = MAGE_API.getPlayerGear(uuid);
-    var equippedB64 = gear.slots[idx];
-    if (!equippedB64) return;
-    var item = MAGE_API.itemFromBase64(equippedB64);
+    var slotEntry = gear.slots[idx];
+    if (!slotEntry) return;
+    var item = gearSlotItem(slotEntry);
     gear.slots[idx] = null;
     MAGE_API.savePlayerGear(uuid, gear);
     try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
-    try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
+    scheduleSyncAllRelatedData(player);
     var defs = getSlotDefs();
     top.setItem(defs[idx].gui, buildEmptySlot(defs[idx]));
-    if (item) giveOrDrop(player, item);
+    if (item) {
+        if (typeof MAGE_API.syncUgwLore === "function") item = MAGE_API.syncUgwLore(item);
+        giveOrDrop(player, item);
+    }
     refreshStatIcons(top, player);
     player.sendMessage(GLTC_PREFIX + "§e已卸下 §f" + defs[idx].label);
 }
@@ -749,8 +804,26 @@ function commitMageSession(player, session) {
         if (ok) player.sendMessage(GLTC_PREFIX + "§a潜能改动已写入。");
         else player.sendMessage(GLTC_PREFIX + "§c潜能写入失败。");
     }
-    // 关闭时刷新属性；不再回满粒子（否则施术后关菜单会把消耗吞掉）
-    syncAllRelatedData(player, false);
+    scheduleSyncAllRelatedData(player);
+}
+
+/** 关闭面板时延后提交，避免在 InventoryClick/Close 嵌套中阻塞主线程 */
+function scheduleCommitMageSession(player, session) {
+    if (!player || !(player instanceof Player)) return;
+    if (!session) {
+        scheduleSyncAllRelatedData(player);
+        return;
+    }
+    try {
+        Bukkit.getScheduler().runTask(PLUGIN, function() {
+            try {
+                if (!player.isOnline()) return;
+                commitMageSession(player, session);
+            } catch (e) {}
+        });
+    } catch (eSch) {
+        commitMageSession(player, session);
+    }
 }
 
 function onUse(event) {
@@ -834,8 +907,7 @@ function registerListeners() {
             }
             var p = event.getPlayer();
             if (p instanceof Player && MAGE_API) {
-                if (session) commitMageSession(p, session);
-                else syncAllRelatedData(p, false);
+                scheduleCommitMageSession(p, session);
             }
         }, PLUGIN
     );

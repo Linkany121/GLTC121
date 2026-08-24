@@ -44,7 +44,7 @@ var SPELL_ID = "VASA_花如画卷";
 var SPELL_NAME = "花如画卷";
 /** 环数 */
 var SPELL_RING = 4;
-/** 粒子消耗 */
+/** 保留字段（当前无粒子消耗） */
 var SPELL_COST = 16;
 /** 冷却（毫秒） */
 var SPELL_COOLDOWN_MS = 12000;
@@ -265,6 +265,13 @@ function burstParticle(world, loc) {
 // ---------- 战斗 ----------
 
 function dealHit(ent, dmg, caster, mageApi, spellInfo) {
+    try {
+        var bridge = PLUGIN.gltcSpellUtilBridge;
+        if (bridge != null) {
+            bridge.dealParticleSpellDamage(ent, dmg, caster, spellInfo.ring, spellInfo.name);
+            return;
+        }
+    } catch (eBr) {}
     if (UTIL && UTIL.dealParticleSpellDamage) {
         UTIL.dealParticleSpellDamage(ent, dmg, caster, spellInfo);
     } else {
@@ -553,6 +560,10 @@ function spawnOrbitFlower(st, player) {
 
 function updateOrbit(st, player) {
     var uuid = uuidKey(player.getUniqueId().toString());
+    if (consumeLeftClickPulse(player)) {
+        launchAll(player, st);
+        return;
+    }
     var base = player.getLocation().clone().add(0, ORBIT_HEIGHT, 0);
     for (var i = 0; i < st.flowers.length; i++) {
         var f = st.flowers[i];
@@ -593,21 +604,40 @@ function consumeLeftClickPulse(player) {
 }
 
 function registerOrbitLeftClick(player, st) {
-    var api = getSessionApi();
-    if (!api || typeof api.registerActiveLeftClick !== "function") return;
     var uuid = uuidKey(player.getUniqueId().toString());
-    api.registerActiveLeftClick(player, SPELL_ID, new (Java.extend(java.lang.Runnable, {
+    var runnable = new (Java.extend(java.lang.Runnable, {
         run: function() {
             try {
-                if (!st || !st.alive || st.launching) return;
                 var p = findOnline(uuid);
                 if (p == null || !p.isOnline()) return;
-                launchAll(p, st);
+                var live = getOrbitSession(uuid);
+                if (!live || !live.alive || live.launching) return;
+                launchAll(p, live);
             } catch (ex) {
                 Bukkit.getLogger().warning("[GLTC花如画卷] leftClick: " + ex);
             }
         }
-    })));
+    }));
+    try {
+        var bridge = PLUGIN.gltcSpellUtilBridge;
+        if (bridge != null && bridge.registerActiveLeftClick != null) {
+            if (bridge.registerActiveLeftClick(player, SPELL_ID, runnable)) return;
+        }
+    } catch (eBr) {}
+    try {
+        var bridge2 = PLUGIN.gltcSpellSessionBridge;
+        if (bridge2 != null && bridge2.registerActiveLeftClick != null) {
+            if (bridge2.registerActiveLeftClick(player, SPELL_ID, runnable)) return;
+        }
+    } catch (eBr2) {}
+    var api = getSessionApi();
+    if (!api || typeof api.registerActiveLeftClick !== "function") {
+        Bukkit.getLogger().warning("[GLTC花如画卷] 无法注册左键投出（会话 API 未加载）");
+        return;
+    }
+    if (!api.registerActiveLeftClick(player, SPELL_ID, runnable)) {
+        Bukkit.getLogger().warning("[GLTC花如画卷] 左键投出注册失败（请确认手持施术道具）");
+    }
 }
 
 function castFlowerScroll(player, mageApi) {
@@ -694,6 +724,8 @@ function castFlowerScroll(player, mageApi) {
     })), SPAWN_INTERVAL_TICKS, SPAWN_INTERVAL_TICKS);
     try { st.spawnTask = spawnTask.getTaskId(); } catch (eSp) {}
 
+    // 会话 begin 后再挂一次，避免 cast 流程中左键钩子被清掉
+    registerOrbitLeftClick(player, st);
     return true;
 }
 

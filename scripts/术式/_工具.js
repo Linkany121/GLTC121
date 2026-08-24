@@ -6,6 +6,7 @@ var Particle = Java.type("org.bukkit.Particle");
 var Color = Java.type("org.bukkit.Color");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Player = Java.type("org.bukkit.entity.Player");
+var EntityDamageEvent = Java.type("org.bukkit.event.entity.EntityDamageEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
@@ -14,7 +15,7 @@ var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 var META_SPELL_HIT = "gltc_spell_hit_info";
 var META_SPELL_DMG_LISTENER = "gltc_spell_dmg_listener";
 /** 伤害监听器版本：升高后强制重挂，以便热重载吃到新播报格式 */
-var SPELL_DMG_LISTENER_VER = 4;
+var SPELL_DMG_LISTENER_VER = 8;
 
 /** 会话持续类型：unprojected=未投射（开环不清）；projected=已投射（开环清除） */
 var SESSION_UNPROJECTED = "unprojected";
@@ -189,6 +190,182 @@ function metaSet(plugin, key, value) {
     }
 }
 
+function spellHitMetaField(info, key) {
+    if (info == null || key == null) return null;
+    try {
+        var v = info[key];
+        if (v != null) return v;
+    } catch (e0) {}
+    try {
+        if (info.get != null) {
+            var v2 = info.get(String(key));
+            if (v2 != null) return v2;
+        }
+    } catch (e1) {}
+    return null;
+}
+
+function spellHitMetaToAnnounce(info) {
+    var out = {};
+    if (info == null) return out;
+    var keys = ["ring", "name", "kind", "damageType", "attackerUuid", "targetName", "batchKey", "placedTick"];
+    for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var v = spellHitMetaField(info, k);
+        if (v != null) out[k] = v;
+    }
+    return out;
+}
+
+function isStaleSpellHitMeta(info) {
+    if (info == null) return true;
+    var tick = Number(spellHitMetaField(info, "placedTick"));
+    if (!isFinite(tick)) return false;
+    try {
+        return (Number(Bukkit.getCurrentTick()) - tick) > 2;
+    } catch (e0) { return false; }
+}
+
+function buildSpellHitInfo(target, attacker, spellInfo, damageType) {
+    var tick = 0;
+    try { tick = Number(Bukkit.getCurrentTick()); } catch (eT) {}
+    var info = new java.util.HashMap();
+    info.put("ring", java.lang.Integer.valueOf(spellInfo && spellInfo.ring != null ? Number(spellInfo.ring) : 1));
+    info.put("name", java.lang.String.valueOf(spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式"));
+    info.put("kind", java.lang.String.valueOf(spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell"));
+    info.put("damageType", java.lang.String.valueOf(damageType));
+    info.put("attackerUuid", java.lang.String.valueOf(attacker.getUniqueId().toString()));
+    info.put("targetName", java.lang.String.valueOf(
+        spellInfo && spellInfo.targetName ? String(spellInfo.targetName) : entityDisplayName(target)
+    ));
+    if (spellInfo && spellInfo.batchKey) {
+        info.put("batchKey", java.lang.String.valueOf(String(spellInfo.batchKey)));
+    }
+    info.put("placedTick", java.lang.Integer.valueOf(isFinite(tick) ? Math.floor(tick) : 0));
+    return info;
+}
+
+function cleanupOrphanSpellHitMeta(target, plugin) {
+    if (!target || !plugin) return;
+    try {
+        if (target.hasMetadata(META_SPELL_HIT)) target.removeMetadata(META_SPELL_HIT, plugin);
+    } catch (e0) {}
+}
+
+function measureDealtDamage(target, hpBefore, fallback) {
+    try {
+        var hp1 = Number(target.getHealth());
+        var dealt = Number(hpBefore) - hp1;
+        if (dealt > 0.001) return dealt;
+    } catch (e0) {}
+    var fb = Number(fallback);
+    return isFinite(fb) && fb > 0 ? fb : 0;
+}
+
+/** 伤害后立即播报（不依赖跨上下文事件监听器） */
+function announceAfterSpellDamage(target, attacker, spellInfo, damageType, amount, hpBefore) {
+    if (!target || !attacker) return;
+    if (spellInfo && spellInfo.batchKey) return;
+    var dealt = measureDealtDamage(target, hpBefore, amount);
+    if (!(dealt > 0)) return;
+    var info = spellHitMetaToAnnounce(buildSpellHitInfo(target, attacker, spellInfo, damageType));
+    try {
+        var plug = getPlugin();
+        if (plug != null && plug.gltcAnnounceSpellHit != null) {
+            plug.gltcAnnounceSpellHit(attacker, info, dealt);
+            return;
+        }
+    } catch (ePlug) {}
+    announceSpellHit(attacker, info, dealt);
+}
+
+/** 术式伤害结算播报（MONITOR）；须挂 EntityDamageEvent 以覆盖 SONIC_BOOM / VOID 等 DamageSource */
+function handleSpellDamageAnnounce(event, plugin) {
+    try {
+        var victim = event.getEntity();
+        if (!(victim instanceof LivingEntity)) return;
+        if (!victim.hasMetadata(META_SPELL_HIT)) return;
+        var list = victim.getMetadata(META_SPELL_HIT);
+        if (list == null || list.isEmpty()) return;
+        var info = list.get(0).value();
+        try { victim.removeMetadata(META_SPELL_HIT, plugin); } catch (eRm) {}
+        if (!info || event.isCancelled() || isStaleSpellHitMeta(info)) return;
+
+        var finalDmg = 0;
+        try { finalDmg = Number(event.getFinalDamage()); } catch (eFd) {
+            try { finalDmg = Number(event.getDamage()); } catch (eD) { return; }
+        }
+        if (!(finalDmg > 0)) return;
+
+        var attacker = null;
+        try {
+            var online = Bukkit.getOnlinePlayers().toArray();
+            var wantUuid = String(spellHitMetaField(info, "attackerUuid") || "");
+            for (var i = 0; i < online.length; i++) {
+                if (online[i].getUniqueId().toString() === wantUuid) {
+                    attacker = online[i];
+                    break;
+                }
+            }
+        } catch (eP) {}
+        if (attacker == null || !attacker.isOnline()) return;
+
+        var announceInfo = spellHitMetaToAnnounce(info);
+        if (!announceInfo.targetName) announceInfo.targetName = entityDisplayName(victim);
+
+        if (spellHitMetaField(info, "batchKey")) {
+            try {
+                var batchMap = plugin.gltcSpellHitBatch;
+                if (batchMap == null) {
+                    batchMap = new java.util.concurrent.ConcurrentHashMap();
+                    plugin.gltcSpellHitBatch = batchMap;
+                }
+                var bKey = String(spellHitMetaField(info, "batchKey"));
+                var list2 = batchMap.get(bKey);
+                if (list2 == null) {
+                    list2 = new java.util.ArrayList();
+                    batchMap.put(bKey, list2);
+                }
+                var hit = new java.util.HashMap();
+                hit.put("damage", java.lang.Double.valueOf(finalDmg));
+                hit.put("targetName", java.lang.String.valueOf(announceInfo.targetName));
+                list2.add(hit);
+                var pending = batchMap.get(bKey + "|pending");
+                if (pending == null) {
+                    batchMap.put(bKey + "|pending", java.lang.Boolean.TRUE);
+                    Bukkit.getScheduler().runTask(plugin, function() {
+                        try {
+                            var hits = batchMap.remove(bKey);
+                            batchMap.remove(bKey + "|pending");
+                            if (hits == null || hits.isEmpty()) return;
+                            var arr = [];
+                            for (var hi = 0; hi < hits.size(); hi++) {
+                                var ent2 = hits.get(hi);
+                                arr.push({
+                                    damage: Number(ent2.get("damage")),
+                                    targetName: String(ent2.get("targetName"))
+                                });
+                            }
+                            announceSpellHitAggregate(attacker, announceInfo, arr);
+                        } catch (eBatch) {}
+                    });
+                }
+                return;
+            } catch (eBatchOuter) {}
+        }
+
+        try {
+            if (typeof plugin.gltcAnnounceSpellHit === "function") {
+                plugin.gltcAnnounceSpellHit(attacker, announceInfo, finalDmg);
+            } else {
+                announceSpellHit(attacker, announceInfo, finalDmg);
+            }
+        } catch (eA) {
+            announceSpellHit(attacker, announceInfo, finalDmg);
+        }
+    } catch (ex) {}
+}
+
 /**
  * 注册一次：读取术式标记伤害的最终值（含护甲/减伤），向施术者播报。
  */
@@ -202,7 +379,8 @@ function ensureSpellDamageListener() {
     } catch (e0) {}
     try {
         if (plugin.gltcSpellDmgListener != null) {
-            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.gltcSpellDmgListener); } catch (eU) {}
+            try { EntityDamageEvent.getHandlerList().unregister(plugin.gltcSpellDmgListener); } catch (eU0) {}
+            try { EntityDamageByEntityEvent.getHandlerList().unregister(plugin.gltcSpellDmgListener); } catch (eU1) {}
             plugin.gltcSpellDmgListener = null;
         }
     } catch (e1) {}
@@ -216,91 +394,9 @@ function ensureSpellDamageListener() {
     metaSet(plugin, META_SPELL_DMG_LISTENER, true);
 
     Bukkit.getPluginManager().registerEvent(
-        EntityDamageByEntityEvent, listenerInstance, EventPriority.MONITOR,
+        EntityDamageEvent, listenerInstance, EventPriority.MONITOR,
         function(l, event) {
-            try {
-                var victim = event.getEntity();
-                if (!(victim instanceof LivingEntity)) return;
-                if (!victim.hasMetadata(META_SPELL_HIT)) return;
-                var list = victim.getMetadata(META_SPELL_HIT);
-                if (list == null || list.isEmpty()) return;
-                var info = list.get(0).value();
-                try { victim.removeMetadata(META_SPELL_HIT, plugin); } catch (eRm) {}
-                if (!info || event.isCancelled()) return;
-
-                var finalDmg = 0;
-                try { finalDmg = Number(event.getFinalDamage()); } catch (eFd) {
-                    try { finalDmg = Number(event.getDamage()); } catch (eD) { return; }
-                }
-                if (!(finalDmg > 0)) return;
-
-                var attacker = null;
-                try {
-                    var online = Bukkit.getOnlinePlayers().toArray();
-                    for (var i = 0; i < online.length; i++) {
-                        if (online[i].getUniqueId().toString() === String(info.attackerUuid)) {
-                            attacker = online[i];
-                            break;
-                        }
-                    }
-                } catch (eP) {}
-                if (attacker == null || !attacker.isOnline()) return;
-
-                var announceInfo = {};
-                for (var ak in info) announceInfo[ak] = info[ak];
-                if (!announceInfo.targetName) announceInfo.targetName = entityDisplayName(victim);
-
-                if (info.batchKey) {
-                    try {
-                        var batchMap = plugin.gltcSpellHitBatch;
-                        if (batchMap == null) {
-                            batchMap = new java.util.concurrent.ConcurrentHashMap();
-                            plugin.gltcSpellHitBatch = batchMap;
-                        }
-                        var bKey = String(info.batchKey);
-                        var list2 = batchMap.get(bKey);
-                        if (list2 == null) {
-                            list2 = new java.util.ArrayList();
-                            batchMap.put(bKey, list2);
-                        }
-                        var hit = new java.util.HashMap();
-                        hit.put("damage", java.lang.Double.valueOf(finalDmg));
-                        hit.put("targetName", java.lang.String.valueOf(announceInfo.targetName));
-                        list2.add(hit);
-                        var pending = batchMap.get(bKey + "|pending");
-                        if (pending == null) {
-                            batchMap.put(bKey + "|pending", java.lang.Boolean.TRUE);
-                            Bukkit.getScheduler().runTask(plugin, function() {
-                                try {
-                                    var hits = batchMap.remove(bKey);
-                                    batchMap.remove(bKey + "|pending");
-                                    if (hits == null || hits.isEmpty()) return;
-                                    var arr = [];
-                                    for (var hi = 0; hi < hits.size(); hi++) {
-                                        var ent2 = hits.get(hi);
-                                        arr.push({
-                                            damage: Number(ent2.get("damage")),
-                                            targetName: String(ent2.get("targetName"))
-                                        });
-                                    }
-                                    announceSpellHitAggregate(attacker, announceInfo, arr);
-                                } catch (eBatch) {}
-                            });
-                        }
-                        return;
-                    } catch (eBatchOuter) {}
-                }
-
-                try {
-                    if (typeof plugin.gltcAnnounceSpellHit === "function") {
-                        plugin.gltcAnnounceSpellHit(attacker, announceInfo, finalDmg);
-                    } else {
-                        announceSpellHit(attacker, announceInfo, finalDmg);
-                    }
-                } catch (eA) {
-                    announceSpellHit(attacker, announceInfo, finalDmg);
-                }
-            } catch (ex) {}
+            handleSpellDamageAnnounce(event, plugin);
         }, plugin
     );
 }
@@ -315,25 +411,23 @@ function dealPhysicalSpellDamage(target, amount, attacker, spellInfo) {
     if (!plugin) return;
     ensureSpellDamageListener();
 
-    var info = {
-        ring: spellInfo && spellInfo.ring != null ? spellInfo.ring : 1,
-        name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
-        kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
-        damageType: DMG_TYPE_PHYSICAL,
-        attackerUuid: attacker.getUniqueId().toString(),
-        targetName: spellInfo && spellInfo.targetName ? String(spellInfo.targetName) : entityDisplayName(target),
-        batchKey: spellInfo && spellInfo.batchKey ? String(spellInfo.batchKey) : null
-    };
+    var info = buildSpellHitInfo(target, attacker, spellInfo, DMG_TYPE_PHYSICAL);
+    var hp0 = 0;
+    try { hp0 = Number(target.getHealth()); } catch (eH0) {}
     try {
         target.setNoDamageTicks(0);
-        target.setMetadata(META_SPELL_HIT, new FixedMetadataValue(plugin, info));
+        if (spellInfo && spellInfo.batchKey) {
+            target.setMetadata(META_SPELL_HIT, new FixedMetadataValue(plugin, info));
+        }
         target.damage(amount, attacker);
     } catch (e) {
         try { target.damage(amount); } catch (e2) {}
     }
-    // 勿在 finally 里立刻清 metadata：部分环境下事件可能尚未跑完 MONITOR。
-    // 监听器成功消费后会清；若仍残留则下一 tick 兜底清理。
-    scheduleSpellHitMetaCleanup(target, plugin);
+    if (!(spellInfo && spellInfo.batchKey)) {
+        announceAfterSpellDamage(target, attacker, spellInfo, DMG_TYPE_PHYSICAL, amount, hp0);
+    } else {
+        scheduleSpellHitMetaCleanup(target, plugin);
+    }
 }
 
 /**
@@ -343,62 +437,45 @@ function scheduleSpellHitMetaCleanup(target, plugin) {
     try {
         if (target.hasMetadata(META_SPELL_HIT)) {
             Bukkit.getScheduler().runTask(plugin, function() {
-                try {
-                    if (target.hasMetadata(META_SPELL_HIT)) target.removeMetadata(META_SPELL_HIT, plugin);
-                } catch (e3) {}
+                cleanupOrphanSpellHitMeta(target, plugin);
             });
         }
     } catch (e4) {
-        try { target.removeMetadata(META_SPELL_HIT, plugin); } catch (e5) {}
+        cleanupOrphanSpellHitMeta(target, plugin);
     }
 }
 
 /**
- * 粒子术式伤害：坚守者音波尖啸（SONIC_BOOM）模型，吃粒子折射，播报实际最终伤害。
+ * 粒子术式伤害：实体 damage + gltc_spell_particle_hit 标记（监听.js 粒子折射）。
+ * 勿用 SONIC_BOOM DamageSource——部分核心不结算自定义数值且不走 EntityDamageByEntityEvent。
  * spellInfo: { ring, name, kind?, batchKey? }
  */
 function dealParticleSpellDamage(target, amount, attacker, spellInfo) {
     if (!target || !(target instanceof LivingEntity) || !(amount > 0) || !attacker) return;
     var plugin = getPlugin();
     if (!plugin) return;
-    ensureSpellDamageListener();
 
-    var info = {
-        ring: spellInfo && spellInfo.ring != null ? spellInfo.ring : 1,
-        name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
-        kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
-        damageType: DMG_TYPE_PARTICLE,
-        attackerUuid: attacker.getUniqueId().toString(),
-        targetName: spellInfo && spellInfo.targetName ? String(spellInfo.targetName) : entityDisplayName(target),
-        batchKey: spellInfo && spellInfo.batchKey ? String(spellInfo.batchKey) : null
-    };
+    var hp0 = 0;
+    try { hp0 = Number(target.getHealth()); } catch (eH0) {}
     try {
         target.setMetadata("gltc_spell_particle_hit", new FixedMetadataValue(plugin, true));
         target.setNoDamageTicks(0);
-        target.setMetadata(META_SPELL_HIT, new FixedMetadataValue(plugin, info));
-        var dealt = false;
         try {
-            var DamageSource = Java.type("org.bukkit.damage.DamageSource");
-            var DamageType = Java.type("org.bukkit.damage.DamageType");
-            var src = DamageSource.builder(DamageType.SONIC_BOOM)
-                .withCausingEntity(attacker)
-                .withDirectEntity(attacker)
-                .build();
-            target.damage(amount, src);
-            dealt = true;
-        } catch (eDs) {}
-        if (!dealt) {
-            try { target.damage(amount, attacker); } catch (eFb) { target.damage(amount); }
+            target.damage(amount, attacker);
+        } catch (eEnt) {
+            try { target.damage(amount); } catch (e2) {}
         }
     } catch (e) {
-        try { target.damage(amount); } catch (e2) {}
+        try { target.damage(amount, attacker); } catch (e2) {
+            try { target.damage(amount); } catch (e3) {}
+        }
     }
+    announceAfterSpellDamage(target, attacker, spellInfo, DMG_TYPE_PARTICLE, amount, hp0);
     try {
         Bukkit.getScheduler().runTask(plugin, function() {
             try { target.removeMetadata("gltc_spell_particle_hit", plugin); } catch (eRm) {}
         });
     } catch (eRm2) {}
-    scheduleSpellHitMetaCleanup(target, plugin);
 }
 
 /**
@@ -409,29 +486,25 @@ function dealPulseSpellDamage(target, amount, attacker, spellInfo, mageApi) {
     if (!target || !(target instanceof LivingEntity) || !(amount > 0) || !attacker) return;
     var plugin = getPlugin();
     if (!plugin) return;
-    ensureSpellDamageListener();
 
-    var info = {
-        ring: spellInfo && spellInfo.ring != null ? spellInfo.ring : 1,
-        name: spellInfo && spellInfo.name ? String(spellInfo.name) : "未知术式",
-        kind: spellInfo && spellInfo.kind ? String(spellInfo.kind) : "spell",
-        damageType: DMG_TYPE_PULSE,
-        attackerUuid: attacker.getUniqueId().toString(),
-        targetName: spellInfo && spellInfo.targetName ? String(spellInfo.targetName) : entityDisplayName(target),
-        batchKey: spellInfo && spellInfo.batchKey ? String(spellInfo.batchKey) : null
-    };
+    var hp0 = 0;
+    try { hp0 = Number(target.getHealth()); } catch (eH0) {}
     try {
         target.setNoDamageTicks(0);
-        target.setMetadata(META_SPELL_HIT, new FixedMetadataValue(plugin, info));
-        if (mageApi && typeof mageApi.dealPulseDamage === "function") {
-            mageApi.dealPulseDamage(target, amount, attacker);
-        } else {
+        var pulseOk = false;
+        try {
+            if (mageApi != null && mageApi.dealPulseDamage != null) {
+                mageApi.dealPulseDamage(target, amount, attacker);
+                pulseOk = true;
+            }
+        } catch (ePulse) {}
+        if (!pulseOk) {
             target.damage(amount, attacker);
         }
     } catch (e) {
         try { target.damage(amount); } catch (e2) {}
     }
-    scheduleSpellHitMetaCleanup(target, plugin);
+    announceAfterSpellDamage(target, attacker, spellInfo, DMG_TYPE_PULSE, amount, hp0);
 }
 
 /**
@@ -533,7 +606,7 @@ function removeFlyingDisplay(entry) {
 // ======================== 术式会话 / 切术清痕迹 ========================
 /**
  * 有状态术式（左右键、环绕、持续体）在 cast 时 beginSpellSession，
- * 切选中槽 / 施放其他术式 / 开选术环 / 换手持 / 退服时会调用 onClear，清实体与任务。
+ * 切选中槽 / 施放其他术式 / 开施术 GUI / 换手持 / 退服时会调用 onClear，清实体与任务。
  *
  * 层数请用 spellStacks API（与会话分离）：切术式可保留，换快捷栏/退服才清。
  *
@@ -631,13 +704,6 @@ function isHoldingMageStaff(player) {
             if (hand.getType() == null || String(hand.getType().name()) === "AIR") return false;
         } catch (eAir) {}
         if (hand.getAmount() !== 1) return false;
-        var plug = getPlugin();
-        try {
-            if (plug != null && plug.gltcCastApi != null
-                && typeof plug.gltcCastApi.isMageStaffItem === "function") {
-                return !!plug.gltcCastApi.isMageStaffItem(hand);
-            }
-        } catch (eApi) {}
         try {
             var sf = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem").getByItem(hand);
             if (sf == null) return false;
@@ -737,6 +803,45 @@ var SPELL_STACK_API = {
 };
 
 /**
+ * Graal 跨 eval 上下文：onClear 须包成 Java 宿主对象，否则切术/开环时 clear 调不到。
+ */
+function wrapSessionClear(onClear) {
+    if (onClear == null) return null;
+    try {
+        if (onClear.invokeClear != null) return onClear;
+    } catch (e0) {}
+    var fn = onClear;
+    return new (Java.extend(java.lang.Object, {
+        invokeClear: function(p, reason) {
+            try { fn(p, reason); return; } catch (e1) {
+                try { fn(p); return; } catch (e2) {
+                    try { fn(); } catch (e3) {}
+                }
+            }
+        }
+    }))();
+}
+
+function invokeSessionClear(ent, player, reason) {
+    if (ent == null) return;
+    try {
+        if (ent.clearHandle != null) {
+            ent.clearHandle.invokeClear(player, reason);
+            return;
+        }
+    } catch (eH) {}
+    try {
+        if (ent.clear != null) ent.clear(player, reason);
+    } catch (eC) {
+        throw eC;
+    }
+}
+
+function contextChangeBusyStore() {
+    return sharedJavaMap("gltc_spell_ctx_change_busy");
+}
+
+/**
  * 开始一段术式状态会话。
  * @param opts.persistence "unprojected"|"projected" — 开环时是否保留（默认 projected）
  */
@@ -754,7 +859,8 @@ function beginSpellSession(player, spellId, onClear, opts) {
         token: token,
         spellId: String(spellId),
         persistence: persistence,
-        clear: onClear
+        clear: onClear,
+        clearHandle: wrapSessionClear(onClear)
     });
     spellSessionStore().put(String(uuid), list);
     return token;
@@ -781,7 +887,7 @@ function endSpellSession(playerOrUuid, token, invokeClear) {
     if (!found) return false;
     if (invokeClear) {
         var p = findOnlineByUuid(uuid);
-        try { found.clear(p, "end"); } catch (e) {}
+        try { invokeSessionClear(found, p, "end"); } catch (e) {}
     }
     return true;
 }
@@ -790,8 +896,9 @@ function endSpellSession(playerOrUuid, token, invokeClear) {
  * 按条件清理会话并执行 onClear。
  * opts.exceptSpellId — 保留该术式
  * opts.onlySpellId — 只清该术式
- * opts.onlyProjected — true 时只清已投射会话
- * opts.reason — switch | cast | replace | quit | hotbar | ring | hold | manual
+ * opts.onlyProjected — true 时只清已投射会话（保留未投射）
+ * opts.onlyUnprojected — true 时只清未投射会话（保留已投射；开施术 GUI 用）
+ * opts.reason — switch | cast | replace | quit | hotbar | ring | gui | hold | manual
  */
 function clearSpellSessions(playerOrUuid, opts) {
     opts = opts || {};
@@ -802,6 +909,7 @@ function clearSpellSessions(playerOrUuid, opts) {
     var exceptId = opts.exceptSpellId != null ? String(opts.exceptSpellId) : null;
     var onlyId = opts.onlySpellId != null ? String(opts.onlySpellId) : null;
     var onlyProjected = opts.onlyProjected === true;
+    var onlyUnprojected = opts.onlyUnprojected === true;
     var reason = opts.reason != null ? String(opts.reason) : "manual";
     var p = findOnlineByUuid(uuid);
     var kept = [];
@@ -816,9 +924,17 @@ function clearSpellSessions(playerOrUuid, opts) {
         if (drop && onlyProjected && ent.persistence === SESSION_UNPROJECTED) {
             drop = false;
         }
+        if (drop && onlyUnprojected && ent.persistence === SESSION_PROJECTED) {
+            drop = false;
+        }
         if (drop) {
             n++;
-            try { ent.clear(p, reason); } catch (e) {
+            try {
+                if (ent.clearHandle == null && ent.clear != null) {
+                    ent.clearHandle = wrapSessionClear(ent.clear);
+                }
+                invokeSessionClear(ent, p, reason);
+            } catch (e) {
                 try { Bukkit.getLogger().warning("[GLTC术式会话] clear " + sid + ": " + e); } catch (e2) {}
             }
         } else {
@@ -833,40 +949,86 @@ function clearSpellSessions(playerOrUuid, opts) {
     return n;
 }
 
+/** 左键钩子条目须为 Java Map（Graal 跨 eval 上下文可读） */
+function wrapLeftClickEntry(spellId, runnable) {
+    var map = new java.util.HashMap();
+    map.put("spellId", java.lang.String.valueOf(String(spellId)));
+    map.put("runnable", runnable);
+    return map;
+}
+
+function parseLeftClickEntry(ent) {
+    if (ent == null) return null;
+    try {
+        if (ent instanceof java.util.Map) {
+            return {
+                spellId: String(ent.get("spellId")),
+                runnable: ent.get("runnable")
+            };
+        }
+    } catch (eMap) {}
+    try {
+        if (ent.spellId != null || ent.runnable != null) {
+            return { spellId: String(ent.spellId || ""), runnable: ent.runnable };
+        }
+    } catch (eJs) {}
+    return null;
+}
+
+function shouldClearActiveLeftClick(ent, keep) {
+    var parsed = parseLeftClickEntry(ent);
+    if (parsed == null) return false;
+    if (!keep) return true;
+    return String(parsed.spellId) !== String(keep);
+}
+
 /**
  * 切选中 / 施放其他术：清掉其他术式的左右键与已投射持续体；未投射持续体保留。
- * 开环(reason=ring)：仅清左右键钩子 + 已投射持续体，保留未投射。
+ * 开施术 GUI(reason=gui)：清左右键钩子 + 未投射残留；已投射保留。
  */
 function onSpellContextChange(player, keepSpellId, reason) {
-    var keep = keepSpellId ? String(keepSpellId) : "";
-    var r = reason || "switch";
-    var clearOpts = { exceptSpellId: keep, reason: r };
-    if (r === "ring") {
-        clearOpts = { onlyProjected: true, reason: r };
-    }
-    var n = clearSpellSessions(player, clearOpts);
-    if (r === "hotbar" || r === "quit" || r === "hold") {
-        try { clearSpellStacks(player, null, null); } catch (e) {}
-        try { clearSpellSessions(player, { reason: r }); } catch (e2) {}
-    }
+    if (!player) return 0;
+    var busyKey = javaUuidKey(playerUuidOf(player));
+    var busy = contextChangeBusyStore();
+    if (busy.containsKey(busyKey)) return 0;
+    busy.put(busyKey, java.lang.Boolean.TRUE);
     try {
-        var uuid = javaUuidKey(playerUuidOf(player));
-        var ent = spellActiveLeftClickStore().get(uuid);
-        if (ent == null || !keep || String(ent.spellId) !== keep) {
-            clearActiveLeftClick(player);
+        var keep = keepSpellId ? String(keepSpellId) : "";
+        var r = reason || "switch";
+        var clearOpts = { exceptSpellId: keep, reason: r };
+        if (r === "ring") {
+            clearOpts = { onlyProjected: true, reason: r };
+        } else if (r === "gui") {
+            clearOpts = { onlyUnprojected: true, reason: r };
         }
-    } catch (eLc) {}
-    if (r === "ring" || r === "switch" || r === "cast") {
-        try {
-            var uuid2 = javaUuidKey(playerUuidOf(player));
-            var ent2 = spellActiveLeftClickStore().get(uuid2);
-            if (ent2 == null || !keep || String(ent2.spellId) !== keep) {
-                clearActiveLeftClick(player);
+        var n = clearSpellSessions(player, clearOpts);
+        if (r === "hotbar" || r === "quit" || r === "hold") {
+            try { clearSpellStacks(player, null, null); } catch (e) {}
+            try { clearSpellSessions(player, { reason: r }); } catch (e2) {}
+        }
+        if (r !== "cast") {
+            try {
+                var uuid = javaUuidKey(playerUuidOf(player));
+                var ent = spellActiveLeftClickStore().get(uuid);
+                if (shouldClearActiveLeftClick(ent, keep)) {
+                    clearActiveLeftClick(player);
+                }
+            } catch (eLc) {}
+            if (r === "ring" || r === "gui" || r === "switch") {
+                try {
+                    var uuid2 = javaUuidKey(playerUuidOf(player));
+                    var ent2 = spellActiveLeftClickStore().get(uuid2);
+                    if (shouldClearActiveLeftClick(ent2, keep)) {
+                        clearActiveLeftClick(player);
+                    }
+                } catch (eLc2) {}
             }
-        } catch (eLc2) {}
+        }
+        try { runDirectClearHooks(player, keep, r); } catch (eDc) {}
+        return n;
+    } finally {
+        try { busy.remove(busyKey); } catch (eBusy) {}
     }
-    try { runDirectClearHooks(player, keep, r); } catch (eDc) {}
-    return n;
 }
 
 function registerSpellLeftClick(spellId, handler) {
@@ -946,10 +1108,7 @@ function registerActiveLeftClick(player, spellId, runnable) {
     // 注册时也要求手持施术道具，防止异常路径挂上左键钩子
     if (!isHoldingMageStaff(player)) return false;
     var uuid = javaUuidKey(playerUuidOf(player));
-    spellActiveLeftClickStore().put(uuid, {
-        spellId: String(spellId),
-        runnable: runnable
-    });
+    spellActiveLeftClickStore().put(uuid, wrapLeftClickEntry(spellId, runnable));
     setSpellSignal(player, spellId, "active", true);
     return true;
 }
@@ -958,10 +1117,11 @@ function clearActiveLeftClick(playerOrUuid) {
     var uuid = javaUuidKey(playerUuidOf(playerOrUuid));
     var ent = null;
     try { ent = spellActiveLeftClickStore().remove(uuid); } catch (e0) {}
+    var parsed = parseLeftClickEntry(ent);
     var p = findOnlineByUuid(uuid);
-    if (p != null && ent && ent.spellId) {
-        setSpellSignal(p, ent.spellId, "active", false);
-        setSpellSignal(p, ent.spellId, "lclick", false);
+    if (p != null && parsed && parsed.spellId) {
+        setSpellSignal(p, parsed.spellId, "active", false);
+        setSpellSignal(p, parsed.spellId, "lclick", false);
     }
 }
 
@@ -979,7 +1139,8 @@ function dispatchActiveLeftClick(player) {
     var uuid = javaUuidKey(playerUuidOf(player));
     var ent = null;
     try { ent = spellActiveLeftClickStore().get(uuid); } catch (e0) {}
-    if (ent == null || ent.runnable == null) return false;
+    var hook = parseLeftClickEntry(ent);
+    if (hook == null || hook.runnable == null) return false;
 
     var gate = leftClickGateStore();
     var now = Date.now();
@@ -987,9 +1148,9 @@ function dispatchActiveLeftClick(player) {
     if (prev != null && now - Number(prev) < LEFT_CLICK_GATE_MS) return true;
     gate.put(uuid, java.lang.Long.parseLong(String(Math.floor(now)), 10));
 
-    pulseSpellSignal(player, ent.spellId, "lclick");
-    try { ent.runnable.run(); } catch (e1) {
-        try { Bukkit.getLogger().warning("[GLTC术式] activeLeftClick " + ent.spellId + ": " + e1); } catch (e2) {}
+    pulseSpellSignal(player, hook.spellId, "lclick");
+    try { hook.runnable.run(); } catch (e1) {
+        try { Bukkit.getLogger().warning("[GLTC术式] activeLeftClick " + hook.spellId + ": " + e1); } catch (e2) {}
     }
     return true;
 }
@@ -1039,17 +1200,16 @@ function registerDirectClearHook(spellId, handler, opts) {
 }
 
 /**
- * 由施术核心左键调用：仅当该术式为当前选中时才会触发。
- * @param getSelectedSpellId function(player)->spellId|null
+ * 由施术核心左键调用：spellIdOrFn 可为术式 ID 字符串，或 function(player)->spellId。
  */
-function handleSpellLeftClick(player, getSelectedSpellId) {
+function handleSpellLeftClick(player, spellIdOrFn) {
     if (!player) return false;
-    // 统一门槛：未手持施术道具时不触发任何术式左键
     if (!isHoldingMageStaff(player)) return false;
     if (dispatchActiveLeftClick(player)) return true;
     var sid = null;
     try {
-        if (typeof getSelectedSpellId === "function") sid = getSelectedSpellId(player);
+        if (typeof spellIdOrFn === "string") sid = spellIdOrFn;
+        else if (typeof spellIdOrFn === "function") sid = spellIdOrFn(player);
     } catch (e0) {}
     if (!sid) return false;
     var hook = spellLeftClickStore().get(String(sid));
@@ -1096,11 +1256,61 @@ var SPELL_SESSION_API = {
     runDirectClearHooks: runDirectClearHooks
 };
 
+/** Graal 跨 eval 上下文：施术核心通过 Java 宿主桥调用会话清理 */
+var SpellSessionBridge = Java.extend(java.lang.Object, {
+    onContextChange: function(player, keepSpellId, reason) {
+        return onSpellContextChange(player, String(keepSpellId || ""), String(reason || "switch"));
+    },
+    clearForPlayer: function(playerOrUuid, onlySpellId, exceptSpellId, reason) {
+        var opts = { reason: String(reason || "manual") };
+        if (onlySpellId != null && String(onlySpellId).length > 0) opts.onlySpellId = String(onlySpellId);
+        if (exceptSpellId != null && String(exceptSpellId).length > 0) opts.exceptSpellId = String(exceptSpellId);
+        return clearSpellSessions(playerOrUuid, opts);
+    },
+    dispatchActiveLeftClick: function(player) {
+        return dispatchActiveLeftClick(player) === true;
+    },
+    registerActiveLeftClick: function(player, spellId, runnable) {
+        return registerActiveLeftClick(player, String(spellId || ""), runnable) === true;
+    },
+    handleLeftClickWithSpellId: function(player, spellId) {
+        return handleSpellLeftClick(player, spellId != null ? String(spellId) : "") === true;
+    }
+});
+
+/** Graal 跨 eval：术式脚本通过 Java 桥调用伤害/左键，勿跨上下文调 JS 函数 */
+var SpellUtilBridge = Java.extend(java.lang.Object, {
+    dealParticleSpellDamage: function(target, amount, attacker, ring, name) {
+        dealParticleSpellDamage(target, Number(amount), attacker, {
+            ring: ring != null ? Number(ring) : 1,
+            name: name != null ? String(name) : "未知术式"
+        });
+    },
+    dealPhysicalSpellDamage: function(target, amount, attacker, ring, name) {
+        dealPhysicalSpellDamage(target, Number(amount), attacker, {
+            ring: ring != null ? Number(ring) : 1,
+            name: name != null ? String(name) : "未知术式"
+        });
+    },
+    registerActiveLeftClick: function(player, spellId, runnable) {
+        return registerActiveLeftClick(player, String(spellId || ""), runnable) === true;
+    }
+});
+
 try {
     var _plug = getPlugin();
     if (_plug != null) {
         _plug.gltcSpellSessionApi = SPELL_SESSION_API;
         _plug.gltcSpellStackApi = SPELL_STACK_API;
+        _plug.gltcSpellSessionBridge = new SpellSessionBridge();
+        _plug.gltcSpellUtilBridge = new SpellUtilBridge();
+        try {
+            var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+            if (RSC.INSTANCE != null) {
+                RSC.INSTANCE.gltcSpellUtilBridge = _plug.gltcSpellUtilBridge;
+                RSC.INSTANCE.gltcSpellSessionBridge = _plug.gltcSpellSessionBridge;
+            }
+        } catch (eInst) {}
     }
 } catch (eApi) {}
 publishHitAnnounceApi();

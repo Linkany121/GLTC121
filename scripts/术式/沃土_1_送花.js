@@ -44,7 +44,7 @@ var SPELL_ID = "VASA_送花";
 var SPELL_NAME = "送花";
 /** 环数 */
 var SPELL_RING = 1;
-/** 粒子消耗 */
+/** 保留字段（当前无粒子消耗） */
 var SPELL_COST = 1;
 /** 冷却（毫秒） */
 var SPELL_COOLDOWN_MS = 1000;
@@ -108,6 +108,13 @@ function findOnline(uuid) {
 }
 
 function dealHit(ent, dmg, caster, mageApi, spellInfo) {
+    try {
+        var bridge = PLUGIN.gltcSpellUtilBridge;
+        if (bridge != null) {
+            bridge.dealParticleSpellDamage(ent, dmg, caster, spellInfo.ring, spellInfo.name);
+            return;
+        }
+    } catch (eBr) {}
     if (UTIL && UTIL.dealParticleSpellDamage) {
         UTIL.dealParticleSpellDamage(ent, dmg, caster, spellInfo);
     } else {

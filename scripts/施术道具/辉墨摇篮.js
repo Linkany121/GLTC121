@@ -1,7 +1,7 @@
 /**
  * VASA 辉墨摇篮 —— 序列4 施术道具
  * - 站立右键：施术
- * - 蹲下右键：唤出选术环时释放光影废墟（护身）；已开环时再蹲下右键只关环
+ * - 蹲下右键 / 蹲下左键：打开施术 GUI；唤出 GUI 时释放光影废墟（护身）
  *
  * 粒子修正伤害 = 倍率 × 粒子强度 × 粒子浓度(GLI)，走脉冲伤害
  */
@@ -33,6 +33,9 @@ var C_DMG = "§c";
 /** A.yml 播报 · 脉冲伤害（gltcAnnounceSpellHit 不可用时回退） */
 var C_PULSE_DMG = "§x§e§a§7§2§c§9脉§x§e§5§6§5§a§1冲§x§d§f§5§7§7§a伤§x§d§a§4§a§5§2害";
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+var RSC = null;
+try { RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer"); } catch (eRsc) {}
+var HUIMO_CD_MAP_KEY = "gltc_huimo_ability_cd";
 
 var CAST_API = null;
 var MAGE_API = null;
@@ -62,39 +65,73 @@ var TYPE_RESIST = PotionEffectType.getByName("RESISTANCE");
 try { if (TYPE_RESIST == null) TYPE_RESIST = PotionEffectType.getByName("DAMAGE_RESISTANCE"); } catch (eR) {}
 var TYPE_SPEED = PotionEffectType.getByName("SPEED");
 
-/** 冷却：uuid -> 上次释放时间戳(ms)，ConcurrentHashMap 跨上下文共享 */
-function abilityCdStore() {
+/** 冷却：uuid -> 上次释放(ms)，存 RSC.INSTANCE.gltcSharedMaps（纯 Java，跨 Graal 上下文） */
+function getSharedRoot() {
     try {
-        var existing = PLUGIN.gltc_huimo_ability_cd;
-        if (existing != null && (existing instanceof java.util.concurrent.ConcurrentHashMap)) {
-            return existing;
+        if (RSC != null && RSC.INSTANCE != null) {
+            var inst = RSC.INSTANCE;
+            if (inst.gltcSharedMaps == null || !(inst.gltcSharedMaps instanceof java.util.concurrent.ConcurrentHashMap)) {
+                inst.gltcSharedMaps = new java.util.concurrent.ConcurrentHashMap();
+            }
+            return inst.gltcSharedMaps;
         }
     } catch (e0) {}
+    try {
+        if (PLUGIN.gltcSharedMaps == null || !(PLUGIN.gltcSharedMaps instanceof java.util.concurrent.ConcurrentHashMap)) {
+            PLUGIN.gltcSharedMaps = new java.util.concurrent.ConcurrentHashMap();
+        }
+        return PLUGIN.gltcSharedMaps;
+    } catch (e1) {}
+    return null;
+}
+
+function abilityCdStore() {
+    var root = getSharedRoot();
+    if (root == null) {
+        var fallback = new java.util.concurrent.ConcurrentHashMap();
+        try { PLUGIN.gltc_huimo_ability_cd = fallback; } catch (eFb) {}
+        return fallback;
+    }
+    var existing = root.get(HUIMO_CD_MAP_KEY);
+    if (existing != null) return existing;
     var map = new java.util.concurrent.ConcurrentHashMap();
-    try { PLUGIN.gltc_huimo_ability_cd = map; } catch (e1) {}
-    return map;
+    var prev = root.putIfAbsent(HUIMO_CD_MAP_KEY, map);
+    return prev != null ? prev : map;
 }
 
 function abilityCdKey(uuid) {
     return java.lang.String.valueOf(String(uuid));
 }
 
+function readCdMs(v) {
+    if (v == null) return NaN;
+    try {
+        if (typeof v.longValue === "function") return Number(v.longValue());
+    } catch (e0) {}
+    try { return Number(v); } catch (e1) {}
+    return NaN;
+}
+
 function isAbilityOnCd(uuid) {
     uuid = abilityCdKey(uuid);
     var last = abilityCdStore().get(uuid);
     if (last == null) return false;
-    return (nowMs() - Number(last)) < ABILITY_CD_MS;
+    var elapsed = nowMs() - readCdMs(last);
+    if (!isFinite(elapsed)) return false;
+    return elapsed < ABILITY_CD_MS;
 }
 
 function cdLeftSec(uuid) {
     uuid = abilityCdKey(uuid);
-    var last = Number(abilityCdStore().get(uuid)) || 0;
+    var last = readCdMs(abilityCdStore().get(uuid));
+    if (!isFinite(last)) return 1;
     return Math.max(1, Math.ceil((ABILITY_CD_MS - (nowMs() - last)) / 1000));
 }
 
 function markAbilityCd(uuid) {
-    // 直接存毫秒数，避免 GraalJS 下 Long.valueOf 重载歧义
-    abilityCdStore().put(abilityCdKey(uuid), nowMs());
+    // 与施术核心 castCdMap 一致：Long 存毫秒，避免 Graal 跨上下文 Number 读写失效
+    var now = java.lang.Long.parseLong(String(Math.floor(nowMs())), 10);
+    abilityCdStore().put(abilityCdKey(uuid), now);
 }
 
 function nowMs() {
@@ -143,29 +180,108 @@ function evalExport(rel) {
 
 function ensureCoreListeners() {
     try {
+        if (RSC != null && RSC.INSTANCE != null && RSC.INSTANCE.gltcEnsureSpellCoreListeners != null) {
+            RSC.INSTANCE.gltcEnsureSpellCoreListeners.accept(java.lang.Boolean.TRUE);
+            return;
+        }
+    } catch (eInst) {}
+    try {
+        if (PLUGIN.gltcEnsureSpellCoreListeners != null) {
+            PLUGIN.gltcEnsureSpellCoreListeners.accept(java.lang.Boolean.TRUE);
+            return;
+        }
+    } catch (ePl) {}
+    try {
+        var root = getSharedRoot();
+        if (root != null) {
+            var ensure = root.get("ensureListeners");
+            if (ensure != null) {
+                ensure.accept(java.lang.Boolean.TRUE);
+                return;
+            }
+        }
+    } catch (eRoot) {}
+    try {
         if (CAST_API && typeof CAST_API.ensureListeners === "function") {
-            var needForce = false;
-            try {
-                if (PLUGIN.gltcSpellCoreListener == null) needForce = true;
-                else if (Number(PLUGIN.gltcSpellCoreListenerVer) < 13) needForce = true;
-            } catch (eV) {}
-            CAST_API.ensureListeners(needForce);
+            CAST_API.ensureListeners(true);
         }
     } catch (e) {}
 }
 
-/** 始终在本上下文 eval；禁止直接拿他上下文的 PLUGIN.gltcCastApi 当函数用 */
-function loadCastApi(forceReload) {
-    if (!forceReload && CAST_API && typeof CAST_API.handleStaffUse === "function") {
-        return true;
-    }
-    var exported = evalExport("施术道具/施术核心.js");
-    if (exported && typeof exported.handleStaffUse === "function") {
-        CAST_API = exported;
-        try { PLUGIN.gltcCastApi = exported; } catch (e1) {}
+function invokeHandleStaffUseBridge(player) {
+    if (!player || !(player instanceof Player)) return false;
+    try {
+        if (RSC != null && RSC.INSTANCE != null && RSC.INSTANCE.gltcHandleStaffUseConsumer != null) {
+            RSC.INSTANCE.gltcHandleStaffUseConsumer.accept(player);
+            return true;
+        }
+    } catch (eInst) {}
+    try {
+        if (PLUGIN.gltcHandleStaffUseConsumer != null) {
+            PLUGIN.gltcHandleStaffUseConsumer.accept(player);
+            return true;
+        }
+    } catch (ePl) {}
+    try {
+        var root = getSharedRoot();
+        if (root != null) {
+            var consumer = root.get("handleStaffUse");
+            if (consumer != null) {
+                consumer.accept(player);
+                return true;
+            }
+        }
+    } catch (eRoot) {}
+    if (CAST_API && typeof CAST_API.handleStaffUse === "function") {
+        CAST_API.handleStaffUse(player, {});
         return true;
     }
     return false;
+}
+
+function registerHuimoActivateBridge() {
+    var bridge = new (Java.extend(java.lang.Object, {
+        activate: function(p) {
+            try {
+                if (!p || !(p instanceof Player)) return;
+                if (!isThisStaff(p.getInventory().getItemInMainHand())) return;
+                activateInkBlast(p);
+            } catch (e) {
+                try { Bukkit.getLogger().warning("[GLTC辉墨摇篮] activate: " + e); } catch (e2) {}
+            }
+        }
+    }))();
+    try {
+        if (RSC != null && RSC.INSTANCE != null) RSC.INSTANCE.gltcHuimoActivateBridge = bridge;
+    } catch (eInst) {}
+    try { PLUGIN.gltcHuimoActivateBridge = bridge; } catch (ePl) {}
+    var root = getSharedRoot();
+    if (root != null) {
+        root.put("gltc_huimo_activator", bridge);
+        try { root.remove("gltc_huimo_activator_pending"); } catch (eRm) {}
+    }
+    try { Bukkit.getLogger().info("[GLTC辉墨摇篮] 光影废墟 Java 桥已注册"); } catch (eLog) {}
+}
+
+function registerHuimoStaffHooks() {
+    try {
+        var map = PLUGIN.gltc_staff_hooks_map;
+        if (map == null || !(map instanceof java.util.concurrent.ConcurrentHashMap)) {
+            map = new java.util.concurrent.ConcurrentHashMap();
+            PLUGIN.gltc_staff_hooks_map = map;
+        }
+        map.remove(STAFF_ID + "|sneak");
+        map.put(STAFF_ID + "|hint", "§7光影废墟 §8(蹲下开 GUI 时释放，冷却 30s)");
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function ensureCoreLoaded() {
+    ensureCoreListeners();
+    registerHuimoStaffHooks();
+    registerHuimoActivateBridge();
 }
 
 function loadMageApi() {
@@ -583,7 +699,7 @@ function playInkExpand(world, center) {
 function activateInkBlast(player) {
     var uuid = String(player.getUniqueId().toString());
     if (isAbilityOnCd(uuid)) {
-        // 冷却只走 ActionBar，不刷聊天（避免与选术环提示叠成两条）
+        // 冷却只走 ActionBar，不刷聊天（避免与 GUI 提示叠成两条）
         var left = cdLeftSec(uuid);
         try { player.sendActionBar("§8光影废墟冷却中… §e" + left + "§7s"); } catch (eA) {}
         return;
@@ -612,7 +728,7 @@ function activateInkBlast(player) {
     playInkExpand(world, center);
 
     var dmg = BLAST_MULT * particleMod(player);
-    // 与术式同款释放提示（护身技无粒子消耗）
+    // 与术式同款释放提示（护身技）
     try {
         player.sendMessage(GLTC_PREFIX + C_MSG + "使用 " + C_SPELL + ABILITY_NAME);
     } catch (eCast) {}
@@ -620,14 +736,9 @@ function activateInkBlast(player) {
 }
 
 /**
- * 护身不走跨上下文 JS 回调（Graal 经常调不动 / 炸脚本）。
- * 施术核心开环成功时会写 metadata token；本脚本在本上下文监听 Interact 领取。
+ * 护身：施术核心开 GUI 成功后写 token，并通过 gltcSharedMaps 的 Java Consumer 触发。
  */
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
-var Action = Java.type("org.bukkit.event.block.Action");
-var EventPriority = Java.type("org.bukkit.event.EventPriority");
-var Listener = Java.type("org.bukkit.event.Listener");
-var EquipmentSlot = Java.type("org.bukkit.inventory.EquipmentSlot");
 var META_ABILITY_TOKEN = "gltc_staff_sneak_ability_token";
 var ABILITY_TOKEN_TTL_MS = 800;
 
@@ -647,65 +758,46 @@ function takeAbilityToken(player) {
     }
 }
 
-function registerAbilityListener() {
+/** 施术核心单例通过 Java Consumer 跨上下文触发（见 grantStaffSneakAbilityToken） */
+function tryActivateInkBlastFromToken(player) {
+    if (!player || !(player instanceof Player)) return;
+    if (!isThisStaff(player.getInventory().getItemInMainHand())) return;
+    var uuid = String(player.getUniqueId().toString());
+    if (isAbilityOnCd(uuid)) {
+        try { player.removeMetadata(META_ABILITY_TOKEN, PLUGIN); } catch (eRm) {}
+        var leftCd = cdLeftSec(uuid);
+        try { player.sendActionBar("§8光影废墟冷却中… §e" + leftCd + "§7s"); } catch (eA) {}
+        return;
+    }
+    if (!takeAbilityToken(player)) return;
+    activateInkBlast(player);
+}
+
+function unregisterHuimoAbilityListener() {
+    var root = getSharedRoot();
     try {
-        if (PLUGIN.gltcHuimoAbilityListener != null) {
-            try { PlayerInteractEvent.getHandlerList().unregister(PLUGIN.gltcHuimoAbilityListener); } catch (e0) {}
-            PLUGIN.gltcHuimoAbilityListener = null;
+        var old = root != null ? root.get("gltc_huimo_ability_listener") : null;
+        if (old == null) old = PLUGIN.gltcHuimoAbilityListener;
+        if (old != null) {
+            try { PlayerInteractEvent.getHandlerList().unregister(old); } catch (e0) {}
         }
-    } catch (e) {}
-
-    var ListenerClass = Java.extend(Listener, {});
-    var listenerInstance = new ListenerClass();
-    try { PLUGIN.gltcHuimoAbilityListener = listenerInstance; } catch (eL) {}
-
-    Bukkit.getPluginManager().registerEvent(
-        PlayerInteractEvent, listenerInstance, EventPriority.MONITOR,
-        function(l, event) {
-            try {
-                if (event.getHand() != null && event.getHand() !== EquipmentSlot.HAND) return;
-                var action = event.getAction();
-                if (action !== Action.RIGHT_CLICK_AIR && action !== Action.RIGHT_CLICK_BLOCK) return;
-                var who = event.getPlayer();
-                if (!(who instanceof Player) || !who.isSneaking()) return;
-                if (!isThisStaff(who.getInventory().getItemInMainHand())) return;
-                var uuid = String(who.getUniqueId().toString());
-                // 冷却中：清 token、只提示，不触发护身
-                if (isAbilityOnCd(uuid)) {
-                    try { who.removeMetadata(META_ABILITY_TOKEN, PLUGIN); } catch (eRm) {}
-                    var leftCd = cdLeftSec(uuid);
-                    try { who.sendActionBar("§8光影废墟冷却中… §e" + leftCd + "§7s"); } catch (eA) {}
-                    return;
-                }
-                // 仅领取「开环成功」token；关环不会写 token
-                if (!takeAbilityToken(who)) return;
-                activateInkBlast(who);
-            } catch (ex) {
-                try { Bukkit.getLogger().warning("[GLTC辉墨摇篮] abilityInteract: " + ex); } catch (e2) {}
-            }
-        }, PLUGIN
-    );
-}
-
-function ensureCoreLoaded(force) {
-    loadCastApi(!!force);
-    ensureCoreListeners();
-    // 清掉旧版跨上下文 sneak 钩子，避免与 token 监听双放护身
+    } catch (eUn) {}
+    try { PLUGIN.gltcHuimoAbilityListener = null; } catch (eNull) {}
     try {
-        var map = PLUGIN.gltc_staff_hooks_map;
-        if (map != null) map.remove(STAFF_ID + "|sneak");
-    } catch (eClr) {}
+        if (root != null) root.remove("gltc_huimo_ability_listener");
+    } catch (eRm) {}
 }
 
-ensureCoreLoaded(true);
-registerAbilityListener();
+try {
+    PLUGIN.gltcHuimoAbilityCdMs = java.lang.Long.parseLong(String(ABILITY_CD_MS), 10);
+} catch (eMs) {}
+
+ensureCoreLoaded();
+unregisterHuimoAbilityListener();
 try {
     Bukkit.getScheduler().runTaskLater(PLUGIN, new (Java.extend(java.lang.Runnable, {
         run: function() {
-            // 勿 forceReload：重复 eval 会清环状态并换监听上下文
-            if (!CAST_API) loadCastApi(true);
-            ensureCoreListeners();
-            registerAbilityListener();
+            ensureCoreLoaded();
         }
     }))(), 40);
 } catch (eDelay) {}
@@ -742,18 +834,9 @@ function onUse(event) {
 
     if (shouldSkipStaffOnUseLocal(player)) return;
 
-    if (!loadCastApi(false)) {
-        player.sendMessage(GLTC_PREFIX + C_MSG + "施术核心加载失败。");
-        return;
-    }
     ensureCoreListeners();
-    try {
-        CAST_API.handleStaffUse(player, {});
-    } catch (eUse) {
-        try {
-            player.sendMessage(GLTC_PREFIX + C_MSG + "施术调用异常，请重载插件。");
-            Bukkit.getLogger().warning("[GLTC辉墨摇篮] onUse: " + eUse);
-        } catch (eLog) {}
+    if (!invokeHandleStaffUseBridge(player)) {
+        player.sendMessage(GLTC_PREFIX + C_MSG + "施术核心未就绪，请重载插件。");
     }
 }
 

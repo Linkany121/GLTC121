@@ -26,11 +26,13 @@ var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
-var File = java.io.File;
-var Files = java.nio.file.Files;
-var StandardCharsets = java.nio.charset.StandardCharsets;
+var File = Java.type("java.io.File");
+var Files = Java.type("java.nio.file.Files");
+var StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
 var Base64 = Java.type("java.util.Base64");
+var ArrayList = Java.type("java.util.ArrayList");
+var ConcurrentHashMap = Java.type("java.util.concurrent.ConcurrentHashMap");
 var ByteArrayInputStream = Java.type("java.io.ByteArrayInputStream");
 var ByteArrayOutputStream = Java.type("java.io.ByteArrayOutputStream");
 
@@ -40,8 +42,9 @@ var GEAR_DIR = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addon_confi
 var UGW_ROOT = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/术式组件");
 if (!STATS_DIR.exists()) STATS_DIR.mkdirs();
 if (!GEAR_DIR.exists()) GEAR_DIR.mkdirs();
-for (var _ti = 0; _ti < ["A", "B", "C", "D", "E"].length; _ti++) {
-    var _td = new File(UGW_ROOT, ["A", "B", "C", "D", "E"][_ti]);
+var UGW_TYPES = ["A", "B", "C", "D", "E"];
+for (var _ti = 0; _ti < UGW_TYPES.length; _ti++) {
+    var _td = new File(UGW_ROOT.getAbsolutePath() + "/" + UGW_TYPES[_ti]);
     if (!_td.exists()) _td.mkdirs();
 }
 
@@ -56,7 +59,7 @@ var GEAR_CFG = null;
 var STAFF_CFG = null;
 var JString = Java.type("java.lang.String");
 
-var ugwJsonCache = new java.util.concurrent.ConcurrentHashMap();
+var ugwJsonCache = new ConcurrentHashMap();
 
 function cacheKey(uuid) {
     return JString.valueOf(String(uuid));
@@ -78,13 +81,12 @@ function sharedConcurrentMap(metaKey, preferredField) {
         try { PLUGIN[field] = fromMeta; } catch (e3) {}
         return fromMeta;
     }
-    var map = new java.util.concurrent.ConcurrentHashMap();
+    var map = new ConcurrentHashMap();
     try { PLUGIN[field] = map; } catch (e4) {}
     try { PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, map)); } catch (e5) {}
     return map;
 }
 
-var particleCache = sharedConcurrentMap("gltc_shared_particle_cache", "gltcParticleCache");
 var statsDataCache = sharedConcurrentMap("gltc_shared_stats_json_cache", "gltcStatsJsonCache");
 var equipBonusCache = sharedConcurrentMap("gltc_shared_equip_bonus_json_cache", "gltcEquipBonusCache");
 
@@ -101,7 +103,6 @@ var HARD_CAPS = {
 /** 术士潜能：statKey → 配置 */
 var MAGE_POINT_OPTIONS = {
     particlePower: { label: "粒子强度", per: 0.1 },
-    pituitaryCapacity: { label: "松垂体容量", per: 8 },
     cardiovascular: { label: "心血管强度", per: 0.02, maxPoints: 20 },
     particleRefraction: { label: "粒子折射", per: 0.03, maxPoints: 20 },
     finalDamageReduction: { label: "最终减伤", per: 0.02, maxPoints: 24 }
@@ -148,7 +149,7 @@ function findScriptFile(relativeUnderScripts) {
             var list = addonsDir.listFiles();
             if (list) {
                 for (var i = 0; i < list.length; i++) {
-                    candidates.push(new File(list[i], "scripts/" + relativeUnderScripts));
+                    candidates.push(new File(list[i].getAbsolutePath() + "/scripts/" + relativeUnderScripts));
                 }
             }
         }
@@ -198,10 +199,8 @@ function defaultStats() {
         proficiency: 0,
         magePotential: 0,
         bodyPotential: 0,
-        particlePower: 0,
+        particlePower: 1,
         particlePowerSpent: 0,
-        pituitaryCapacity: 0,
-        pituitaryCapacitySpent: 0,
         cardiovascular: 0,
         cardiovascularSpent: 0,
         particleRefraction: 0,
@@ -226,7 +225,7 @@ function defaultStats() {
 
 function emptyBonuses() {
     return {
-        particlePower: 0, pituitaryCapacity: 0, cardiovascular: 0, particleRefraction: 0,
+        particlePower: 0, cardiovascular: 0, particleRefraction: 0,
         meleeDamage: 0, maxHealth: 0, armor: 0, toughness: 0, speed: 0, reach: 0,
         finalDamageReduction: 0
     };
@@ -246,9 +245,7 @@ function writeJsonFile(file, obj) {
     try {
         var parent = file.getParentFile();
         if (parent && !parent.exists()) parent.mkdirs();
-        var lines = new java.util.ArrayList();
-        lines.add(JSON.stringify(obj, null, 2));
-        Files.write(file.toPath(), lines, StandardCharsets.UTF_8);
+        Files.writeString(file.toPath(), JSON.stringify(obj, null, 2), StandardCharsets.UTF_8);
         return true;
     } catch (e) {
         Bukkit.getLogger().warning("[GLTC术士] 保存失败 " + file.getName() + ": " + e);
@@ -310,6 +307,32 @@ function migrateStatsData(data, uuid) {
         }
         delete data.mageSpent;
         delete data.bodySpent;
+        changed = true;
+    }
+
+    if (data.mageLevel != null) {
+        var lv = Math.floor(Number(data.mageLevel) || 0);
+        if (lv < 0) lv = 0;
+        if (lv > 8) lv = 8;
+        if (lv !== data.mageLevel) {
+            data.mageLevel = lv;
+            changed = true;
+        }
+    }
+
+    if (data.proficiency != null) {
+        var pf = Math.floor(Number(data.proficiency) || 0);
+        if (pf < 0) pf = 0;
+        if (pf > 8) pf = 8;
+        if (pf !== data.proficiency) {
+            data.proficiency = pf;
+            changed = true;
+        }
+    }
+
+    if (data.pituitaryCapacity !== undefined || data.pituitaryCapacitySpent !== undefined) {
+        delete data.pituitaryCapacity;
+        delete data.pituitaryCapacitySpent;
         changed = true;
     }
 
@@ -381,13 +404,26 @@ function getPlayerStats(uuid) {
     return clonePlainObject(data);
 }
 
+function enrichStatsSnapshot(uuid, copy) {
+    var equip = emptyBonuses();
+    try { equip = getEquipmentBonuses(uuid); } catch (e) { equip = emptyBonuses(); }
+    for (var i = 0; i < ALL_STAT_KEYS.length; i++) {
+        var sk = ALL_STAT_KEYS[i];
+        var baseVal = Number(copy[sk]) || 0;
+        var equipVal = Number(equip[sk]) || 0;
+        copy[sk + "Total"] = baseVal + equipVal;
+    }
+}
+
 function savePlayerStats(uuid, data) {
     uuid = String(uuid);
     var copy = {};
     for (var k in data) {
         if (k === "currentParticles") continue;
+        if (k.indexOf("Total") >= 0 && k.length > 5) continue;
         copy[k] = data[k];
     }
+    enrichStatsSnapshot(uuid, copy);
     var ok = writeJsonFile(statsFile(uuid), copy);
     if (ok) cachePutStatsJson(uuid, copy);
     else try { statsDataCache.remove(cacheKey(uuid)); } catch (e) {}
@@ -434,7 +470,7 @@ function ugwConfigFile(ugwId) {
     var id = String(ugwId);
     var type = id.charAt(0);
     if ("ABCDE".indexOf(type) < 0) return null;
-    return new File(UGW_ROOT, type + "/" + id + ".json");
+    return new File(UGW_ROOT.getAbsolutePath() + "/" + type + "/" + id + ".json");
 }
 
 function loadUgwConfig(ugwId) {
@@ -474,54 +510,33 @@ function getUgwCreatorFromItem(stack) {
     return null;
 }
 
-function resolvePituitaryCapacity(uuid) {
-    uuid = String(uuid);
-    try {
-        var base = getPlayerStats(uuid);
-        var equip = getEquipmentBonuses(uuid);
-        return sumStat(base, equip, emptyBonuses(), "pituitaryCapacity");
-    } catch (e) {
-        return 0;
-    }
+function canAffordSpell(player, cost) {
+    return true;
 }
 
-function ensureParticleLoaded(uuid, capHint) {
-    var key = cacheKey(uuid);
-    if (particleCache.containsKey(key)) return Number(particleCache.get(key)) || 0;
-    var v = capHint != null ? Number(capHint) || 0 : resolvePituitaryCapacity(String(uuid));
-    particleCache.put(key, v * 1.0);
-    return v;
+function consumeParticles(player, cost) {
+    return true;
 }
+
+function refillParticlesToCap(player) {}
 
 function getCurrentParticles(uuid) {
-    return ensureParticleLoaded(uuid, null);
+    return 0;
 }
 
 function setCurrentParticles(uuid, value) {
-    var key = cacheKey(uuid);
-    var v = Math.max(0, Number(value) || 0);
-    particleCache.put(key, v * 1.0);
-    return v;
+    return 0;
 }
 
 function addParticles(player, amount) {
-    amount = Number(amount) || 0;
-    if (!(amount > 0) || !player) return 0;
-    var uuid = String(player.getUniqueId().toString());
-    var cap = resolvePituitaryCapacity(uuid);
-    var cur = ensureParticleLoaded(uuid, cap);
-    if (cur > cap) {
-        cur = cap;
-        setCurrentParticles(uuid, cur);
-    }
-    var next = Math.min(cap, cur + amount);
-    var gain = next - cur;
-    if (gain > 0) setCurrentParticles(uuid, next);
-    return gain;
+    return 0;
+}
+
+function resolvePituitaryCapacity(uuid) {
+    return 0;
 }
 
 function clearParticleCache(uuid) {
-    try { particleCache.remove(cacheKey(uuid)); } catch (e) {}
     invalidatePlayerCache(uuid);
 }
 
@@ -544,6 +559,69 @@ function itemFromBase64(text) {
         ois.close();
         return item;
     } catch (e) { return null; }
+}
+
+function getGearSlotItem(slot) {
+    if (!slot) return null;
+    var b64 = typeof slot === "string" ? slot : slot.item;
+    return b64 ? itemFromBase64(b64) : null;
+}
+
+var LORE_BONUS_HEADER = "§x§4§4§a§5§f§f组件加成";
+
+function formatUgwBonusVal(statKey, val) {
+    val = Number(val) || 0;
+    if (statKey === "cardiovascular" || statKey === "particleRefraction" || statKey === "finalDamageReduction") {
+        return (Math.round(val * 1000) / 10) + "%";
+    }
+    return String(Math.round(val * 1000) / 1000);
+}
+
+/** 装备/拆卸/提升时同步 UGW lore 中的数值加成段 */
+function syncUgwLore(stack) {
+    if (!stack || stack.getType() === Material.AIR) return stack;
+    var bonuses = emptyBonuses();
+    var ugwId = getUgwIdFromItem(stack);
+    if (ugwId) {
+        mergeBonus(bonuses, getBonusesFromUgwConfig(loadUgwConfig(ugwId)));
+    } else {
+        mergeBonus(bonuses, getBonusesFromGearId(getSlimefunId(stack)));
+    }
+    try {
+        var meta = stack.getItemMeta();
+        if (!meta) return stack;
+        var oldLore = meta.hasLore() ? meta.getLore() : new ArrayList();
+        var newLore = new ArrayList();
+        var skipping = false;
+        for (var i = 0; i < oldLore.size(); i++) {
+            var plain = String(oldLore.get(i));
+            if (plain.indexOf(LORE_BONUS_HEADER) >= 0) {
+                skipping = true;
+                continue;
+            }
+            if (skipping) {
+                if (plain.indexOf("§8§m") >= 0) skipping = false;
+                else continue;
+            }
+            newLore.add(oldLore.get(i));
+        }
+        var wrote = false;
+        for (var sk in bonuses) {
+            if (!Object.prototype.hasOwnProperty.call(bonuses, sk)) continue;
+            var v = Number(bonuses[sk]) || 0;
+            if (!v) continue;
+            if (!wrote) {
+                newLore.add(LORE_BONUS_HEADER);
+                wrote = true;
+            }
+            var opt = MAGE_POINT_OPTIONS[sk] || BODY_POINT_OPTIONS[sk];
+            var label = opt ? opt.label : sk;
+            newLore.add("§7" + label + " §f+" + formatUgwBonusVal(sk, v));
+        }
+        meta.setLore(newLore);
+        stack.setItemMeta(meta);
+    } catch (e) {}
+    return stack;
 }
 
 function getSlimefunId(stack) {
@@ -631,7 +709,7 @@ function canEquipInSlot(stack, slotIndex, playerUuid) {
     return !!(entry && entry.category === def.category);
 }
 
-/** 装备时去重：同 uid 的常规 UGW 只保留一件 */
+/** 装备时去重：同 uid 的常规 UGW 只保留一件（含已装备槽与背包） */
 function dedupeUgwOnEquip(player, stack) {
     if (!player || !stack) return stack;
     var ugwId = getUgwIdFromItem(stack);
@@ -639,7 +717,8 @@ function dedupeUgwOnEquip(player, stack) {
     var cfg = loadUgwConfig(ugwId);
     if (!cfg || (cfg.kind !== "normal" && cfg.kind !== "regular")) return stack;
 
-    var gear = getPlayerGear(player.getUniqueId().toString());
+    var uuid = player.getUniqueId().toString();
+    var gear = getPlayerGear(uuid);
     var seen = {};
     var removed = 0;
     for (var i = 0; i < gear.slots.length; i++) {
@@ -647,7 +726,7 @@ function dedupeUgwOnEquip(player, stack) {
         if (!slot) continue;
         var sid = slot.ugwId;
         if (!sid) {
-            var it = slot.item ? itemFromBase64(slot.item) : null;
+            var it = getGearSlotItem(slot);
             sid = it ? getUgwIdFromItem(it) : null;
         }
         if (sid === ugwId) {
@@ -659,7 +738,24 @@ function dedupeUgwOnEquip(player, stack) {
             }
         }
     }
-    if (removed > 0) savePlayerGear(player.getUniqueId().toString(), gear);
+    if (removed > 0) savePlayerGear(uuid, gear);
+
+    try {
+        var inv = player.getInventory();
+        var keepOne = false;
+        for (var s = 0; s < inv.getSize(); s++) {
+            var item = inv.getItem(s);
+            if (!item || item.getType() === Material.AIR) continue;
+            if (getUgwIdFromItem(item) !== ugwId) continue;
+            if (!keepOne) {
+                keepOne = true;
+                continue;
+            }
+            inv.setItem(s, null);
+            removed++;
+        }
+    } catch (eInv) {}
+
     return stack;
 }
 
@@ -682,7 +778,7 @@ function getEquipmentBonuses(uuid) {
         if (!gear.slots[i]) continue;
         var slot = gear.slots[i];
         var ugwId = slot.ugwId;
-        var item = slot.item ? itemFromBase64(slot.item) : null;
+        var item = getGearSlotItem(slot);
         if (!ugwId && item) ugwId = getUgwIdFromItem(item);
 
         if (ugwId) {
@@ -715,14 +811,13 @@ function sumStat(base, equip, staff, key) {
     return Number(base[key] || 0) + Number((equip && equip[key]) || 0) + Number((staff && staff[key]) || 0);
 }
 
-function buildTotalStatsObject(base, equip, staff, cur) {
-    return {
-        mageLevel: base.mageLevel || 0,
-        proficiency: base.proficiency || 0,
+function buildTotalStatsObject(base, equip, staff) {
+    var out = {
+        mageLevel: Math.max(0, Math.min(8, Number(base.mageLevel) || 0)),
+        proficiency: Math.max(0, Math.min(8, Number(base.proficiency) || 0)),
         magePotential: base.magePotential || 0,
         bodyPotential: base.bodyPotential || 0,
         particlePower: sumStat(base, equip, staff, "particlePower"),
-        pituitaryCapacity: sumStat(base, equip, staff, "pituitaryCapacity"),
         cardiovascular: clampHard("cardiovascular", sumStat(base, equip, staff, "cardiovascular")),
         particleRefraction: clampHard("particleRefraction", sumStat(base, equip, staff, "particleRefraction")),
         meleeDamage: sumStat(base, equip, staff, "meleeDamage"),
@@ -731,9 +826,13 @@ function buildTotalStatsObject(base, equip, staff, cur) {
         toughness: clampHard("toughness", sumStat(base, equip, staff, "toughness")),
         speed: sumStat(base, equip, staff, "speed"),
         reach: sumStat(base, equip, staff, "reach"),
-        finalDamageReduction: clampHard("finalDamageReduction", sumStat(base, equip, staff, "finalDamageReduction")),
-        currentParticles: cur
+        finalDamageReduction: clampHard("finalDamageReduction", sumStat(base, equip, staff, "finalDamageReduction"))
     };
+    for (var i = 0; i < ALL_STAT_KEYS.length; i++) {
+        var sk = ALL_STAT_KEYS[i];
+        out[sk + "Spent"] = Number(base[spentField(sk)]) || 0;
+    }
+    return out;
 }
 
 function getTotalStats(player, includeStaff) {
@@ -741,15 +840,7 @@ function getTotalStats(player, includeStaff) {
     var base = getPlayerStats(uuid);
     var equip = getEquipmentBonuses(uuid);
     var staff = emptyBonuses();
-
-    var pituitaryCapacity = sumStat(base, equip, staff, "pituitaryCapacity");
-    var cur = ensureParticleLoaded(uuid, pituitaryCapacity);
-    if (cur > pituitaryCapacity) {
-        cur = pituitaryCapacity;
-        setCurrentParticles(uuid, cur);
-    }
-
-    return buildTotalStatsObject(base, equip, staff, cur);
+    return buildTotalStatsObject(base, equip, staff);
 }
 
 function getGLI() {
@@ -772,23 +863,6 @@ function calcSpellCooldownMs(player, baseCooldownMs) {
     } catch (e) { cardio = 0; }
     var mult = Math.max(0.01, 1 - cardio);
     return Math.max(50, Math.floor(base * mult));
-}
-
-function canAffordSpell(player, cost) {
-    return getCurrentParticles(player.getUniqueId().toString()) >= cost;
-}
-
-function consumeParticles(player, cost) {
-    var uuid = player.getUniqueId().toString();
-    var cur = getCurrentParticles(uuid);
-    if (cur < cost) return false;
-    setCurrentParticles(uuid, cur - cost);
-    return true;
-}
-
-function refillParticlesToCap(player) {
-    var stats = getTotalStats(player, true);
-    setCurrentParticles(player.getUniqueId().toString(), stats.pituitaryCapacity);
 }
 
 function tryLevelUp(player) {
@@ -887,13 +961,7 @@ function getTotalStatsFromBase(player, base) {
     var uuid = player.getUniqueId().toString();
     var equip = getEquipmentBonuses(uuid);
     var staff = emptyBonuses();
-    var pituitaryCapacity = sumStat(base, equip, staff, "pituitaryCapacity");
-    var cur = ensureParticleLoaded(uuid, pituitaryCapacity);
-    if (cur > pituitaryCapacity) {
-        cur = pituitaryCapacity;
-        setCurrentParticles(uuid, cur);
-    }
-    return buildTotalStatsObject(base, equip, staff, cur);
+    return buildTotalStatsObject(base, equip, staff);
 }
 
 function adminAdjustLevel(player, delta) {
@@ -937,8 +1005,8 @@ function adminResetAllData(player) {
     var returned = 0;
     if (gear && gear.slots) {
         for (var i = 0; i < gear.slots.length; i++) {
-            if (!gear.slots[i] || !gear.slots[i].item) continue;
-            var item = itemFromBase64(gear.slots[i].item);
+            if (!gear.slots[i]) continue;
+            var item = getGearSlotItem(gear.slots[i]);
             if (item) {
                 try {
                     var left = player.getInventory().addItem(item);
@@ -1014,10 +1082,6 @@ function applyMageAttributes(player) {
     if (tough) addMageModifier(player.getAttribute(tough), ATTR_MOD_UUID.toughness, "gltc_mage_tough", stats.toughness);
     if (spd) addMageModifier(player.getAttribute(spd), ATTR_MOD_UUID.speed, "gltc_mage_speed", stats.speed);
     if (reach) addMageModifier(player.getAttribute(reach), ATTR_MOD_UUID.reach, "gltc_mage_reach", stats.reach);
-
-    var uuid = player.getUniqueId().toString();
-    var cur = getCurrentParticles(uuid);
-    if (cur > stats.pituitaryCapacity) setCurrentParticles(uuid, stats.pituitaryCapacity);
 }
 
 function schedulePulseMetaCleanup(target) {
@@ -1035,18 +1099,11 @@ function dealPulseDamage(target, amount, attacker) {
     try {
         target.setMetadata(PULSE_META, new FixedMetadataValue(PLUGIN, true));
         target.setNoDamageTicks(0);
-        var dealt = false;
         try {
-            var DamageSource = Java.type("org.bukkit.damage.DamageSource");
-            var DamageType = Java.type("org.bukkit.damage.DamageType");
-            var src = DamageSource.builder(DamageType.VOID);
-            if (attacker) src = src.withCausingEntity(attacker).withDirectEntity(attacker);
-            target.damage(amount, src.build());
-            dealt = true;
-        } catch (eDs) {}
-        if (!dealt) {
             if (attacker) target.damage(amount, attacker);
             else target.damage(amount);
+        } catch (eEnt) {
+            try { target.damage(amount); } catch (eFb) {}
         }
     } catch (e) {
         try {
@@ -1061,7 +1118,7 @@ function isPulseDamage(entity) {
     try { return entity.hasMetadata(PULSE_META); } catch (e) { return false; }
 }
 
-(function registerParticleCacheCleanup() {
+(function registerMageCacheCleanup() {
     try {
         if (PLUGIN.gltcMageCacheListener != null) {
             PlayerQuitEvent.getHandlerList().unregister(PLUGIN.gltcMageCacheListener);
@@ -1076,7 +1133,7 @@ function isPulseDamage(entity) {
         PlayerQuitEvent, listenerInstance, EventPriority.MONITOR,
         function(l, event) {
             try {
-                clearParticleCache(event.getPlayer().getUniqueId().toString());
+                invalidatePlayerCache(event.getPlayer().getUniqueId().toString());
             } catch (e) {}
         }, PLUGIN
     );
@@ -1123,6 +1180,8 @@ var MAGE_API_EXPORT = {
     isMageStaff: isMageStaff,
     canEquipInSlot: canEquipInSlot,
     dedupeUgwOnEquip: dedupeUgwOnEquip,
+    syncUgwLore: syncUgwLore,
+    getGearSlotItem: getGearSlotItem,
     itemToBase64: itemToBase64,
     itemFromBase64: itemFromBase64,
     getSlimefunId: getSlimefunId,

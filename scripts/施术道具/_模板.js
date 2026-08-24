@@ -3,9 +3,9 @@
  * Graal：本上下文 eval 施术核心一次并缓存；会话走共享 ConcurrentHashMap
  *
  * 约定：
- *   站立右键 → 施术（onAfterCast）；开环时选槽
- *   站立左键 → 开环时选槽 / 术式左键钩子
- *   蹲下右键 → 开关选术环；唤出成功时同时 onSneakUse（护身技），绝不施术
+ *   站立右键 → 施术（onAfterCast）
+ *   站立左键 → 术式左键钩子
+ *   蹲下右键/左键 → 打开施术 GUI；成功时 onSneakUse（护身技），GUI 内不施术
  */
 
 var Bukkit = Java.type("org.bukkit.Bukkit");
@@ -76,7 +76,7 @@ function registerHooks() {
     try {
         if (typeof CAST_API.registerStaffHooks === "function") {
             CAST_API.registerStaffHooks(STAFF_ID, {
-                // onSneakUse: function(p) { /* 唤出选术环时护身技 */ },
+                // onSneakUse: function(p) { /* 开施术 GUI 时护身技 */ },
                 onAfterCast: function(p, spell) {}
             });
         }

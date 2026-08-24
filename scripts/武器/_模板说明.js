@@ -8,8 +8,8 @@
  *  2. 不使用 武器/_工具.js、不在 监听.js 注册全局路由。
  *  3. 左键 / 近战依赖 PlayerInteractEvent、EntityDamageByEntityEvent；
  *     须在脚本内 registerEvent 热重载安全注册。
- *  4. ⚠ 监听.js 预加载武器脚本时必须用 IIFE 隔离（gltcEvalScriptEx isolated），
- *     禁止在同一全局 eval 中加载多把武器（会污染 ITEM_ID）。
+ *  4. ⚠ 勿在 监听.js 中预加载武器脚本；仅由 items.yml 的 script 加载，
+ *     否则与 RSC 各注册一套监听器，技能会触发两次。
  *  5. isHolding 请用硬编码 ID 字面量或独立 isXxxItemId()，勿依赖可覆盖的全局 var。
  *
  *  玩家约定：

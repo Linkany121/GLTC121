@@ -56,7 +56,7 @@ var TYPE_SPEED     = PotionEffectType.getByName("SPEED");
 var TYPE_STRENGTH  = PotionEffectType.getByName("STRENGTH");
 
 // === 旌旗参数 ===
-var BANNER_RADIUS          = 12;      // 玩家直径12格内随机（半径6格）
+var BANNER_RADIUS          = 14;      // 玩家直径12格内随机（半径6格）
 var BANNER_TRIGGER_DIST    = 1.2;    // 玩家踩到水平范围（格）
 var BANNER_LIFETIME_MS     = 12000; // 旌旗存活时间（12秒）
 var BANNER_MAX_PER_PLAYER  = 5;      // 每玩家最多同时存在旌旗数
@@ -135,7 +135,8 @@ var bannerMap        = getPojunSharedMap(META_POJUN_BANNER_MAP);      // UUID ->
 function newBannerRecord(loc, born) {
     var rec = new java.util.HashMap();
     rec.put("loc", loc);
-    rec.put("born", java.lang.Long.valueOf(born));
+    // GraalJS：Date.now() 为 Double，勿直接传 java.lang.Long.valueOf
+    rec.put("born", Math.floor(Number(born)));
     return rec;
 }
 function readBannerLoc(banner) {
@@ -154,16 +155,14 @@ function readBannerBorn(banner) {
     return 0;
 }
 function isAttackCooldownReady(player) {
+    // EDBE 触发时冷却条可能已被扣减，须用 getAttackStrengthScale 还原挥击瞬间是否满条
     try {
         var scale = player.getAttackStrengthScale(0.5);
         if (scale >= 0.98) return true;
     } catch (e0) {}
     var cd = 1.0;
     try { cd = player.getAttackCooldown(); } catch (e) {}
-    if (cd >= 0.98) return true;
-  // 部分 Paper 版本：满冷却时返回 0（距上次攻击 tick）
-    if (cd <= 0.05) return true;
-    return false;
+    return cd >= 0.98;
 }
 
 function getAbilityPower() {
@@ -252,9 +251,10 @@ function findGroundY(world, x, z, yStart) {
     // 从玩家y向下找第一个非空气方块，返回其上表面y
     for (var y = yStart; y > yStart - 32; y--) {
         var block = world.getBlockAt(x, y, z);
-        if (!block.getType().isAir()) {
-            return y + 1;
-        }
+        var type = block.getType();
+        var air = false;
+        try { air = type.isAir(); } catch (e1) { air = (type === Material.AIR || type === Material.CAVE_AIR || type === Material.VOID_AIR); }
+        if (!air) return y + 1;
     }
     return yStart;
 }
@@ -303,13 +303,28 @@ function onPojunEntityDamage(event) {
         if (event.isCancelled()) return;
         var damager = edbeDamager(event);
         if (!(damager instanceof Player)) return;
-        if (!isHolding(damager)) return;
+        var item = damager.getInventory().getItemInMainHand();
+        if (!item || item.getType() === Material.AIR) return;
+        var sfItem = null;
+        try { sfItem = SlimefunItem.getByItem(item); } catch (eSf) {}
+        var holding = sfItem != null && isPojunItemId(sfItem.getId());
+        if (!holding) {
+            try {
+                var meta = item.getItemMeta();
+                if (meta != null && meta.hasDisplayName() && String(meta.getDisplayName()).indexOf("破军") >= 0) {
+                    holding = true;
+                }
+            } catch (eName) {}
+        }
+        if (!holding) return;
         var target = event.getEntity();
         if (!(target instanceof LivingEntity) || target.isDead()) return;
         try { ignoreArmor(event); } catch (eArmor) {}
         if (!isAttackCooldownReady(damager)) return;
         onHit(damager, target);
-    } catch (e) {}
+    } catch (e) {
+        try { plugin.getLogger().warning("[破军] 命中异常: " + e); } catch (e2) {}
+    }
 }
 
 // ===================================================================
@@ -828,7 +843,9 @@ var initPojunListener = new RunnableImpl({
             pojunListener,
             EventPriority.HIGHEST,
             function (l, event) {
-                try { onPojunEntityDamage(event); } catch (e) {}
+                try { onPojunEntityDamage(event); } catch (e) {
+                    try { plugin.getLogger().warning("[破军] EDBE异常: " + e); } catch (e2) {}
+                }
             },
             plugin
         );

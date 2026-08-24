@@ -45,7 +45,7 @@ var SPELL_ID = "VASA_火球术";
 var SPELL_NAME = "火球术";
 /** 环数 */
 var SPELL_RING = 1;
-/** 粒子消耗 */
+/** 保留字段（当前无粒子消耗） */
 var SPELL_COST = 1;
 /** 冷却（毫秒） */
 var SPELL_COOLDOWN_MS = 3000;

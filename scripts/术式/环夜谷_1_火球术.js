@@ -1,359 +1,302 @@
-/**
- * 术式：火球术 —— 1环 · 环夜谷标准流派
- * 火焰粒子球体前进；触碰生物或方块爆炸（物理伤害）
- * 物品/术式 ID：VASA_火球术
- */
+// ===================================================================
+// 术式：火球术 —— 1环 · 环夜谷（v2 · 瞬时弹体 + 会话清理）
+// ID：VASA_火球术（与 items.yml 术式载体一致）
+// 右键施展：发射火球弹体，命中造成物理伤害
+// ===================================================================
+
+// === Java 类型导入 ===
 var Bukkit = Java.type("org.bukkit.Bukkit");
+var Material = Java.type("org.bukkit.Material");
 var Particle = Java.type("org.bukkit.Particle");
-var Sound = Java.type("org.bukkit.Sound");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Player = Java.type("org.bukkit.entity.Player");
+var EntityType = Java.type("org.bukkit.entity.EntityType");
 var File = java.io.File;
 var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
-var JString = Java.type("java.lang.String");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+var META_SHARED = "gltc_shared_root_maps"; // Plugin Metadata 共享根键
+var META_RUNTIME = "gltc_spell_runtime";  // 运行时独立挂载键（优先）
+var META_MAGE    = "gltc_mage_api";       // 术士 API（粒子强度结算）
 
-function loadUtil() {
-    var candidates = [
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术式/_工具.js"),
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/术式/_工具.js")
-    ];
-    for (var c = 0; c < candidates.length; c++) {
-        if (!candidates[c].exists()) continue;
+// === 术式身份 / 登记导出 ===
+var SPELL_ID          = "VASA_火球术"; // 术式 ID（= 术式载体物品 ID）
+var SPELL_NAME        = "火球术";       // 纯文本短名（伤害播报回退；GUI 优先物品彩名）
+var SPELL_RING        = 1;              // 环数（写入 hit info）
+var SPELL_SCHOOL      = "环夜谷";       // 流派键（登记 / GUI 潜影盒色）
+var SPELL_BOOK        = true;           // true = 存在同 ID 术式载体
+
+// === 冷却 / 伤害 ===
+var SPELL_COOLDOWN_MS = 3000;           // 施展冷却（毫秒，与载体 lore「3 秒」一致）
+var SPELL_COEFFICIENT = 1;            // 伤害系数（mageApi.calcSpellDamage）
+
+// === 弹体飞行 ===
+var FLY_SPEED         = 32;             // 飞行速度（格/秒）
+var MAX_DISTANCE      = 24;             // 最大飞行距离（格）
+var HIT_HALF          = 0.55;           // 命中判定半宽（立方体半边长，格）
+var SPAWN_OFFSET      = 0.8;            // 自眼位沿视线前移生成距离（格）
+var DISPLAY_SCALE     = 0.85;           // 飞行 ItemDisplay 缩放
+var DISPLAY_MATERIAL  = Material.FIRE_CHARGE; // 弹体显示材质
+
+// === 飞行拖尾粒子 ===
+var TRAIL_PARTICLE    = Particle.FLAME; // 拖尾粒子类型
+var TRAIL_COUNT       = 2;              // 每 tick 粒子数
+var TRAIL_SPREAD      = 0.1;           // 粒子扩散
+var TRAIL_SPEED       = 0.01;           // 粒子额外速度
+
+// === 发射音效（字符串 ID：兼容 Paper Sound 接口 + Graal，避免枚举解析失败被静默吞掉）===
+var SOUND_CAST        = "entity.blaze.shoot";
+var SOUND_CAST_VOL    = 0.85;
+var SOUND_CAST_PITCH  = 1.15;
+
+// === 命中爆发 ===
+var SOUND_HIT         = "entity.generic.explode";
+var SOUND_HIT_VOL     = 0.55;
+var SOUND_HIT_PITCH   = 1.3;
+var HIT_SMOKE_COUNT   = 12;             // EXPLOSION 不可用时的烟雾回退数量
+var HIT_SMOKE_SPREAD  = 0.2;
+
+// ===================================================================
+// 运行时解析：优先 mageApi 注入 → Metadata → 热加载
+// ===================================================================
+function resolveSpellRuntime(mageApi) {
+    try {
+        if (mageApi != null) {
+            if (typeof mageApi.getSpellRuntime === "function") {
+                var fromFn = mageApi.getSpellRuntime();
+                if (fromFn != null) return fromFn;
+            }
+            if (mageApi.spellRuntime != null) return mageApi.spellRuntime;
+            if (mageApi.runtime != null) return mageApi.runtime;
+        }
+    } catch (eApi) {}
+
+    var p = null;
+    try { p = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer"); } catch (e0) {}
+    if (p == null) p = PLUGIN;
+
+    try {
+        if (p != null && p.hasMetadata(META_RUNTIME)) {
+            var direct = p.getMetadata(META_RUNTIME).get(0).value();
+            if (direct != null) return direct;
+        }
+    } catch (eD) {}
+
+    function fromRoot(root) {
+        if (root == null) return null;
         try {
-            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(candidates[c].toPath()))).toString();
-            return (0, eval)(code);
-        } catch (e) {}
+            var rt = root.get("gltcSpellRuntime");
+            return rt != null ? rt : null;
+        } catch (e) { return null; }
+    }
+
+    try {
+        if (p != null && p.hasMetadata(META_SHARED)) {
+            var hit = fromRoot(p.getMetadata(META_SHARED).get(0).value());
+            if (hit != null) return hit;
+        }
+    } catch (eM) {}
+    try {
+        if (p != null && p.gltcSpellRuntime != null) return p.gltcSpellRuntime;
+    } catch (e1) {}
+    try {
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null && RSC.INSTANCE.gltcSpellRuntime != null) {
+            return RSC.INSTANCE.gltcSpellRuntime;
+        }
+    } catch (e2) {}
+    try {
+        var maps = p != null ? p.gltcSharedMaps : null;
+        var hit2 = fromRoot(maps);
+        if (hit2 != null) return hit2;
+    } catch (e3) {}
+
+    // 禁止热加载二次 eval 运行时（会分裂伤害监听）；缺失则由监听 boot 修复
+    return null;
+}
+
+function rt(mageApi) {
+    return resolveSpellRuntime(mageApi);
+}
+
+/** 世界音效：字符串 ID 优先，失败再回退一次（不静默丢异常原因） */
+function playSpellSound(world, loc, sound, vol, pitch) {
+    if (world == null || loc == null || sound == null) return;
+    try {
+        world.playSound(loc, sound, vol, pitch);
+        return;
+    } catch (e0) {}
+    try {
+        world.playSound(loc, String(sound), vol, pitch);
+    } catch (e1) {
+        try {
+            Bukkit.getLogger().warning("[GLTC火球术] 音效播放失败: " + sound + " → " + e1);
+        } catch (eLog) {}
+    }
+}
+
+function isTarget(ent, casterUuid) {
+    var living = false;
+    try { living = LivingEntity.class.isInstance(ent); } catch (e0) {
+        try { living = ent instanceof LivingEntity; } catch (e1) {}
+    }
+    if (!living || ent.isDead()) return false;
+    try {
+        if (Player.class.isInstance(ent) && String(ent.getUniqueId().toString()) === casterUuid) return false;
+    } catch (eP) {
+        if (ent instanceof Player && String(ent.getUniqueId().toString()) === casterUuid) return false;
+    }
+    try { if (ent.getType() === EntityType.ARMOR_STAND) return false; } catch (eA) {}
+    try { if (ent.getType() === EntityType.ITEM_DISPLAY) return false; } catch (eD) {}
+    return true;
+}
+
+function findHit(world, loc, casterUuid) {
+    var it = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF).iterator();
+    while (it.hasNext()) {
+        var ent = it.next();
+        if (isTarget(ent, casterUuid)) return ent;
     }
     return null;
 }
 
-var UTIL = loadUtil();
-if (!UTIL) {
-    try { Bukkit.getLogger().warning("[GLTC火球术] 未能加载 术式/_工具.js，伤害播报与 dust 将降级"); } catch (eU) {}
-}
-
-// ======================== 火球术 · 可调配置 ========================
-// 改完后重载附属 / 重新加载术式脚本生效
-
-/** 物品 / 登记 ID */
-var SPELL_ID = "VASA_火球术";
-/** 显示名（播报 / 登记） */
-var SPELL_NAME = "火球术";
-/** 环数 */
-var SPELL_RING = 1;
-/** 保留字段（当前无粒子消耗） */
-var SPELL_COST = 1;
-/** 冷却（毫秒） */
-var SPELL_COOLDOWN_MS = 3000;
-/** 伤害系数（最终 = 粒子强度 × 系数 × GLI） */
-var SPELL_COEFFICIENT = 1.0;
-
-/** 飞行速度（格/秒） */
-var FLY_SPEED = 25;
-/** 最大飞行距离（格）；超时直接在当前位置爆炸 */
-var MAX_DISTANCE = 32;
-/** 爆炸直径（格）→ 伤害判定半宽 = 直径/2 */
-var EXPLODE_DIAMETER = 1;
-/** 飞行中触碰生物的判定半宽（格） */
-var HIT_HALF = 0.35;
-/** 出生点相对眼睛向前偏移（格） */
-var SPAWN_FORWARD = 0.8;
-/** 碰撞检测间隔（tick）；位移仍每 tick */
-var HIT_CHECK_EVERY = 2;
-
-/** 球体火焰粒子：外圈 / 内芯数量与扩散 */
-var SPHERE_FLAME_OUTER = 18;
-var SPHERE_FLAME_OUTER_SPREAD = 0.22;
-var SPHERE_FLAME_INNER = 6;
-var SPHERE_FLAME_INNER_SPREAD = 0.08;
-/** 球体 dust 数量与大小 */
-var SPHERE_DUST_COUNT = 5;
-var SPHERE_DUST_SIZE = 1.15;
-
-/** 爆炸火焰粒子数量与扩散 */
-var EXPLODE_FLAME_COUNT = 28;
-var EXPLODE_FLAME_SPREAD = 0.35;
-
-/** 释放音量 / 音调 */
-var CAST_FIRECHARGE_VOL = 1.0;
-var CAST_FIRECHARGE_PITCH = 1.0;
-var CAST_BLAZE_VOL = 0.85;
-var CAST_BLAZE_PITCH = 1.05;
-var CAST_FIRE_AMBIENT_VOL = 0.7;
-var CAST_FIRE_AMBIENT_PITCH = 1.4;
-
-/** 命中爆炸音量 / 音调 */
-var HIT_EXPLODE_VOL = 0.9;
-var HIT_EXPLODE_PITCH = 1.15;
-var HIT_FIREWORK_VOL = 0.55;
-var HIT_FIREWORK_PITCH = 0.85;
-
-// ======================== 配置结束（以下勿随意改） ========================
-
-var SPEED_PER_TICK = FLY_SPEED / 20;
-var EXPLODE_HALF = EXPLODE_DIAMETER / 2;
-var MAX_TICKS = Math.ceil(MAX_DISTANCE / SPEED_PER_TICK);
-
-function spawnFlameSphere(world, loc) {
-    try {
-        world.spawnParticle(Particle.FLAME, loc, SPHERE_FLAME_OUTER,
-            SPHERE_FLAME_OUTER_SPREAD, SPHERE_FLAME_OUTER_SPREAD, SPHERE_FLAME_OUTER_SPREAD, 0.01);
-    } catch (e) {}
-    try {
-        world.spawnParticle(Particle.FLAME, loc, SPHERE_FLAME_INNER,
-            SPHERE_FLAME_INNER_SPREAD, SPHERE_FLAME_INNER_SPREAD, SPHERE_FLAME_INNER_SPREAD, 0.005);
-    } catch (e2) {}
-    if (UTIL && UTIL.spawnDust) {
-        UTIL.spawnDust(world, loc, 255, 110, 35, SPHERE_DUST_COUNT, SPHERE_DUST_SIZE);
-    }
-}
-
-function playFireCastSound(world, loc) {
-    try { world.playSound(loc, Sound.ITEM_FIRECHARGE_USE, CAST_FIRECHARGE_VOL, CAST_FIRECHARGE_PITCH); } catch (e1) {
-        try { world.playSound(loc, "minecraft:item.firecharge.use", CAST_FIRECHARGE_VOL, CAST_FIRECHARGE_PITCH); } catch (e1b) {}
-    }
-    try { world.playSound(loc, Sound.ENTITY_BLAZE_SHOOT, CAST_BLAZE_VOL, CAST_BLAZE_PITCH); } catch (e2) {
-        try { world.playSound(loc, "minecraft:entity.blaze.shoot", CAST_BLAZE_VOL, CAST_BLAZE_PITCH); } catch (e2b) {}
-    }
-    try { world.playSound(loc, Sound.BLOCK_FIRE_AMBIENT, CAST_FIRE_AMBIENT_VOL, CAST_FIRE_AMBIENT_PITCH); } catch (e3) {
-        try { world.playSound(loc, "minecraft:block.fire.ambient", CAST_FIRE_AMBIENT_VOL, CAST_FIRE_AMBIENT_PITCH); } catch (e3b) {}
-    }
-}
-
-function playExplodeSound(world, loc) {
-    try { world.playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, HIT_EXPLODE_VOL, HIT_EXPLODE_PITCH); } catch (e1) {
-        try { world.playSound(loc, "minecraft:entity.generic.explode", HIT_EXPLODE_VOL, HIT_EXPLODE_PITCH); } catch (e1b) {}
-    }
-    try { world.playSound(loc, Sound.ENTITY_FIREWORK_ROCKET_BLAST, HIT_FIREWORK_VOL, HIT_FIREWORK_PITCH); } catch (e2) {
-        try { world.playSound(loc, "minecraft:entity.firework_rocket.blast", HIT_FIREWORK_VOL, HIT_FIREWORK_PITCH); } catch (e2b) {}
-    }
-}
-
-function explodeAt(world, loc, dmg, caster, spellInfo) {
-    try { world.spawnParticle(Particle.EXPLOSION, loc, 1, 0, 0, 0, 0); } catch (e1) {
-        try { world.spawnParticle(Particle.EXPLOSION_LARGE, loc, 1, 0, 0, 0, 0); } catch (e2) {}
-    }
-    try {
-        world.spawnParticle(Particle.FLAME, loc, EXPLODE_FLAME_COUNT,
-            EXPLODE_FLAME_SPREAD, EXPLODE_FLAME_SPREAD, EXPLODE_FLAME_SPREAD, 0.04);
-    } catch (e3) {}
-    playExplodeSound(world, loc);
-
-    var casterUuid = caster.getUniqueId().toString();
-    var batchKey = spellInfo && spellInfo.name
-        ? casterUuid + "|" + spellInfo.name + "|" + Date.now()
-        : null;
-    var near = world.getNearbyEntities(loc, EXPLODE_HALF, EXPLODE_HALF, EXPLODE_HALF);
-    var it = near.iterator();
-    while (it.hasNext()) {
-        var ent = it.next();
-        if (!(ent instanceof LivingEntity)) continue;
-        if (ent instanceof Player && ent.getUniqueId().toString() === casterUuid) continue;
-        var hitInfo = { ring: spellInfo.ring, name: spellInfo.name };
-        if (batchKey) hitInfo.batchKey = batchKey;
-        if (UTIL && UTIL.dealPhysicalSpellDamage) {
-            UTIL.dealPhysicalSpellDamage(ent, dmg, caster, hitInfo);
-        } else {
-            try { ent.damage(dmg, caster); } catch (e5) { try { ent.damage(dmg); } catch (e6) {} }
-        }
-    }
-}
-
-function getSessionApi() {
-    try {
-        if (PLUGIN.gltcSpellSessionApi != null) return PLUGIN.gltcSpellSessionApi;
-    } catch (e0) {}
-    return UTIL && UTIL.spellSession ? UTIL.spellSession : null;
-}
-
-function uuidKey(uuid) {
-    return JString.valueOf(String(uuid));
-}
-
-function sharedMap(field) {
-    try {
-        var existing = PLUGIN[field];
-        if (existing != null && (existing instanceof java.util.concurrent.ConcurrentHashMap)) {
-            return existing;
-        }
-    } catch (e0) {}
-    var map = new java.util.concurrent.ConcurrentHashMap();
-    try { PLUGIN[field] = map; } catch (e1) {}
-    return map;
-}
-
-/** uuid -> { sessionToken, projectiles: ArrayList } —— 多球并存，单主 session（#12B） */
-function playerStateStore() {
-    return sharedMap("gltc_huoqiu_state");
-}
-
-function getPlayerState(uuid) {
-    uuid = uuidKey(uuid);
-    var store = playerStateStore();
-    var ps = store.get(uuid);
-    if (ps == null) {
-        ps = { sessionToken: null, projectiles: new java.util.ArrayList() };
-        store.put(uuid, ps);
-    }
-    return ps;
-}
-
-function ensureMasterSession(player, uuid) {
-    var ps = getPlayerState(uuid);
-    if (ps.sessionToken != null) return ps;
-    var api = getSessionApi();
-    if (api && typeof api.begin === "function") {
+/** 伤害 = 粒子强度 × 系数 × GLI */
+function calcFireballDamage(player, mageApi) {
+    function bridgeGet(key) {
+        var k = String(key);
         try {
-            ps.sessionToken = api.begin(player, SPELL_ID, function() {
-                clearAllBalls(uuid);
-            }, { replace: false });
-        } catch (eBeg) {}
+            var loader = PLUGIN != null ? PLUGIN.gltcScriptLoader : null;
+            if (loader == null) {
+                var RSC0 = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+                if (RSC0.INSTANCE != null) loader = RSC0.INSTANCE.gltcScriptLoader;
+            }
+            if (loader && loader.evalScriptExport) {
+                var sr = loader.evalScriptExport("_gltcSharedRoot.js", { isolated: true, cache: true });
+                if (sr != null && sr.getJavaBridge != null) {
+                    var fromSr = sr.getJavaBridge(k);
+                    if (fromSr != null) return fromSr;
+                }
+            }
+        } catch (eSr) {}
+        try {
+            var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+            if (RSC.INSTANCE != null && RSC.INSTANCE.gltcJavaBridges != null) {
+                var v1 = RSC.INSTANCE.gltcJavaBridges.get(k);
+                if (v1 != null) return v1;
+            }
+        } catch (e1) {}
+        return null;
     }
-    return ps;
-}
-
-function tryEndMasterSession(uuid) {
-    uuid = uuidKey(uuid);
-    var store = playerStateStore();
-    var ps = store.get(uuid);
-    if (ps == null) return;
-    if (ps.projectiles != null && ps.projectiles.size() > 0) return;
-    if (ps.sessionToken) {
-        var api = getSessionApi();
-        if (api && typeof api.end === "function") {
-            try { api.end(uuid, ps.sessionToken, false); } catch (eEnd) {}
+    try {
+        var calcBr = bridgeGet("gltcMage_calcSpellDamage");
+        if (calcBr != null) {
+            var bv = Number(calcBr.apply(player, java.lang.Double.valueOf(SPELL_COEFFICIENT)));
+            if (bv > 0 && isFinite(bv)) return bv;
         }
-        ps.sessionToken = null;
-    }
-    try { store.remove(uuid); } catch (eRm) {}
-}
-
-function stopBall(st) {
-    if (!st) return;
-    st.alive = false;
-    try { if (st.task != null) st.task.cancel(); } catch (e0) {}
-}
-
-function clearAllBalls(uuid) {
-    uuid = uuidKey(uuid);
-    var store = playerStateStore();
-    var ps = store.get(uuid);
-    if (ps == null) return;
-    var list = ps.projectiles;
-    if (list != null) {
-        for (var i = 0; i < list.size(); i++) stopBall(list.get(i));
-        list.clear();
-    }
-    if (ps.sessionToken) {
-        var api = getSessionApi();
-        if (api && typeof api.end === "function") {
-            try { api.end(uuid, ps.sessionToken, false); } catch (e2) {}
+    } catch (eBr) {}
+    // 2) 同上下文 JS API（施术核心传入的 facade）
+    try {
+        if (mageApi != null && mageApi.calcSpellDamage != null) {
+            var v = Number(mageApi.calcSpellDamage(player, SPELL_COEFFICIENT));
+            if (v > 0 && isFinite(v)) return v;
         }
-        ps.sessionToken = null;
-    }
-    try { store.remove(uuid); } catch (eR) {}
+    } catch (eApi) {}
+    try {
+        Bukkit.getLogger().warning("[GLTC火球术] calcSpellDamage 失败，粒子强度未生效");
+    } catch (eLog) {}
+    return SPELL_COEFFICIENT;
 }
 
-function detachBall(uuid, st) {
-    uuid = uuidKey(uuid);
-    var ps = playerStateStore().get(uuid);
-    if (ps == null || ps.projectiles == null) return;
-    try { ps.projectiles.remove(st); } catch (eRm) {}
-    tryEndMasterSession(uuid);
-}
-
-try {
-    if (UTIL && typeof UTIL.registerDirectClearHook === "function") {
-        UTIL.registerDirectClearHook(SPELL_ID, function(p) {
-            if (!p) return;
-            clearAllBalls(p.getUniqueId().toString());
-        });
+function castFireball(player, mageApi) {
+    var runtime = rt(mageApi);
+    if (!runtime) {
+        Bukkit.getLogger().warning("[GLTC火球术] 运行时未加载");
+        return false;
     }
-} catch (eHook) {}
+    var dmg = calcFireballDamage(player, mageApi);
+    var world = player.getWorld();
+    var eye = player.getEyeLocation();
+    var dir = eye.getDirection().normalize();
+    var loc = eye.clone().add(dir.getX() * SPAWN_OFFSET, dir.getY() * SPAWN_OFFSET, dir.getZ() * SPAWN_OFFSET);
+    var display = runtime.spawnFlyingItemDisplay(world, loc, DISPLAY_MATERIAL, DISPLAY_SCALE);
+    if (!display) return false;
+
+    var ownerUuid = String(player.getUniqueId().toString());
+    var speed = FLY_SPEED / 20.0;
+    var maxTicks = Math.ceil(MAX_DISTANCE / speed);
+    var ticks = 0;
+    var alive = true;
+    var spellInfo = { ring: SPELL_RING, name: SPELL_NAME };
+    var task = null;
+    var token = null;
+
+    function cleanup() {
+        if (!alive) return;
+        alive = false;
+        try { if (task != null) task.cancel(); } catch (eC) {}
+        task = null;
+        try { runtime.removeFlyingDisplay(display); } catch (eR) {}
+    }
+
+    token = runtime.begin(player, SPELL_ID, new (Java.extend(java.lang.Runnable, {
+        run: cleanup
+    })), {
+        persistence: runtime.SESSION_UNPROJECTED,
+        replace: true
+    });
+    if (!token) {
+        try { runtime.removeFlyingDisplay(display); } catch (eD0) {}
+        return false;
+    }
+
+    playSpellSound(world, loc, SOUND_CAST, SOUND_CAST_VOL, SOUND_CAST_PITCH);
+
+    task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
+        run: function() {
+            try {
+                if (!alive) return;
+                ticks++;
+                loc.add(dir.getX() * speed, dir.getY() * speed, dir.getZ() * speed);
+                runtime.moveFlyingDisplay(display, loc);
+                try {
+                    world.spawnParticle(TRAIL_PARTICLE, loc, TRAIL_COUNT, TRAIL_SPREAD, TRAIL_SPREAD, TRAIL_SPREAD, TRAIL_SPEED);
+                } catch (eP) {}
+
+                var hitSolid = false;
+                try { hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
+                var hitEnt = findHit(world, loc, ownerUuid);
+                if (!hitEnt && !hitSolid && ticks < maxTicks) return;
+
+                if (hitEnt) {
+                    runtime.dealPhysicalSpellDamage(hitEnt, dmg, player, spellInfo);
+                }
+                try { world.spawnParticle(Particle.EXPLOSION, loc, 1, 0, 0, 0, 0); } catch (eX) {
+                    try {
+                        world.spawnParticle(Particle.SMOKE, loc, HIT_SMOKE_COUNT,
+                            HIT_SMOKE_SPREAD, HIT_SMOKE_SPREAD, HIT_SMOKE_SPREAD, 0.02);
+                    } catch (eX2) {}
+                }
+                playSpellSound(world, loc, SOUND_HIT, SOUND_HIT_VOL, SOUND_HIT_PITCH);
+                cleanup();
+                try { runtime.end(player, token, false); } catch (eEnd) {}
+            } catch (ex) {
+                cleanup();
+                try { runtime.end(player, token, false); } catch (eEnd2) {}
+            }
+        }
+    })), 0, 1);
+
+    return true;
+}
 
 ({
     id: SPELL_ID,
     name: SPELL_NAME,
     ring: SPELL_RING,
-    cost: SPELL_COST,
     cooldownMs: SPELL_COOLDOWN_MS,
-    book: true,
-    cast: function(player, mageApi) {
-        if (UTIL && UTIL.ensureSpellDamageListener) UTIL.ensureSpellDamageListener();
-
-        var world = player.getWorld();
-        var eye = player.getEyeLocation();
-        var dir = eye.getDirection().normalize();
-        var dmg = mageApi.calcSpellDamage(player, SPELL_COEFFICIENT);
-        var loc = eye.clone().add(dir.clone().multiply(SPAWN_FORWARD));
-        var uuid = String(player.getUniqueId().toString());
-        var spellInfo = { ring: SPELL_RING, name: SPELL_NAME };
-        var ticks = 0;
-        playFireCastSound(world, eye);
-
-        var st = { alive: true, task: null };
-        var ps = ensureMasterSession(player, uuid);
-        ps.projectiles.add(st);
-
-        st.task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
-            run: function() {
-                try {
-                    if (!st.alive) {
-                        try { st.task.cancel(); } catch (eDead) {}
-                        return;
-                    }
-                    ticks++;
-                    var stepX = dir.getX() * SPEED_PER_TICK;
-                    var stepY = dir.getY() * SPEED_PER_TICK;
-                    var stepZ = dir.getZ() * SPEED_PER_TICK;
-                    loc.add(stepX, stepY, stepZ);
-                    spawnFlameSphere(world, loc);
-
-                    var doHitCheck = (HIT_CHECK_EVERY <= 1) || (ticks % HIT_CHECK_EVERY === 0) || (ticks >= MAX_TICKS);
-                    if (doHitCheck) {
-                        var hitSolid = false;
-                        try {
-                            var mid = loc.clone().add(-stepX * 0.5, -stepY * 0.5, -stepZ * 0.5);
-                            if (mid.getBlock().getType().isSolid()) hitSolid = true;
-                        } catch (eMid) {}
-                        try { if (!hitSolid) hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
-
-                        var hitLiving = false;
-                        var near = world.getNearbyEntities(loc, HIT_HALF, HIT_HALF, HIT_HALF);
-                        var it = near.iterator();
-                        while (it.hasNext()) {
-                            var ent = it.next();
-                            if (ent instanceof LivingEntity && !(ent instanceof Player && ent.getUniqueId().toString() === uuid)) {
-                                hitLiving = true;
-                                break;
-                            }
-                        }
-
-                        if (hitLiving || hitSolid || ticks >= MAX_TICKS) {
-                            var caster = null;
-                            try {
-                                var online = Bukkit.getOnlinePlayers().toArray();
-                                for (var oi = 0; oi < online.length; oi++) {
-                                    if (online[oi].getUniqueId().toString() === uuid) { caster = online[oi]; break; }
-                                }
-                            } catch (eP) {}
-                            if (caster == null) caster = player;
-                            explodeAt(world, loc, dmg, caster, spellInfo);
-                            stopBall(st);
-                            detachBall(uuid, st);
-                            return;
-                        }
-                    }
-                } catch (ex) {
-                    stopBall(st);
-                    detachBall(uuid, st);
-                }
-            }
-        })), 0, 1);
-        return true;
-    }
+    book: SPELL_BOOK,
+    school: SPELL_SCHOOL,
+    cast: castFireball
 });

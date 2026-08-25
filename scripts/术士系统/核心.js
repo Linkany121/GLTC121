@@ -8,8 +8,6 @@
  *   - 8 槽：A潜能模组 / B核心心区 / C生控中枢 / D粒术中转 / E辅助×4
  *   - 槽位记录 UGW 配置 ID（如 A000000001）及物品快照（base64）
  * UGW 配置：addon_configs/GLTC/术式组件/{A|B|C|D|E}/{id}.json
- * 粒子量：纯内存；登录/重载回满；容量变化时仅钳制超上限
- *
  * 粒子折射：仅减免术式造成的粒子伤害
  * 最终减伤：减免脉冲以外的所有伤害
  */
@@ -74,7 +72,10 @@ function sharedConcurrentMap(metaKey, preferredField) {
         if (PLUGIN.hasMetadata(metaKey)) fromMeta = PLUGIN.getMetadata(metaKey).get(0).value();
     } catch (e1) {}
     if (fromField != null) {
-        try { PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, fromField)); } catch (e2) {}
+        try {
+            try { PLUGIN.removeMetadata(metaKey, PLUGIN); } catch (eRm0) {}
+            PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, fromField));
+        } catch (e2) {}
         return fromField;
     }
     if (fromMeta != null) {
@@ -83,7 +84,10 @@ function sharedConcurrentMap(metaKey, preferredField) {
     }
     var map = new ConcurrentHashMap();
     try { PLUGIN[field] = map; } catch (e4) {}
-    try { PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, map)); } catch (e5) {}
+    try {
+        try { PLUGIN.removeMetadata(metaKey, PLUGIN); } catch (eRm1) {}
+        PLUGIN.setMetadata(metaKey, new FixedMetadataValue(PLUGIN, map));
+    } catch (e5) {}
     return map;
 }
 
@@ -139,23 +143,11 @@ var ATTR_MOD_UUID = {
 };
 
 function findScriptFile(relativeUnderScripts) {
-    var candidates = [
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/" + relativeUnderScripts),
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/" + relativeUnderScripts)
-    ];
-    try {
-        var addonsDir = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons");
-        if (addonsDir.exists()) {
-            var list = addonsDir.listFiles();
-            if (list) {
-                for (var i = 0; i < list.length; i++) {
-                    candidates.push(new File(list[i].getAbsolutePath() + "/scripts/" + relativeUnderScripts));
-                }
-            }
-        }
-    } catch (e) {}
-    for (var c = 0; c < candidates.length; c++) {
-        if (candidates[c].exists()) return candidates[c];
+    var rel = String(relativeUnderScripts || "").replace(/\\/g, "/");
+    var roots = ["GLTC_联合协议", "GLTC121"];
+    for (var r = 0; r < roots.length; r++) {
+        var f = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/" + roots[r] + "/scripts/" + rel);
+        if (f.exists()) return f;
     }
     return null;
 }
@@ -510,38 +502,6 @@ function getUgwCreatorFromItem(stack) {
     return null;
 }
 
-function canAffordSpell(player, cost) {
-    return true;
-}
-
-function consumeParticles(player, cost) {
-    return true;
-}
-
-function refillParticlesToCap(player) {}
-
-function getCurrentParticles(uuid) {
-    return 0;
-}
-
-function setCurrentParticles(uuid, value) {
-    return 0;
-}
-
-function addParticles(player, amount) {
-    return 0;
-}
-
-function resolvePituitaryCapacity(uuid) {
-    return 0;
-}
-
-function clearParticleCache(uuid) {
-    invalidatePlayerCache(uuid);
-}
-
-function flushParticle(uuid) {}
-
 function itemToBase64(item) {
     if (!item || item.getType() === Material.AIR) return null;
     var baos = new ByteArrayOutputStream();
@@ -680,7 +640,34 @@ function getBonusesFromUgwConfig(cfg) {
 }
 
 function getBonusesFromStaffId(itemId) {
-    return emptyBonuses();
+    var b = emptyBonuses();
+    if (!itemId) return b;
+    loadStaffConfig();
+    if (!STAFF_CFG || !STAFF_CFG.STAFF_REGISTRY) return b;
+    var entry = STAFF_CFG.STAFF_REGISTRY[itemId];
+    if (entry && entry.bonuses) mergeBonus(b, entry.bonuses);
+    return b;
+}
+
+function getStaffBonuses(player) {
+    var b = emptyBonuses();
+    if (!player) return b;
+    try {
+        var hand = player.getInventory().getItemInMainHand();
+        if (!hand || hand.getType() === Material.AIR) return b;
+        if (!isMageStaff(hand)) return b;
+        var id = getSlimefunId(hand);
+        mergeBonus(b, getBonusesFromStaffId(id));
+    } catch (e) {}
+    return b;
+}
+
+function clampHard(statKey, v) {
+    v = Number(v);
+    if (!isFinite(v) || v < 0) v = 0;
+    var cap = HARD_CAPS[statKey];
+    if (cap != null && v > cap) return cap;
+    return v;
 }
 
 function canEquipInSlot(stack, slotIndex, playerUuid) {
@@ -791,18 +778,6 @@ function getEquipmentBonuses(uuid) {
     return total;
 }
 
-function getStaffBonuses(player) {
-    return emptyBonuses();
-}
-
-function clampHard(statKey, v) {
-    v = Number(v);
-    if (!isFinite(v) || v < 0) v = 0;
-    var cap = HARD_CAPS[statKey];
-    if (cap != null && v > cap) return cap;
-    return v;
-}
-
 function clamp01(v) {
     return clampHard("particleRefraction", v);
 }
@@ -839,7 +814,7 @@ function getTotalStats(player, includeStaff) {
     var uuid = player.getUniqueId().toString();
     var base = getPlayerStats(uuid);
     var equip = getEquipmentBonuses(uuid);
-    var staff = emptyBonuses();
+    var staff = (includeStaff === true) ? getStaffBonuses(player) : emptyBonuses();
     return buildTotalStatsObject(base, equip, staff);
 }
 
@@ -850,11 +825,12 @@ function getGLI() {
 }
 
 function calcSpellDamage(player, spellCoefficient) {
+    // 不再每次施术 invalidate：装备变更已主动清缓存；避免高频施术反复读盘
     var stats = getTotalStats(player, true);
-    return stats.particlePower * spellCoefficient * getGLI();
+    return Number(stats.particlePower || 0) * Number(spellCoefficient || 0) * getGLI();
 }
 
-function calcSpellCooldownMs(player, baseCooldownMs) {
+function calcSpellCooldownMs(player, baseCooldownMs, erosion) {
     var base = Math.max(0, Number(baseCooldownMs) || 0);
     var cardio = 0;
     try {
@@ -862,7 +838,10 @@ function calcSpellCooldownMs(player, baseCooldownMs) {
         cardio = clampHard("cardiovascular", Number(stats.cardiovascular) || 0);
     } catch (e) { cardio = 0; }
     var mult = Math.max(0.01, 1 - cardio);
-    return Math.max(50, Math.floor(base * mult));
+    var cd = Math.max(50, Math.floor(base * mult));
+    var er = Math.floor(Number(erosion) || 0);
+    if (er > 0) cd = Math.max(50, Math.floor(cd * er));
+    return cd;
 }
 
 function tryLevelUp(player) {
@@ -1021,8 +1000,7 @@ function adminResetAllData(player) {
     }
     var fresh = defaultStats();
     savePlayerStats(uuid, fresh);
-    clearParticleCache(uuid);
-    refillParticlesToCap(player);
+    invalidatePlayerCache(uuid);
     applyMageAttributes(player);
     return { ok: true, returned: returned, level: fresh.mageLevel };
 }
@@ -1094,21 +1072,49 @@ function schedulePulseMetaCleanup(target) {
     }
 }
 
+function applyVoidDamageSource(target, amount, attacker) {
+    try {
+        var DamageType = Java.type("org.bukkit.damage.DamageType");
+        var DamageSource = Java.type("org.bukkit.damage.DamageSource");
+        var dt = null;
+        try { dt = DamageType.OUT_OF_WORLD; } catch (e0) {}
+        if (dt == null) {
+            try { dt = DamageType.valueOf("OUT_OF_WORLD"); } catch (e1) {}
+        }
+        if (dt == null) return false;
+        var b = DamageSource.builder(dt);
+        if (attacker) {
+            try { b = b.withDamager(attacker); } catch (e2) {}
+            try { b = b.withDirectEntity(attacker); } catch (e3) {}
+        }
+        target.setNoDamageTicks(0);
+        target.damage(Number(amount), b.build());
+        return true;
+    } catch (e4) { return false; }
+}
+
+/** 脉冲伤害：虚空伤害模型，忽视所有减伤；失败时直接扣血 */
 function dealPulseDamage(target, amount, attacker) {
     if (!target || amount <= 0) return;
     try {
         target.setMetadata(PULSE_META, new FixedMetadataValue(PLUGIN, true));
-        target.setNoDamageTicks(0);
-        try {
-            if (attacker) target.damage(amount, attacker);
-            else target.damage(amount);
-        } catch (eEnt) {
-            try { target.damage(amount); } catch (eFb) {}
+        if (!applyVoidDamageSource(target, amount, attacker)) {
+            try {
+                var hp = Math.max(0, Number(target.getHealth()) - Number(amount));
+                target.setHealth(hp <= 0 ? 0 : hp);
+            } catch (eHp) {
+                try {
+                    if (attacker) target.damage(amount, attacker);
+                    else target.damage(amount);
+                } catch (eEnt) {
+                    try { target.damage(amount); } catch (eFb) {}
+                }
+            }
         }
     } catch (e) {
         try {
-            var hp = Math.max(0, target.getHealth() - amount);
-            target.setHealth(hp);
+            var hp2 = Math.max(0, Number(target.getHealth()) - Number(amount));
+            target.setHealth(hp2 <= 0 ? 0 : hp2);
         } catch (e2) {}
     }
     schedulePulseMetaCleanup(target);
@@ -1150,15 +1156,6 @@ var MAGE_API_EXPORT = {
     getGLI: getGLI,
     calcSpellDamage: calcSpellDamage,
     calcSpellCooldownMs: calcSpellCooldownMs,
-    canAffordSpell: canAffordSpell,
-    consumeParticles: consumeParticles,
-    refillParticlesToCap: refillParticlesToCap,
-    getCurrentParticles: getCurrentParticles,
-    setCurrentParticles: setCurrentParticles,
-    addParticles: addParticles,
-    resolvePituitaryCapacity: resolvePituitaryCapacity,
-    clearParticleCache: clearParticleCache,
-    flushParticle: flushParticle,
     applyMageAttributes: applyMageAttributes,
     tryLevelUp: tryLevelUp,
     spendPotential: spendPotential,
@@ -1186,6 +1183,7 @@ var MAGE_API_EXPORT = {
     itemFromBase64: itemFromBase64,
     getSlimefunId: getSlimefunId,
     getEquipmentBonuses: getEquipmentBonuses,
+    getStaffBonuses: getStaffBonuses,
     loadUgwConfig: loadUgwConfig,
     getUgwIdFromItem: getUgwIdFromItem,
     getUgwCreatorFromItem: getUgwCreatorFromItem,
@@ -1197,5 +1195,212 @@ var MAGE_API_EXPORT = {
     getStaffConfig: function() { loadStaffConfig(); return STAFF_CFG; },
     equipSlotCount: equipSlotCount
 };
+/**
+ * 跨 Graal Context：JS 对象挂 Metadata 后异上下文调方法会失败/Metadata 读不到。
+ * 权威存储：RSC.INSTANCE.gltcJavaBridges（纯 Java ConcurrentHashMap）。
+ */
+function getOrCreateJavaBridgeMap() {
+    var sr = getSharedRootBridgeApi();
+    if (sr != null && sr.getBridgeMapLegacy != null) {
+        try { return sr.getBridgeMapLegacy(); } catch (eSr) {}
+    }
+    var map = null;
+    try {
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null) {
+            try { map = RSC.INSTANCE.gltcJavaBridges; } catch (e0) {}
+            if (map == null) {
+                map = new ConcurrentHashMap();
+                try { RSC.INSTANCE.gltcJavaBridges = map; } catch (e1) {}
+            }
+        }
+    } catch (eR) {}
+    if (map == null) {
+        try { map = PLUGIN.gltcJavaBridges; } catch (e2) {}
+    }
+    if (map == null) {
+        map = new ConcurrentHashMap();
+        try { PLUGIN.gltcJavaBridges = map; } catch (e3) {}
+    }
+    // 镜像到共享根（若 Metadata 可用）
+    try {
+        var root = null;
+        if (PLUGIN.hasMetadata("gltc_shared_root_maps")) {
+            root = PLUGIN.getMetadata("gltc_shared_root_maps").get(0).value();
+        }
+        if (root == null) {
+            try { root = PLUGIN.gltcSharedMaps; } catch (e4) {}
+        }
+        if (root != null) {
+            try { root.put("gltcJavaBridges", map); } catch (e5) {}
+        }
+    } catch (eRoot) {}
+    return map;
+}
+
+var _SHARED_ROOT_BRIDGE_API = null;
+var _MAGE_BRIDGE_TARGET = { api: null };
+var MAGE_API_CELL_KEY = "gltc_mage_api_cell";
+
+function getMageApiCell() {
+    var map = getOrCreateJavaBridgeMap();
+    if (map == null) return _MAGE_BRIDGE_TARGET;
+    try {
+        var cell = map.get(MAGE_API_CELL_KEY);
+        if (cell != null) return cell;
+    } catch (e0) {}
+    var holder = _MAGE_BRIDGE_TARGET;
+    try { map.put(MAGE_API_CELL_KEY, holder); } catch (e1) {}
+    return holder;
+}
+
+function setPublishedMageApi(api) {
+    if (api == null) return;
+    _MAGE_BRIDGE_TARGET.api = api;
+    try { getMageApiCell().api = api; } catch (e0) {}
+    try {
+        var map = getOrCreateJavaBridgeMap();
+        if (map != null) map.put("gltcMageApi", api);
+    } catch (e1) {}
+}
+
+function readPublishedMageApi() {
+    try {
+        var cell = getMageApiCell();
+        if (cell != null && cell.api != null) return cell.api;
+    } catch (e0) {}
+    return _MAGE_BRIDGE_TARGET.api;
+}
+
+/**
+ * 关键：不要用「单例 BiFunction + cell.api」——异上下文调用时 cell 里的 JS 对象会失效，
+ * calcSpellDamage 静默返回 0，火球就变成 1 点物理伤害。
+ * 每次 publish 新建桥，闭包钉死本上下文的 api。
+ */
+function buildMageBridges(api) {
+    var closed = api;
+    var CalcBF = Java.extend(Java.type("java.util.function.BiFunction"), {
+        apply: function(player, coeff) {
+            try {
+                var v = Number(closed.calcSpellDamage(player, Number(coeff)));
+                if (!isFinite(v)) v = 0;
+                return java.lang.Double.valueOf(v);
+            } catch (e) {
+                return java.lang.Double.valueOf(0);
+            }
+        }
+    });
+    var StatsBF = Java.extend(Java.type("java.util.function.BiFunction"), {
+        apply: function(player, includeStaff) {
+            try {
+                var flag = includeStaff === true || includeStaff === java.lang.Boolean.TRUE;
+                var st = closed.getTotalStats(player, flag);
+                if (st == null) return null;
+                // 只回传纯数字 Map，避免异上下文读 JS 对象字段失败
+                var out = new java.util.concurrent.ConcurrentHashMap();
+                try { out.put("particlePower", java.lang.Double.valueOf(Number(st.particlePower) || 0)); } catch (e0) {}
+                try { out.put("mageLevel", java.lang.Double.valueOf(Number(st.mageLevel) || 0)); } catch (e1) {}
+                try { out.put("particleRefraction", java.lang.Double.valueOf(Number(st.particleRefraction) || 0)); } catch (e2) {}
+                try { out.put("finalDamageReduction", java.lang.Double.valueOf(Number(st.finalDamageReduction) || 0)); } catch (e3) {}
+                return out;
+            } catch (e) { return null; }
+        }
+    });
+    var PulseC = Java.extend(Java.type("java.util.function.Consumer"), {
+        accept: function(pack) {
+            try {
+                if (pack == null) return;
+                var t = pack.length != null ? pack[0] : pack.get(0);
+                var a = pack.length != null ? pack[1] : pack.get(1);
+                var atk = pack.length != null ? pack[2] : pack.get(2);
+                closed.dealPulseDamage(t, Number(a), atk);
+            } catch (e) {}
+        }
+    });
+    var InvalidateC = Java.extend(Java.type("java.util.function.Consumer"), {
+        accept: function(uuid) {
+            try { closed.invalidatePlayerCache(String(uuid)); } catch (e) {}
+        }
+    });
+    return {
+        calc: new CalcBF(),
+        stats: new StatsBF(),
+        pulse: new PulseC(),
+        invalidate: new InvalidateC()
+    };
+}
+
+function getSharedRootBridgeApi() {
+    if (_SHARED_ROOT_BRIDGE_API != null) return _SHARED_ROOT_BRIDGE_API;
+    _SHARED_ROOT_BRIDGE_API = evalScriptExport("_gltcSharedRoot.js");
+    return _SHARED_ROOT_BRIDGE_API;
+}
+
+function putBridgeEntry(sr, map, key, bridge) {
+    if (bridge == null) return false;
+    var ok = false;
+    if (sr != null && sr.putJavaBridge != null) {
+        try { ok = !!sr.putJavaBridge(key, bridge) || ok; } catch (eSr) {}
+    }
+    try {
+        if (map != null) {
+            map.put(key, bridge);
+            ok = true;
+        }
+    } catch (eMap) {}
+    return ok;
+}
+
+function logMageBridgeOnce(calcOk, statsOk, pulseOk) {
+    try {
+        if (PLUGIN.hasMetadata("gltc_mage_bridge_logged")) return;
+        PLUGIN.setMetadata("gltc_mage_bridge_logged", new FixedMetadataValue(PLUGIN, java.lang.Boolean.TRUE));
+    } catch (eFlag) {}
+    try {
+        Bukkit.getLogger().info("[GLTC术士] Java桥已发布 calc=" + calcOk
+            + " stats=" + statsOk + " pulse=" + pulseOk);
+    } catch (eLog) {}
+}
+
+function publishMageJavaBridges(api) {
+    if (api == null) return false;
+    setPublishedMageApi(api);
+    var sr = getSharedRootBridgeApi();
+    var map = getOrCreateJavaBridgeMap();
+    if (map == null) {
+        Bukkit.getLogger().warning("[GLTC术士] Java 桥 Map 创建失败");
+        return false;
+    }
+    // 闭包钉死 api：异上下文 apply 时仍走本上下文 JS
+    var bridges = buildMageBridges(api);
+    var calcOk = putBridgeEntry(sr, map, "gltcMage_calcSpellDamage", bridges.calc);
+    var statsOk = putBridgeEntry(sr, map, "gltcMage_getTotalStats", bridges.stats);
+    var pulseOk = putBridgeEntry(sr, map, "gltcMage_dealPulseDamage", bridges.pulse);
+    putBridgeEntry(sr, map, "gltcMage_invalidateCache", bridges.invalidate);
+    try {
+        PLUGIN.setMetadata("gltc_mage_api", new FixedMetadataValue(PLUGIN, api));
+    } catch (eMeta) {}
+    try { PLUGIN.gltcMageApi = api; } catch (eField) {}
+    try {
+        var RSC2 = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC2.INSTANCE != null) RSC2.INSTANCE.gltcMageApi = api;
+    } catch (eInst) {}
+    logMageBridgeOnce(calcOk, statsOk, pulseOk);
+    return calcOk;
+}
+
 try { PLUGIN.gltcMageApi = MAGE_API_EXPORT; } catch (eApi) {}
+try {
+    PLUGIN.setMetadata("gltc_mage_api", new FixedMetadataValue(PLUGIN, MAGE_API_EXPORT));
+} catch (eMetaPub) {}
+try {
+    if (PLUGIN.hasMetadata("gltc_shared_root_maps")) {
+        PLUGIN.getMetadata("gltc_shared_root_maps").get(0).value().put("gltcMageApi", MAGE_API_EXPORT);
+    }
+} catch (eRootPub) {}
+try { MAGE_API_EXPORT.publishMageJavaBridges = publishMageJavaBridges; } catch (eExp) {}
+try {
+    setPublishedMageApi(MAGE_API_EXPORT);
+    publishMageJavaBridges(MAGE_API_EXPORT);
+} catch (eAutoPub) {}
 MAGE_API_EXPORT;

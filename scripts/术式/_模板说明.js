@@ -1,44 +1,34 @@
 /**
- * 术式脚本模板 —— 复制为「术式/流派_环数_名称.js」，再在 术式/登记.js 的 SPELL_FILES 追加
+ * =============================================================================
+ *  GLTC 联合协议 · 术式系统 · 编写框架（本文件不参与加载，文件名以 _ 开头）
+ * =============================================================================
  *
- * 完整 AI 生成规范（架构铁律、会话 API、检查清单、常见错误）：
- *   scripts/_AI术式与施术道具生成指南.js
+ *  目录职责：
+ *  - 术式运行时/核心.js         ：会话、伤害、飞行 Display、左键二次操作（唯一权威）
+ *  - 施术道具/施术核心.js       ：右键施展 / 蹲下 GUI / 冷却 / 侵蚀（薄输入层）
+ *  - 施术道具/施术GUI.js        ：选术 GUI
+ *  - 施术道具/登记.js           ：可施术道具（法杖）登记
+ *  - 施术道具/技能核心登记.js   ：核心物品 → 槽位数 / skillId
+ *  - 施术道具/技能登记.js       ：扫描加载 核心技能_*.js
+ *  - 施术道具/核心技能_<名>.js  ：单个核心技能（如 辉墨摇篮 → light_ruin）
+ *  - 术式/登记.js               ：自动扫描 scripts/术式/*.js 并注册
+ *  - 术式/<流派>_<环>_<名>.js  ：单个术式（导出 cast）
+ *  - 机器/术式承载转换仪.js     ：刻录 GUI
  *
- * 命名：环夜谷_1_火球术.js 、 沃土_4_花如画卷.js
- * items.yml：book:true 时做同 ID 附魔书；groups 挂流派组
+ *  原则（对齐异能武器习惯）：
+ *  1. 每个术式 / 核心技能文件顶部用「=== 分区 ===」列出全部可调参数，并写中文注释。
+ *  2. 业务逻辑里禁止散落魔法数字；音量、粒子数、半径、击退等一律用顶部常量。
+ *  3. 运行时：施术核心会把 runtime 注入 mageApi.spellRuntime / getSpellRuntime()；
+ *     术式内优先用 mageApi，其次 Metadata 键 gltc_spell_runtime。
+ *  4. 术式由 术式/登记.js 扫描加载；勿在 items.yml 对术式脚本再绑 script。
+ *  5. 施术入口由 监听.js 单次加载施术核心；道具 onUse 只桥接到 gltcCastApi。
+ *  6. 核心技能单独文件，勿把实现堆进 技能登记.js。
  *
- * ── 导出必填 ──
- *   id, name, ring, cost, cooldownMs, cast
- *   book?, school?
+ *  单个术式导出约定：见 术式/_模板_瞬时.js
+ *  核心技能导出约定：见 施术道具/_模板_核心技能.js
  *
- * ── 伤害 ──
- *   mageApi.calcSpellDamage(player, 系数)
- *   UTIL.dealPhysicalSpellDamage / dealParticleSpellDamage / dealPulseSpellDamage
- *
- * ── 有状态术式（环绕/持续/左键二段）──
- *   api.begin → onClear 清实体与任务
- *   api.registerActiveLeftClick(player, SPELL_ID, Java Runnable)  ← 勿用跨上下文 JS 函数
- *   api.consumeSpellSignal(player, SPELL_ID, "lclick")  ← 环绕 tick 兜底
- *   api.registerDirectClearHook(SPELL_ID, fn)  ← PLUGIN 痕迹兜底
- *   api.end(player, token, false)
- *
- * ── 参考 ──
- *   瞬时：沃土_1_送花.js | 多段：沃土_2_微风花流.js
- *   持续：沃土_3_庇护脉络.js | 二段：沃土_4_花如画卷.js | 物理：环夜谷_1_火球术.js
+ *  参考：
+ *  - 术式/环夜谷_1_火球术.js
+ *  - 施术道具/核心技能_辉墨摇篮.js
+ *  - 武器/_模板说明.js
  */
-
-/*
-({
-    id: "VASA_示例术式",
-    name: "示例术式",
-    ring: 1,
-    cost: 2,
-    cooldownMs: 2000,
-    book: true,
-    cast: function(player, mageApi) {
-        var dmg = mageApi.calcSpellDamage(player, 1.0);
-        // UTIL.dealParticleSpellDamage(target, dmg, player, { ring: 1, name: "示例术式" });
-        return true;
-    }
-});
-*/

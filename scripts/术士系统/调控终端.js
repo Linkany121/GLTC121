@@ -15,10 +15,6 @@ var InventoryDragEvent = Java.type("org.bukkit.event.inventory.InventoryDragEven
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var ClickType = Java.type("org.bukkit.event.inventory.ClickType");
-var File = java.io.File;
-var Files = java.nio.file.Files;
-var StandardCharsets = java.nio.charset.StandardCharsets;
-var ByteBuffer = Java.type("java.nio.ByteBuffer");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 var GUI_TITLE = "§c§l彼岸钢™ · 智能调控终端";
@@ -36,46 +32,77 @@ var activeInventories = new java.util.HashSet();
 var sessionByInv = new java.util.HashMap();
 var resetConfirmUntil = {};
 var _listenerRegistered = false;
-var MAGE_API = null;
+var ADMIN_MAGE_API = null;
 
 function loadMageCore() {
-    try {
-        if (PLUGIN.gltcMageApi != null
-            && typeof PLUGIN.gltcMageApi.savePlayerStats === "function"
-            && typeof PLUGIN.gltcMageApi.getPlayerStats === "function"
-            && typeof PLUGIN.gltcMageApi.getCurrentParticles === "function") {
-            MAGE_API = PLUGIN.gltcMageApi;
-            return true;
-        }
-    } catch (e0) {}
-    if (MAGE_API && typeof MAGE_API.savePlayerStats === "function" && typeof MAGE_API.getPlayerStats === "function") return true;
-    var candidates = [
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js"),
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js")
-    ];
-    try {
-        var addonsDir = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons");
-        if (addonsDir.exists()) {
-            var list = addonsDir.listFiles();
-            if (list) {
-                for (var i = 0; i < list.length; i++) candidates.push(new File(list[i], "scripts/术士系统/核心.js"));
-            }
-        }
-    } catch (e) {}
-    for (var c = 0; c < candidates.length; c++) {
-        var file = candidates[c];
-        if (!file.exists()) continue;
+    function probe(api) {
+        if (api == null) return false;
         try {
-            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
-            var exported = (0, eval)(code);
-            if (exported && typeof exported.savePlayerStats === "function") {
-                MAGE_API = exported;
-                try { PLUGIN.gltcMageApi = exported; } catch (eSet) {}
+            if (api.getPlayerStats != null && api.savePlayerStats != null && api.adminResetAllData != null) {
                 return true;
             }
-        } catch (e2) {
-            Bukkit.getLogger().warning("[GLTC调控终端] 加载核心失败: " + e2);
+        } catch (e0) {}
+        try {
+            if (typeof api.getPlayerStats === "function"
+                && typeof api.savePlayerStats === "function"
+                && typeof api.adminResetAllData === "function") {
+                return true;
+            }
+        } catch (e1) {}
+        return false;
+    }
+    if (probe(ADMIN_MAGE_API)) return true;
+    ADMIN_MAGE_API = null;
+    try {
+        var loader = PLUGIN.gltcScriptLoader;
+        if (loader && loader.evalScriptExport) {
+            var fromLoader = loader.evalScriptExport("术士系统/核心.js", { isolated: true, cache: false });
+            if (probe(fromLoader)) {
+                ADMIN_MAGE_API = fromLoader;
+                try {
+                    if (typeof fromLoader.publishMageJavaBridges === "function") {
+                        fromLoader.publishMageJavaBridges(fromLoader);
+                    }
+                } catch (ePub) {}
+                return true;
+            }
         }
+    } catch (eLoader) {}
+    try {
+        var File = java.io.File;
+        var Files = java.nio.file.Files;
+        var StandardCharsets = java.nio.charset.StandardCharsets;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var dataDir = null;
+        try { dataDir = PLUGIN.getDataFolder(); } catch (eDf) {}
+        if (dataDir == null) {
+            try {
+                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+                if (RSC.INSTANCE != null) dataDir = RSC.INSTANCE.getDataFolder();
+            } catch (eR) {}
+        }
+        if (dataDir != null) {
+            var candidates = [
+                new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js"),
+                new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js")
+            ];
+            for (var i = 0; i < candidates.length; i++) {
+                if (!candidates[i].exists()) continue;
+                var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(candidates[i].toPath()))).toString();
+                var exported = (0, eval)(code);
+                if (probe(exported)) {
+                    ADMIN_MAGE_API = exported;
+                    try {
+                        if (typeof exported.publishMageJavaBridges === "function") {
+                            exported.publishMageJavaBridges(exported);
+                        }
+                    } catch (ePub) {}
+                    return true;
+                }
+            }
+        }
+    } catch (eEval) {
+        try { Bukkit.getLogger().warning("[GLTC调控终端] 本地加载术士核心失败: " + eEval); } catch (eL) {}
     }
     return false;
 }
@@ -162,7 +189,7 @@ function refreshGui(inv, player) {
     inv.setItem(SLOT_RESET, pane(Material.BARRIER, "§c§l重置全部数据", [
         "§7恢复默认数值、清空装备槽",
         "§7已装备组件会在关闭时归还",
-        "§7并清空粒子缓存后回满",
+        "§7并刷新属性缓存",
         confirmLeft > 0
             ? ("§e请在 §c" + confirmLeft + "§e 秒内再点一次确认")
             : "§c点击一次进入确认，再点一次标记重置",
@@ -217,11 +244,10 @@ function commitSession(player, session) {
         return;
     }
     if (session.resetAll) {
-        var rr = MAGE_API.adminResetAllData(player);
+        var rr = ADMIN_MAGE_API.adminResetAllData(player);
         if (rr.ok) {
-            try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
-            try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
-            try { MAGE_API.refillParticlesToCap(player); } catch (e2) {}
+            try { ADMIN_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+            try { ADMIN_MAGE_API.applyMageAttributes(player); } catch (e1) {}
             player.sendMessage(GLTC_PREFIX + "§c已重置并写入全部术士数据"
                 + (rr.returned > 0 ? (" §7(归还装备 §e" + rr.returned + " §7件)") : ""));
         } else {
@@ -229,10 +255,9 @@ function commitSession(player, session) {
         }
         return;
     }
-    try { MAGE_API.invalidatePlayerCache(uuid); } catch (e3) {}
-    var ok = MAGE_API.savePlayerStats(uuid, session.stats);
-    try { MAGE_API.applyMageAttributes(player); } catch (e4) {}
-    try { MAGE_API.refillParticlesToCap(player); } catch (e5) {}
+    try { ADMIN_MAGE_API.invalidatePlayerCache(uuid); } catch (e3) {}
+    var ok = ADMIN_MAGE_API.savePlayerStats(uuid, session.stats);
+    try { ADMIN_MAGE_API.applyMageAttributes(player); } catch (e4) {}
     if (ok) player.sendMessage(GLTC_PREFIX + "§a调控数据已写入并存档生效。");
     else player.sendMessage(GLTC_PREFIX + "§c写入存档失败。");
 }
@@ -252,7 +277,7 @@ function onUse(event) {
     }
 
     var uuid = String(player.getUniqueId().toString());
-    var base = MAGE_API.getPlayerStats(uuid);
+    var base = ADMIN_MAGE_API.getPlayerStats(uuid);
     var inv = Bukkit.createInventory(null, 27, GUI_TITLE);
     var session = {
         uuid: uuid,
@@ -340,8 +365,8 @@ function registerListeners() {
                     return;
                 }
                 delete resetConfirmUntil[uuid];
-                var defs = (typeof MAGE_API.defaultStats === "function")
-                    ? MAGE_API.defaultStats()
+                var defs = (typeof ADMIN_MAGE_API.defaultStats === "function")
+                    ? ADMIN_MAGE_API.defaultStats()
                     : { mageLevel: 0, magePotential: 0, bodyPotential: 0 };
                 session.stats = cloneData(defs);
                 session.resetAll = true;

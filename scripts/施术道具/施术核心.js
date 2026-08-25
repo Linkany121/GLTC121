@@ -1,38 +1,17 @@
-/**
- * 施术核心（施术 GUI）— 工作区.yml 规范
- * - 蹲下右键 / 蹲下左键：打开施术 GUI；开 GUI 时触发护身技（若有）
- * - 打开 GUI：清理当前术式逻辑与[未投射]残留；[已投射]保留
- * - GUI 内点击术式 → 确认选择并关闭
- * - 站立右键：施展当前选中术式（冷却 × 心血管强度；侵蚀时 CD × 侵蚀等级）
- * - 站立左键：当前术式额外效果
- * - 所有术式相关操作须主手持施术道具（数量=1）
- */
+// ===================================================================
+// 施术核心 v2 — 薄输入层（由 监听.js 单次加载；道具勿再 eval）
+// 职责：施术 GUI、冷却、侵蚀、右键施展、左键 → Runtime.dispatchLeftClick
+// 禁止写具体术式 ID；道具特效走 staff_hooks Map
+// ===================================================================
 
+// === Java 类型导入 ===
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var Material = Java.type("org.bukkit.Material");
-var NamespacedKey = Java.type("org.bukkit.NamespacedKey");
-var PersistentDataType = Java.type("org.bukkit.persistence.PersistentDataType");
 var Player = Java.type("org.bukkit.entity.Player");
 var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var PlayerItemHeldEvent = Java.type("org.bukkit.event.player.PlayerItemHeldEvent");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
-var _EDBE_GET_DAMAGER = (function () {
-    try { return EntityDamageByEntityEvent.getMethod("getDamager"); } catch (e) { return null; }
-})();
-function damageByEntityDamager(event) {
-    if (event == null) return null;
-    try {
-        if (!(event instanceof EntityDamageByEntityEvent)) return null;
-    } catch (e0) { return null; }
-    if (_EDBE_GET_DAMAGER != null) {
-        try { return _EDBE_GET_DAMAGER.invoke(event); } catch (e1) {}
-    }
-    try { return event.getDamager(); } catch (e2) {}
-    return null;
-}
-var PlayerSwapHandItemsEvent = Java.type("org.bukkit.event.player.PlayerSwapHandItemsEvent");
-var InventoryClickEvent = Java.type("org.bukkit.event.inventory.InventoryClickEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var EquipmentSlot = Java.type("org.bukkit.inventory.EquipmentSlot");
@@ -40,895 +19,955 @@ var File = java.io.File;
 var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
-
-var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
-var C_MSG = "§x§f§f§f§5§b§3";
-var C_SPELL = "§x§6§2§c§6§f§f";
-
-var KEY_SPELLS = new NamespacedKey("gltc", "staff_spells");
-var KEY_SELECTED = new NamespacedKey("gltc", "staff_selected");
-
-var STAFF_USE_DEBOUNCE_MS = 120;
-var EROSION_HP_PCT = 0.2;
-var META_STAFF_USE_AT = "gltc_staff_use_at";
-
-var MAGE_API = null;
-var STAFF_CFG = null;
-var SPELL_CFG = null;
-var GUI_API = null;
-var SPELL_SESSION_API = null;
-var SPELL_UTIL = null;
-var _depsReady = false;
-var _guiListenersRegistered = false;
-var _SlimefunItemClass = null;
-var _AttrGenericMaxHealth = null;
-var _AttrMaxHealth = null;
-var pendingCtxMap = sharedConcurrentMap("gltc_spell_pending_ctx");
-var pendingCtxTaskMap = sharedConcurrentMap("gltc_spell_pending_ctx_task");
+var CHM = Java.type("java.util.concurrent.ConcurrentHashMap");
 var FixedMetadataValue = null;
 try { FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue"); } catch (eMeta) {}
 var EventResult = null;
 try { EventResult = Java.type("org.bukkit.event.Event$Result"); } catch (eRes) {}
 
-function sharedConcurrentMap(field) {
+var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+
+// === 播报样式 ===
+var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
+var C_MSG       = "§x§f§f§f§5§b§3"; // 普通提示色
+var C_SPELL     = "§x§6§2§c§6§f§f"; // 术式名强调色（回退）
+
+var SlimefunItem = null;
+try { SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem"); } catch (eSf) {}
+
+// === 交互 / 侵蚀（可调）===
+var STAFF_USE_DEBOUNCE_MS   = 120;  // 右键施展防抖（毫秒，合并 Interact + onUse）
+var EROSION_HP_PCT          = 0.2;  // 侵蚀自伤：当前生命上限百分比（按术式侵蚀等级）
+var SPELL_CORE_LISTENER_VER = 1;    // 监听器版本号（热重载升级用）
+
+var CAST_MAGE_API = null;
+/** 用对象属性持有句柄：避免同引擎再次 var 同名时把闭包里的绑定冲成 null */
+var CAST_MAGE_HOLDER = { api: null };
+var STAFF_CFG = null;
+var SPELL_CFG = null;
+var SKILL_CORE_CFG = null;
+var SKILL_CFG = null;
+var GUI_API = null;
+var RUNTIME = null;
+var SCRIPT_LOADER = null;
+var STAFF_META = null;
+var _depsReady = false;
+var _guiListenersRegistered = false;
+var _listenersReady = false;
+var _mageDiagOnce = false;
+
+function jUuid(u) {
+    return java.lang.String.valueOf(String(u));
+}
+
+function getScriptLoader() {
+    if (SCRIPT_LOADER != null) return SCRIPT_LOADER;
     try {
-        var existing = PLUGIN[field];
-        if (existing != null && (existing instanceof java.util.concurrent.ConcurrentHashMap)) {
-            return existing;
-        }
-    } catch (e0) {}
-    var map = new java.util.concurrent.ConcurrentHashMap();
-    try { PLUGIN[field] = map; } catch (e1) {}
-    return map;
-}
-
-var castCdMap = sharedConcurrentMap("gltc_cast_cd_map");
-var staffUseTickMap = sharedConcurrentMap("gltc_staff_use_tick");
-var staffUseMsMap = sharedConcurrentMap("gltc_staff_use_ms");
-var staffInteractTickMap = sharedConcurrentMap("gltc_staff_interact_use_tick");
-var castInFlightMap = sharedConcurrentMap("gltc_cast_in_flight");
-var lastMainStaffMap = sharedConcurrentMap("gltc_last_main_staff_map");
-
-function mapUuidKey(uuid) {
-    return java.lang.String.valueOf(String(uuid));
-}
-
-function sharedStaffHooksMap() {
-    return sharedConcurrentMap("gltc_staff_hooks_map");
-}
-
-function asPlayerConsumer(fn) {
-    if (fn == null) return null;
-    try { if (fn.accept != null) return fn; } catch (e0) {}
-    try { if (fn instanceof java.util.function.Consumer) return fn; } catch (e1) {}
-    try {
-        return new (Java.extend(java.util.function.Consumer, {
-            accept: function(p) {
-                try { fn(p); } catch (e) {
-                    try { Bukkit.getLogger().warning("[GLTC施术] staffHook: " + e); } catch (e2) {}
-                }
-            }
-        }))();
-    } catch (e3) { return null; }
-}
-
-function invokeStaffConsumer(consumer, player) {
-    if (consumer == null || player == null) return;
-    try { consumer.accept(player); return; } catch (e0) {}
-    try { consumer(player); } catch (e1) {
-        try { Bukkit.getLogger().warning("[GLTC施术] staffHook invoke: " + e1); } catch (e2) {}
-    }
-}
-
-function setMetaLong(player, key, value) {
-    try {
-        if (FixedMetadataValue == null) return false;
-        player.setMetadata(key, new FixedMetadataValue(PLUGIN, Number(value)));
-        return true;
-    } catch (e) {}
-    return false;
-}
-
-var HUIMO_STAFF_ID = "VASA_辉墨摇篮";
-var HUIMO_ABILITY_CD_MS = 30000;
-var HUIMO_CD_MAP_KEY = "gltc_huimo_ability_cd";
-var RSC = null;
-try { RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer"); } catch (eRsc) {}
-
-function getSharedRoot() {
-    try {
-        if (RSC != null && RSC.INSTANCE != null) {
-            var inst = RSC.INSTANCE;
-            if (inst.gltcSharedMaps == null || !(inst.gltcSharedMaps instanceof java.util.concurrent.ConcurrentHashMap)) {
-                inst.gltcSharedMaps = new java.util.concurrent.ConcurrentHashMap();
-            }
-            return inst.gltcSharedMaps;
+        if (PLUGIN.gltcScriptLoader != null) {
+            SCRIPT_LOADER = PLUGIN.gltcScriptLoader;
+            return SCRIPT_LOADER;
         }
     } catch (e0) {}
     try {
-        if (PLUGIN.gltcSharedMaps == null || !(PLUGIN.gltcSharedMaps instanceof java.util.concurrent.ConcurrentHashMap)) {
-            PLUGIN.gltcSharedMaps = new java.util.concurrent.ConcurrentHashMap();
+        var candidates = [
+            new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/_gltcScriptLoader.js"),
+            new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/_gltcScriptLoader.js")
+        ];
+        for (var c = 0; c < candidates.length; c++) {
+            if (!candidates[c].exists()) continue;
+            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(candidates[c].toPath()))).toString();
+            SCRIPT_LOADER = (0, eval)(code);
+            try { PLUGIN.gltcScriptLoader = SCRIPT_LOADER; } catch (e1) {}
+            return SCRIPT_LOADER;
         }
-        return PLUGIN.gltcSharedMaps;
-    } catch (e1) {}
+    } catch (e2) {}
     return null;
 }
 
-function huimoAbilityCdMap() {
-    var root = getSharedRoot();
-    if (root == null) return null;
-    var existing = root.get(HUIMO_CD_MAP_KEY);
-    if (existing != null) return existing;
-    var map = new java.util.concurrent.ConcurrentHashMap();
-    var prev = root.putIfAbsent(HUIMO_CD_MAP_KEY, map);
-    return prev != null ? prev : map;
-}
-
-function readMapTimestamp(v) {
-    if (v == null) return NaN;
-    try {
-        if (typeof v.longValue === "function") return Number(v.longValue());
-    } catch (e0) {}
-    try { return Number(v); } catch (e1) {}
-    return NaN;
-}
-
-function isHuimoAbilityOnCd(player) {
-    if (!player) return false;
-    try {
-        if (getSfId(player.getInventory().getItemInMainHand()) !== HUIMO_STAFF_ID) return false;
-        var map = huimoAbilityCdMap();
-        if (map == null) return false;
-        var last = map.get(mapUuidKey(String(player.getUniqueId().toString())));
-        if (last == null) return false;
-        var ts = readMapTimestamp(last);
-        if (!isFinite(ts)) return false;
-        return (Date.now() - ts) < HUIMO_ABILITY_CD_MS;
-    } catch (e) { return false; }
-}
-
-function huimoAbilityCdLeftSec(player) {
-    if (!player) return 1;
-    try {
-        var map = huimoAbilityCdMap();
-        if (map == null) return 1;
-        var ts = readMapTimestamp(map.get(mapUuidKey(String(player.getUniqueId().toString()))));
-        if (!isFinite(ts)) return 1;
-        return Math.max(1, Math.ceil((HUIMO_ABILITY_CD_MS - (Date.now() - ts)) / 1000));
-    } catch (e) { return 1; }
-}
-
-function markHuimoAbilityCd(player) {
-    if (!player) return;
-    try {
-        var map = huimoAbilityCdMap();
-        if (map == null) return;
-        var now = java.lang.Long.parseLong(String(Math.floor(Date.now())), 10);
-        map.put(mapUuidKey(String(player.getUniqueId().toString())), now);
-    } catch (e) {}
-}
-
-/** 辉墨摇篮「光影废墟」：从 Java 宿主桥调用，勿用跨上下文 Consumer/JS 函数 */
-function dispatchHuimoSneakAbility(player) {
-    if (!player || !(player instanceof Player)) return;
-    try {
-        if (getSfId(player.getInventory().getItemInMainHand()) !== HUIMO_STAFF_ID) return;
-    } catch (eId) { return; }
-    if (isHuimoAbilityOnCd(player)) {
-        var left = huimoAbilityCdLeftSec(player);
-        try { player.sendActionBar("§8光影废墟冷却中… §e" + left + "§7s"); } catch (eA) {}
-        return;
-    }
-
-    var activator = null;
-    try {
-        if (RSC != null && RSC.INSTANCE != null) activator = RSC.INSTANCE.gltcHuimoActivateBridge;
-    } catch (eInst) {}
-    if (activator == null) {
-        try {
-            var root = getSharedRoot();
-            if (root != null) activator = root.get("gltc_huimo_activator");
-        } catch (eRoot) {}
-    }
-    if (activator == null) {
-        try { activator = PLUGIN.gltcHuimoActivateBridge; } catch (ePl) {}
-    }
-    if (activator != null) {
-        try {
-            activator.activate(player);
-            return;
-        } catch (eAct) {
-            try { Bukkit.getLogger().warning("[GLTC施术] huimoActivate: " + eAct); } catch (eLog) {}
-        }
-    }
-    try {
-        Bukkit.getLogger().warning("[GLTC施术] 辉墨摇篮 activator 未注册，光影废墟未触发（请重载插件）");
-    } catch (eWarn) {}
-}
-
-/** 辉墨摇篮开 GUI 时触发光影废墟 */
-function grantStaffSneakAbilityToken(player) {
-    if (!player) return;
-    try { setMetaLong(player, "gltc_staff_sneak_ability_token", Date.now()); } catch (eTok) {}
-    dispatchHuimoSneakAbility(player);
-}
-
-function currentServerTick() {
-    try { return Number(Bukkit.getCurrentTick()); } catch (e0) {}
-    try { return Number(Bukkit.getServer().getCurrentTick()); } catch (e1) {}
-    return -1;
-}
-
-function isInteractReadyFlag() {
-    try {
-        var f = PLUGIN.gltcSpellCoreInteractReady;
-        if (f === true) return true;
-        if (f != null && typeof f.booleanValue === "function" && f.booleanValue()) return true;
-    } catch (e0) {}
-    return false;
-}
-
-function isStaffUseHandledByInteract() {
-    if (isInteractReadyFlag()) return true;
-    try { return PLUGIN.gltcSpellCoreListener != null; } catch (e) {}
-    return false;
-}
-
-function shouldSkipStaffOnUse(player) {
-    if (isStaffUseHandledByInteract()) return true;
-    if (!player) return false;
-    try {
-        var gk = mapUuidKey(String(player.getUniqueId().toString()));
-        var tick = currentServerTick();
-        if (tick >= 0) {
-            var lastTick = staffInteractTickMap.get(gk);
-            if (lastTick != null && Number(lastTick) === tick) return true;
-        }
-        var lastMs = staffUseMsMap.get(gk);
-        if (lastMs != null && Date.now() - Number(lastMs) < STAFF_USE_DEBOUNCE_MS) return true;
-    } catch (e0) {}
-    return false;
-}
-
-function markStaffInteractHandled(player) {
-    if (!player) return;
-    try {
-        var gk = mapUuidKey(String(player.getUniqueId().toString()));
-        var tick = currentServerTick();
-        if (tick >= 0) {
-            var tv = java.lang.Long.parseLong(String(Math.floor(tick)), 10);
-            staffInteractTickMap.put(gk, tv);
-        }
-        setMetaLong(player, META_STAFF_USE_AT, Date.now());
-    } catch (e) {}
-}
-
-function shouldClickDebounce(player) {
-    if (!player) return true;
-    var gk = mapUuidKey(String(player.getUniqueId().toString()));
-    var now = Date.now();
-    try {
-        var lastMs = staffUseMsMap.get(gk);
-        if (lastMs != null && now - Number(lastMs) < STAFF_USE_DEBOUNCE_MS) return true;
-    } catch (e0) {}
-    try {
-        var tick = currentServerTick();
-        if (tick >= 0) {
-            var lastTick = staffUseTickMap.get(gk);
-            if (lastTick != null && Number(lastTick) === tick) return true;
-        }
-    } catch (e1) {}
-    staffUseMsMap.put(gk, java.lang.Long.parseLong(String(Math.floor(now)), 10));
-    try {
-        var debTick = currentServerTick();
-        if (debTick >= 0) {
-            staffUseTickMap.put(gk, java.lang.Long.parseLong(String(Math.floor(debTick)), 10));
-        }
-    } catch (eTick) {}
-    return false;
-}
-
-function registerStaffHooks(staffId, hooks) {
-    if (!staffId || !hooks) return;
-    try {
-        var map = sharedStaffHooksMap();
-        var id = String(staffId);
-        if (hooks.onSneakUse != null) {
-            var sneak = asPlayerConsumer(hooks.onSneakUse);
-            if (sneak != null) map.put(id + "|sneak", sneak);
-        }
-        if (hooks.onAfterCast != null) {
-            var after = asPlayerConsumer(hooks.onAfterCast);
-            if (after != null) map.put(id + "|after", after);
-        }
-        if (hooks.skillHint) map.put(id + "|hint", String(hooks.skillHint));
-    } catch (e) {
-        try { Bukkit.getLogger().warning("[GLTC施术] registerStaffHooks: " + e); } catch (e2) {}
-    }
-}
-
-function getStaffHooksFor(player) {
-    try {
-        var hand = player.getInventory().getItemInMainHand();
-        var id = getSfId(hand);
-        if (!id) return {};
-        var map = sharedStaffHooksMap();
-        return {
-            onSneakUse: map.get(String(id) + "|sneak"),
-            onAfterCast: map.get(String(id) + "|after"),
-            skillHint: map.get(String(id) + "|hint")
-        };
-    } catch (e) {}
-    return {};
-}
-
-function mergeStaffOpts(player, opts) {
-    var base = getStaffHooksFor(player) || {};
-    opts = opts || {};
-    var sneak = null;
-    var after = null;
-    try {
-        if (opts.onSneakUse != null) sneak = asPlayerConsumer(opts.onSneakUse) || opts.onSneakUse;
-        else sneak = base.onSneakUse;
-    } catch (e0) {}
-    try {
-        if (opts.onAfterCast != null) after = asPlayerConsumer(opts.onAfterCast) || opts.onAfterCast;
-        else after = base.onAfterCast;
-    } catch (e1) {}
-    return { onSneakUse: sneak, onAfterCast: after, skillHint: base.skillHint };
-}
-
-function findScriptFile(rel) {
-    var candidates = [
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/" + rel),
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/" + rel)
-    ];
-    try {
-        var addonsDir = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons");
-        if (addonsDir.exists()) {
-            var list = addonsDir.listFiles();
-            if (list) {
-                for (var i = 0; i < list.length; i++) {
-                    candidates.push(new File(list[i], "scripts/" + rel));
-                }
-            }
-        }
-    } catch (e) {}
-    for (var c = 0; c < candidates.length; c++) {
-        if (candidates[c].exists()) return candidates[c];
-    }
+function evalScript(rel) {
+    var loader = getScriptLoader();
+    // isolated：避免 _staffMeta 等覆盖本文件同名函数
+    if (loader && loader.evalScriptExport) return loader.evalScriptExport(rel, { isolated: true });
     return null;
 }
 
-function evalScriptExport(rel) {
-    var file = findScriptFile(rel);
-    if (!file) return null;
-    try {
-        var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
-        return (0, eval)(code);
-    } catch (e) {
-        Bukkit.getLogger().warning("[GLTC施术] 加载失败 " + rel + ": " + e);
-        return null;
-    }
+function getStaffMetaApi() {
+    if (STAFF_META != null) return STAFF_META;
+    STAFF_META = evalScript("施术道具/_staffMeta.js");
+    return STAFF_META;
 }
 
-function loadDeps() {
-    if (_depsReady) return true;
-    if (!MAGE_API) {
-        MAGE_API = evalScriptExport("术士系统/核心.js");
-        try { if (MAGE_API) PLUGIN.gltcMageApi = MAGE_API; } catch (e1) {}
-    }
-    if (!STAFF_CFG) STAFF_CFG = evalScriptExport("施术道具/登记.js");
-    if (!SPELL_CFG) SPELL_CFG = evalScriptExport("术式/登记.js");
-    if (!GUI_API) GUI_API = evalScriptExport("施术道具/施术GUI.js");
-    ensureSpellSessionApi();
-    ensureSpellUtil();
-    if (!_guiListenersRegistered && GUI_API) {
+function toJavaLong(n) {
+    var v = Math.floor(Number(n));
+    if (!isFinite(v)) v = 0;
+    return java.lang.Long.parseLong(String(v), 10);
+}
+
+function getRuntime() {
+    if (RUNTIME != null) return RUNTIME;
+    // 1) 独立 Metadata（跨上下文）
+    try {
+        if (PLUGIN != null && PLUGIN.hasMetadata("gltc_spell_runtime")) {
+            var direct = PLUGIN.getMetadata("gltc_spell_runtime").get(0).value();
+            if (direct != null) {
+                RUNTIME = direct;
+                return RUNTIME;
+            }
+        }
+    } catch (eDirect) {}
+    var META_SHARED = "gltc_shared_root_maps";
+    try {
+        if (PLUGIN != null && PLUGIN.hasMetadata(META_SHARED)) {
+            var root = PLUGIN.getMetadata(META_SHARED).get(0).value();
+            if (root != null) {
+                var rtMeta = root.get("gltcSpellRuntime");
+                if (rtMeta != null) {
+                    RUNTIME = rtMeta;
+                    return RUNTIME;
+                }
+            }
+        }
+    } catch (eMeta) {}
+    try {
+        if (PLUGIN.gltcSpellRuntime != null) {
+            RUNTIME = PLUGIN.gltcSpellRuntime;
+            return RUNTIME;
+        }
+    } catch (e0) {}
+    try {
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null && RSC.INSTANCE.gltcSpellRuntime != null) {
+            RUNTIME = RSC.INSTANCE.gltcSpellRuntime;
+            return RUNTIME;
+        }
+    } catch (eRsc) {}
+    try {
+        var rootApi = evalScript("_gltcSharedRoot.js");
+        if (rootApi && rootApi.getGltcSharedRoot) {
+            var rt = rootApi.getGltcSharedRoot().get("gltcSpellRuntime");
+            if (rt != null) {
+                RUNTIME = rt;
+                return RUNTIME;
+            }
+        }
+    } catch (eRoot) {}
+    // 最后：从 loader 缓存取（boot 已 put）；勿在无缓存时盲目重 eval
+    try {
+        var loader = getScriptLoader();
+        if (loader && loader.evalScriptExport) {
+            var cache = null;
+            try { cache = PLUGIN.gltcEvalCache; } catch (eC) {}
+            var cached = null;
+            try { if (cache != null) cached = cache.get("术式运行时/核心.js"); } catch (eC2) {}
+            if (cached != null) {
+                RUNTIME = cached;
+                return RUNTIME;
+            }
+        }
+    } catch (eL) {}
+    return RUNTIME;
+}
+
+/** 由 监听.js 在 boot 时注入同一份运行时句柄（跨 Graal 上下文必做） */
+function bindRuntime(rt) {
+    if (rt == null) return false;
+    RUNTIME = rt;
+    try {
+        var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
+        PLUGIN.setMetadata("gltc_spell_runtime", new FixedMetadataValue(PLUGIN, rt));
+    } catch (e0) {}
+    try {
+        if (PLUGIN.hasMetadata("gltc_shared_root_maps")) {
+            PLUGIN.getMetadata("gltc_shared_root_maps").get(0).value().put("gltcSpellRuntime", rt);
+        }
+    } catch (e1) {}
+    return true;
+}
+
+/** Graal 跨上下文时 typeof 可能不是 "function"，以可调用为准 */
+function hasCalcSpellDamage(api) {
+    if (api == null) return false;
+    try {
+        if (typeof api.calcSpellDamage === "function") return true;
+    } catch (e0) {}
+    try { return api.calcSpellDamage != null; } catch (e1) { return false; }
+}
+
+function getSharedRootBridgeApi() {
+    if (SCRIPT_LOADER == null) getScriptLoader();
+    try {
+        if (SCRIPT_LOADER && SCRIPT_LOADER.evalScriptExport) {
+            var api = SCRIPT_LOADER.evalScriptExport("_gltcSharedRoot.js", { isolated: true, cache: true });
+            if (api != null) return api;
+        }
+    } catch (e0) {}
+    return null;
+}
+
+function bridgeGet(key) {
+    var sr = getSharedRootBridgeApi();
+    if (sr != null && sr.getJavaBridge != null) {
         try {
-            if (GUI_API.registerListeners != null) GUI_API.registerListeners(getGuiContextProvider);
-            _guiListenersRegistered = true;
-        } catch (eGui) {}
+            var v = sr.getJavaBridge(key);
+            if (v != null) return v;
+        } catch (e0) {}
     }
-    _depsReady = !!(MAGE_API && STAFF_CFG && SPELL_CFG);
-    return _depsReady;
-}
-
-/** 本上下文只 eval 一次 _工具.js */
-function ensureSpellUtil() {
-    if (SPELL_UTIL != null) return SPELL_UTIL;
-    SPELL_UTIL = evalScriptExport("术式/_工具.js");
     try {
-        if (SPELL_UTIL && typeof SPELL_UTIL.ensureSpellDamageListener === "function") {
-            SPELL_UTIL.ensureSpellDamageListener();
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null && RSC.INSTANCE.gltcJavaBridges != null) {
+            var v2 = RSC.INSTANCE.gltcJavaBridges.get(String(key));
+            if (v2 != null) return v2;
         }
-    } catch (eDmg) {}
-    return SPELL_UTIL;
-}
-
-/** 本上下文只 eval 一次；勿从 PLUGIN 取跨上下文 API 对象 */
-function ensureSpellSessionApi() {
-    if (SPELL_SESSION_API != null) return SPELL_SESSION_API;
-    var util = ensureSpellUtil();
-    if (util && util.spellSession) {
-        SPELL_SESSION_API = util.spellSession;
-        try { PLUGIN.gltcSpellSessionApi = SPELL_SESSION_API; } catch (e1) {}
-    }
-    return SPELL_SESSION_API;
-}
-
-function invokeSessionMethod(method, args) {
-    var api = ensureSpellSessionApi();
-    if (api == null) return null;
+    } catch (e1) {}
     try {
-        var fn = api[method];
-        if (fn == null) return null;
-        if (args.length === 0) return fn();
-        if (args.length === 1) return fn(args[0]);
-        if (args.length === 2) return fn(args[0], args[1]);
-        if (args.length === 3) return fn(args[0], args[1], args[2]);
-        return fn.apply(api, args);
-    } catch (e) {
-        return null;
-    }
-}
-
-function invokeSessionBridgeContextChange(player, keep, reason) {
-    try {
-        var bridge = PLUGIN.gltcSpellSessionBridge;
-        if (bridge != null) {
-            bridge.onContextChange(player, keep, reason);
-            return true;
+        if (PLUGIN != null && PLUGIN.gltcJavaBridges != null) {
+            return PLUGIN.gltcJavaBridges.get(String(key));
         }
-    } catch (eB) {}
-    return false;
+    } catch (e2) {}
+    return null;
 }
 
-function invokeSessionBridgeClear(player, onlySpellId, exceptSpellId, reason) {
-    try {
-        var bridge = PLUGIN.gltcSpellSessionBridge;
-        if (bridge != null) {
-            bridge.clearForPlayer(
-                player,
-                onlySpellId != null ? String(onlySpellId) : "",
-                exceptSpellId != null ? String(exceptSpellId) : "",
-                reason != null ? String(reason) : "manual"
-            );
-            return true;
-        }
-    } catch (eB) {}
-    return false;
-}
-
-function getGuiContextProvider() {
+function mageApiFromJavaBridges() {
+    var calc = bridgeGet("gltcMage_calcSpellDamage");
+    var stats = bridgeGet("gltcMage_getTotalStats");
+    var pulse = bridgeGet("gltcMage_dealPulseDamage");
+    if (calc == null && stats == null) return null;
     return {
-        getStaffMeta: getStaffMeta,
-        setSelectedSpell: setSelectedSpell,
-        notifySpellContextChange: notifySpellContextChange,
-        scheduleNotifySpellContextChange: scheduleNotifySpellContextChange,
-        getStaffHooks: getStaffHooksFor,
-        SPELL_CFG: SPELL_CFG,
-        STAFF_CFG: STAFF_CFG
+        calcSpellDamage: function(player, spellCoefficient) {
+            if (calc == null) return NaN;
+            try {
+                return Number(calc.apply(player, java.lang.Double.valueOf(Number(spellCoefficient) || 0)));
+            } catch (e) { return NaN; }
+        },
+        getTotalStats: function(player, includeStaff) {
+            if (stats == null) return null;
+            try {
+                var flag = includeStaff !== false;
+                var raw = stats.apply(player, flag ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE);
+                if (raw == null) return null;
+                function num(k) {
+                    try {
+                        if (raw.get != null) return Number(raw.get(k)) || 0;
+                    } catch (e0) {}
+                    try { return Number(raw[k]) || 0; } catch (e1) { return 0; }
+                }
+                return {
+                    mageLevel: num("mageLevel"),
+                    particlePower: num("particlePower"),
+                    cardiovascular: num("cardiovascular"),
+                    particleRefraction: num("particleRefraction"),
+                    finalDamageReduction: num("finalDamageReduction")
+                };
+            } catch (e) { return null; }
+        },
+        calcSpellCooldownMs: function(player, baseMs, erosion) {
+            var base = Math.max(50, Math.floor(Number(baseMs) || 1000));
+            var er = Math.floor(Number(erosion) || 0);
+            var cd = base;
+            try {
+                var st = this.getTotalStats(player, true);
+                var cardio = Number(st && st.cardiovascular) || 0;
+                if (cardio > 0) {
+                    cd = Math.max(50, Math.floor(base * Math.max(0.01, 1 - Math.min(0.99, cardio))));
+                }
+            } catch (eC) {}
+            if (er > 0) cd = Math.max(50, Math.floor(cd * er));
+            return cd;
+        },
+        dealPulseDamage: function(target, amount, attacker) {
+            if (pulse == null) return false;
+            try {
+                var list = new java.util.ArrayList();
+                list.add(target);
+                list.add(java.lang.Double.valueOf(Number(amount) || 0));
+                list.add(attacker);
+                pulse.accept(list);
+                return true;
+            } catch (e) { return false; }
+        },
+        __fromJavaBridge: true
     };
 }
 
-function openSpellGui(player) {
-    if (!loadDeps() || !GUI_API) return false;
+/** boot 注入真实术士 API（会 publish Java 桥）；禁止把 bridge facade 钉进 holder */
+function rememberMageApi(api) {
+    if (!hasCalcSpellDamage(api)) return false;
+    if (api && api.__fromJavaBridge) return false;
+    CAST_MAGE_API = api;
+    try { CAST_MAGE_HOLDER.api = api; } catch (eH) {}
+    try { PLUGIN.gltcMageApi = api; } catch (e0) {}
     try {
-        return GUI_API.open(player, getGuiContextProvider());
-    } catch (eOpen) {
-        return false;
-    }
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null) RSC.INSTANCE.gltcMageApi = api;
+    } catch (eInst) {}
+    try {
+        if (FixedMetadataValue != null) {
+            PLUGIN.setMetadata("gltc_mage_api", new FixedMetadataValue(PLUGIN, api));
+        }
+    } catch (e1) {}
+    try {
+        if (PLUGIN.hasMetadata("gltc_shared_root_maps")) {
+            PLUGIN.getMetadata("gltc_shared_root_maps").get(0).value().put("gltcMageApi", api);
+        }
+    } catch (e2) {}
+    try {
+        if (bridgeGet("gltcMage_calcSpellDamage") == null
+            && typeof api.publishMageJavaBridges === "function") {
+            api.publishMageJavaBridges(api);
+        }
+    } catch (eBr) {}
+    return true;
 }
 
-function isSpellGuiOpen(player) {
-    if (GUI_API && typeof GUI_API.isGuiOpen === "function") return GUI_API.isGuiOpen(player);
-    return false;
+function bindMageApi(api) {
+    return rememberMageApi(api);
 }
 
-function getSpellSessionApi() {
-    return ensureSpellSessionApi();
-}
-
-function notifySpellContextChange(player, keepSpellId, reason) {
-    var keep = keepSpellId ? String(keepSpellId) : "";
-    var r = reason || "switch";
-    if (!invokeSessionBridgeContextChange(player, keep, r)) {
-        try { invokeSessionMethod("onContextChange", [player, keep, r]); } catch (e) {}
-    }
-    try { directClearKnownSpellFx(player, keepSpellId); } catch (e3) {}
-}
-
-/** 合并同一 tick 内多次 context 变更（开 GUI + 切术只执行一次 switch） */
-function scheduleNotifySpellContextChange(player, keepSpellId, reason) {
-    if (!player || !(player instanceof Player)) return;
-    var keep = keepSpellId ? String(keepSpellId) : "";
-    var r = reason || "switch";
-    var key = mapUuidKey(String(player.getUniqueId().toString()));
+function cleanseBridgeFromHolder() {
     try {
-        var prev = pendingCtxMap.get(key);
-        if (prev != null && prev.reason === "switch" && r === "gui") return;
-    } catch (ePrev) {}
-    try {
-        pendingCtxMap.put(key, { keep: keep, reason: r });
-    } catch (ePut) {}
-    try {
-        if (pendingCtxTaskMap.containsKey(key)) return;
-        pendingCtxTaskMap.put(key, java.lang.Boolean.TRUE);
-    } catch (eTask) { return; }
-    try {
-        Bukkit.getScheduler().runTask(PLUGIN, function() {
-            try { pendingCtxTaskMap.remove(key); } catch (eRm) {}
-            var job = null;
-            try { job = pendingCtxMap.remove(key); } catch (eGet) {}
-            if (!job || !player.isOnline()) return;
-            notifySpellContextChange(player, job.keep, job.reason);
-        });
-    } catch (eSch) {
-        try { pendingCtxTaskMap.remove(key); } catch (eRm2) {}
-        notifySpellContextChange(player, keep, r);
-    }
-}
-
-function cancelPendingSpellContextChange(player) {
-    if (!player) return;
-    var key = mapUuidKey(String(player.getUniqueId().toString()));
-    try { pendingCtxMap.remove(key); } catch (e0) {}
-}
-
-function invokeDirectClearHook(spellId, player) {
-    if (!spellId || !player) return;
-    try {
-        var store = PLUGIN.gltc_spell_direct_clear_hooks;
-        if (store == null) return;
-        var ent = store.get(String(spellId));
-        if (ent == null) return;
-        if (ent.clear != null) ent.clear(player);
-        else if (typeof ent === "function") ent(player);
+        var h = CAST_MAGE_HOLDER.api;
+        if (h != null && h.__fromJavaBridge) CAST_MAGE_HOLDER.api = null;
     } catch (e) {}
 }
 
-function invokeSessionBridgeLeftClick(player, spellId) {
+/** bridge 缺失时补发一次（不刷屏） */
+function ensureMageJavaBridges() {
+    if (bridgeGet("gltcMage_calcSpellDamage") != null) return true;
+    var api = null;
     try {
-        var bridge = PLUGIN.gltcSpellSessionBridge;
-        if (bridge != null) {
-            if (bridge.dispatchActiveLeftClick != null && bridge.dispatchActiveLeftClick(player)) return true;
-            if (bridge.handleLeftClickWithSpellId != null) {
-                return bridge.handleLeftClickWithSpellId(player, spellId != null ? String(spellId) : "") === true;
-            }
-        }
-    } catch (eB) {}
-    return false;
-}
-
-function scheduleClosePlayerInventory(player) {
-    if (!player || !(player instanceof Player)) return;
-    try {
-        Bukkit.getScheduler().runTask(PLUGIN, function() {
-            try { if (player.isOnline()) player.closeInventory(); } catch (e) {}
-        });
-    } catch (eSch) {
-        try { player.closeInventory(); } catch (e) {}
-    }
-}
-
-function directClearKnownSpellFx(player, keepSpellId) {
-    if (!player) return;
-    var uuid = String(player.getUniqueId().toString());
-    var keep = keepSpellId ? String(keepSpellId) : "";
-    if (keep !== "VASA_花如画卷") {
-        invokeDirectClearHook("VASA_花如画卷", player);
-    }
-    if (keep !== "VASA_庇护脉络") {
+        var h = CAST_MAGE_HOLDER.api;
+        if (h != null && !h.__fromJavaBridge && hasCalcSpellDamage(h)) api = h;
+    } catch (eH) {}
+    if (api == null) {
         try {
-            var aura = PLUGIN.gltc_bihu_aura_store;
-            if (aura != null) {
-                var auraKey = java.lang.String.valueOf(uuid);
-                var st = null;
-                try { st = aura.remove(auraKey); } catch (eAk) {}
-                if (st == null) try { st = aura.remove(uuid); } catch (eAk2) {}
-                if (st != null) {
-                    try { st.alive = false; } catch (eA0) {}
-                    try { if (st.taskId != null) Bukkit.getScheduler().cancelTask(Number(st.taskId)); } catch (eA1) {}
-                    try { if (st.task != null) st.task.cancel(); } catch (eA2) {}
-                }
-            }
-        } catch (eAura) {}
+            if (PLUGIN != null && hasCalcSpellDamage(PLUGIN.gltcMageApi)) api = PLUGIN.gltcMageApi;
+        } catch (eP) {}
     }
+    if (api == null) {
+        try {
+            var cache = PLUGIN != null ? PLUGIN.gltcEvalCache : null;
+            if (cache != null) api = cache.get("术士系统/核心.js");
+        } catch (eC) {}
+    }
+    if (api != null && typeof api.publishMageJavaBridges === "function") {
+        try { return !!api.publishMageJavaBridges(api); } catch (ePub) {}
+    }
+    return false;
 }
 
-function syncStaffHoldState(player, reasonIfLost) {
-    if (!player) return;
-    var uuid = String(player.getUniqueId().toString());
-    var hand = player.getInventory().getItemInMainHand();
-    var holding = false;
-    try { holding = isMageStaffItem(hand) && hand.getAmount() === 1; } catch (e0) {}
-    var was = false;
+/** 每次现取：同上下文 boot 句柄 → Java 桥 → Metadata */
+function resolveMageApi() {
+    cleanseBridgeFromHolder();
+
+    var local = CAST_MAGE_HOLDER.api;
+    if (local && !local.__fromJavaBridge && hasCalcSpellDamage(local)) return local;
+    if (CAST_MAGE_API && !CAST_MAGE_API.__fromJavaBridge && hasCalcSpellDamage(CAST_MAGE_API)) {
+        return CAST_MAGE_API;
+    }
     try {
-        var prevHold = lastMainStaffMap.get(mapUuidKey(uuid));
-        was = prevHold != null && (prevHold === true || prevHold === java.lang.Boolean.TRUE);
-    } catch (eWas) {}
+        if (PLUGIN != null && hasCalcSpellDamage(PLUGIN.gltcMageApi)) return PLUGIN.gltcMageApi;
+    } catch (eP) {}
     try {
-        lastMainStaffMap.put(mapUuidKey(uuid), holding ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE);
-    } catch (ePut) {}
-    if (was && !holding) {
-        if (isSpellGuiOpen(player)) {
-            scheduleClosePlayerInventory(player);
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null && hasCalcSpellDamage(RSC.INSTANCE.gltcMageApi)) {
+            return RSC.INSTANCE.gltcMageApi;
         }
-        notifySpellContextChange(player, "", reasonIfLost || "hold");
-    }
+    } catch (eInst) {}
+    try {
+        if (PLUGIN != null && PLUGIN.hasMetadata("gltc_mage_api")) {
+            var fromMeta = PLUGIN.getMetadata("gltc_mage_api").get(0).value();
+            if (fromMeta && !fromMeta.__fromJavaBridge && hasCalcSpellDamage(fromMeta)) return fromMeta;
+        }
+    } catch (eM) {}
+
+    var bridged = mageApiFromJavaBridges();
+    if (bridged != null) return bridged;
+
+    ensureMageJavaBridges();
+    bridged = mageApiFromJavaBridges();
+    if (bridged != null) return bridged;
+
+    return null;
 }
 
-function getSelectedSpellId(player) {
+function logMageDiag(tag) {
+    if (_mageDiagOnce) return;
+    _mageDiagOnce = true;
     try {
-        var data = getStaffMeta(player.getInventory().getItemInMainHand());
-        if (!data || !data.spells) return null;
-        var id = data.spells[data.selected];
-        return id ? String(id) : null;
-    } catch (e) {}
-    return null;
+        var bridgeOk = bridgeGet("gltcMage_calcSpellDamage") != null;
+        var holderOk = false;
+        try {
+            var h = CAST_MAGE_HOLDER.api;
+            holderOk = h != null && !h.__fromJavaBridge && hasCalcSpellDamage(h);
+        } catch (eH) {}
+        if (holderOk || bridgeOk) return;
+        Bukkit.getLogger().warning("[GLTC施术] mage诊断(" + tag
+            + ") holder=" + holderOk
+            + " bridge=" + bridgeOk
+            + " deps=" + _depsReady);
+    } catch (eW) {}
+}
+
+/**
+ * 施术注入 runtime。
+ * 每次方法调用都 resolveMageApi()——禁止钉死开服句柄，粒子强度/等级必须现读。
+ */
+function prepareCastApi(runtime) {
+    function live() {
+        cleanseBridgeFromHolder();
+        var a = resolveMageApi();
+        if (a != null) return a;
+        try { loadDeps(); } catch (eLd) {}
+        a = resolveMageApi();
+        if (a != null) return a;
+        ensureMageJavaBridges();
+        return resolveMageApi();
+    }
+    if (live() == null) logMageDiag("prepare");
+    return {
+        calcSpellDamage: function(player, spellCoefficient) {
+            var coeff = Number(spellCoefficient) || 0;
+            var calcBr = bridgeGet("gltcMage_calcSpellDamage");
+            if (calcBr != null) {
+                try {
+                    var bv = Number(calcBr.apply(player, java.lang.Double.valueOf(coeff)));
+                    if (bv > 0 && isFinite(bv)) return bv;
+                } catch (eBr) {}
+            }
+            var a = live();
+            if (a != null && hasCalcSpellDamage(a)) {
+                try {
+                    var v = Number(a.calcSpellDamage(player, coeff));
+                    if (v > 0 && isFinite(v)) return v;
+                } catch (e0) {}
+            }
+            logMageDiag("calc");
+            return coeff > 0 ? coeff : 0;
+        },
+        calcSpellCooldownMs: function(player, baseMs, erosion) {
+            var a = live();
+            if (a != null && a.calcSpellCooldownMs != null) {
+                try { return a.calcSpellCooldownMs(player, baseMs, erosion); } catch (e0) {}
+            }
+            var cd = Math.max(50, Math.floor(Number(baseMs) || 1000));
+            var er = Math.floor(Number(erosion) || 0);
+            if (er > 0) cd = Math.max(50, Math.floor(cd * er));
+            return cd;
+        },
+        getTotalStats: function(player, includeStaff) {
+            var statsBr = bridgeGet("gltcMage_getTotalStats");
+            if (statsBr != null) {
+                try {
+                    var flag = includeStaff !== false;
+                    var raw = statsBr.apply(player, flag ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE);
+                    if (raw != null) {
+                        function num(k) {
+                            try {
+                                if (raw.get != null) return Number(raw.get(k)) || 0;
+                            } catch (e0) {}
+                            try { return Number(raw[k]) || 0; } catch (e1) { return 0; }
+                        }
+                        return {
+                            mageLevel: num("mageLevel"),
+                            particlePower: num("particlePower"),
+                            cardiovascular: num("cardiovascular"),
+                            particleRefraction: num("particleRefraction"),
+                            finalDamageReduction: num("finalDamageReduction")
+                        };
+                    }
+                } catch (eBr) {}
+            }
+            var a = live();
+            if (a != null && a.getTotalStats != null) {
+                try {
+                    var out = a.getTotalStats(player, includeStaff !== false);
+                    if (out != null) return out;
+                } catch (e0) {}
+            }
+            return { mageLevel: 0, particlePower: 1 };
+        },
+        dealPulseDamage: function(target, amount, attacker) {
+            var a = live();
+            if (a != null && a.dealPulseDamage != null) {
+                try { return a.dealPulseDamage(target, amount, attacker); } catch (e0) {}
+            }
+            return false;
+        },
+        spellRuntime: runtime,
+        runtime: runtime,
+        getSpellRuntime: function() {
+            try { return runtime != null ? runtime : getRuntime(); } catch (e) { return runtime; }
+        },
+        // 兼容旧术式回退；每次访问请优先走本 facade 的 calc/getTotalStats（已现读）
+        __mageApi: null
+    };
+}
+
+function sharedRoot() {
+    var rt = getRuntime();
+    if (rt && rt.sharedRoot) {
+        try {
+            var fromRt = rt.sharedRoot();
+            if (fromRt != null) return fromRt;
+        } catch (e0) {}
+    }
+    // 禁止每次 new CHM()：会丢掉 cast_cd
+    try {
+        if (PLUGIN != null && PLUGIN.hasMetadata("gltc_shared_root_maps")) {
+            var root = PLUGIN.getMetadata("gltc_shared_root_maps").get(0).value();
+            if (root != null) return root;
+        }
+    } catch (e1) {}
+    try {
+        var api = evalScript("_gltcSharedRoot.js");
+        if (api && api.getGltcSharedRoot) {
+            var r = api.getGltcSharedRoot();
+            if (r != null) return r;
+        }
+    } catch (e2) {}
+    return new CHM();
+}
+
+function mapOf(key) {
+    var rt = getRuntime();
+    if (rt && rt.mapOf) {
+        try {
+            var fromRt = rt.mapOf(key);
+            if (fromRt != null) return fromRt;
+        } catch (eM) {}
+    }
+    var root = sharedRoot();
+    var k = String(key);
+    var existing = null;
+    try { existing = root.get(k); } catch (eG) {}
+    // 与运行时一致：已有条目一律复用，禁止 put 空 Map 覆盖 cast_cd
+    if (existing != null) return existing;
+    var created = new CHM();
+    var raced = null;
+    try { raced = root.putIfAbsent(k, created); } catch (ePut) {
+        try { root.put(k, created); } catch (ePut2) {}
+        return created;
+    }
+    return raced != null ? raced : created;
+}
+
+function castCdMap() { return mapOf("cast_cd"); }
+function castCdMetaKey(spellId) { return "gltc_cast_cd|" + String(spellId); }
+function staffUseMsMap() { return mapOf("staff_use_ms"); }
+function staffHooksMap() { return mapOf("staff_hooks"); }
+function lastMainStaffMap() { return mapOf("last_main_staff"); }
+function castInFlightMap() { return mapOf("cast_in_flight"); }
+
+function loadDeps() {
+    if (_depsReady && STAFF_CFG && SPELL_CFG && RUNTIME) return true;
+    _depsReady = false;
+    getRuntime();
+    if (RUNTIME == null) {
+        try { RUNTIME = PLUGIN.gltcSpellRuntime; } catch (eRt) {}
+    }
+    // 术士：有桥即可；无桥时尝试绑定 boot 缓存的真实 API（勿把 bridge facade 钉进 holder）
+    if (resolveMageApi() == null) {
+        try {
+            var cache = PLUGIN.gltcEvalCache;
+            if (cache != null) {
+                var cachedMage = cache.get("术士系统/核心.js");
+                if (hasCalcSpellDamage(cachedMage)) rememberMageApi(cachedMage);
+            }
+        } catch (eCache) {}
+    }
+    ensureMageJavaBridges();
+    var mageOk = resolveMageApi() != null;
+    if (!STAFF_CFG) {
+        try { if (PLUGIN.gltcStaffCfg != null) STAFF_CFG = PLUGIN.gltcStaffCfg; } catch (eS0) {}
+        if (!STAFF_CFG) STAFF_CFG = evalScript("施术道具/登记.js");
+        try { if (STAFF_CFG) PLUGIN.gltcStaffCfg = STAFF_CFG; } catch (eS1) {}
+    }
+    if (!SPELL_CFG) {
+        try { if (PLUGIN.gltcSpellCfg != null) SPELL_CFG = PLUGIN.gltcSpellCfg; } catch (eP0) {}
+        if (!SPELL_CFG) SPELL_CFG = evalScript("术式/登记.js");
+        try { if (SPELL_CFG) PLUGIN.gltcSpellCfg = SPELL_CFG; } catch (eP1) {}
+    }
+    if (!SKILL_CORE_CFG) SKILL_CORE_CFG = evalScript("施术道具/技能核心登记.js");
+    if (!SKILL_CFG) SKILL_CFG = evalScript("施术道具/技能登记.js");
+    if (!GUI_API) GUI_API = evalScript("施术道具/施术GUI.js");
+    if (!_guiListenersRegistered && GUI_API && GUI_API.registerListeners) {
+        try {
+            GUI_API.registerListeners(function() { return getGuiContext(); });
+            _guiListenersRegistered = true;
+        } catch (eG) {}
+    }
+    // 术士 API 尽力加载；缺失时 prepareCastApi 仍返回 facade，不挡施术入口
+    _depsReady = !!(STAFF_CFG && SPELL_CFG && RUNTIME);
+    if (!_depsReady) {
+        try {
+            if (!PLUGIN.gltcLoadDepsWarned) {
+                PLUGIN.gltcLoadDepsWarned = true;
+                Bukkit.getLogger().warning("[GLTC施术] loadDeps 未就绪 mage=" + mageOk
+                    + " staff=" + !!STAFF_CFG + " spell=" + !!SPELL_CFG + " runtime=" + !!RUNTIME);
+            }
+        } catch (eW) {}
+    } else if (!mageOk) {
+        logMageDiag("loadDeps");
+    }
+    return _depsReady;
 }
 
 function getSfId(stack) {
     if (!stack || stack.getType() === Material.AIR) return null;
     try {
-        if (_SlimefunItemClass == null) {
-            _SlimefunItemClass = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
-        }
-        var sf = _SlimefunItemClass.getByItem(stack);
-        return sf ? sf.getId() : null;
-    } catch (e) {}
-    return null;
-}
-
-function ensureStaffCfg() {
-    if (STAFF_CFG) return true;
-    loadDeps();
-    return !!STAFF_CFG;
+        var sf = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem").getByItem(stack);
+        return sf != null ? String(sf.getId()) : null;
+    } catch (e) { return null; }
 }
 
 function isMageStaffItem(stack) {
-    if (!stack || stack.getType() === Material.AIR) return false;
-    if (!ensureStaffCfg()) return false;
+    if (!loadDeps()) return false;
     var id = getSfId(stack);
     return !!(id && STAFF_CFG.STAFF_REGISTRY[id]);
 }
 
-function toJavaInt(n) {
-    var v = Math.floor(Number(n));
-    if (!isFinite(v)) v = 0;
-    return java.lang.Integer.parseInt(String(v), 10);
+function staffDisplayLabel() {
+    if (STAFF_CFG && STAFF_CFG.STAFF_DISPLAY_GRADIENT) return STAFF_CFG.STAFF_DISPLAY_GRADIENT;
+    return "§bNTC外置粒子控制仪";
 }
 
-function writeStaffMeta(stack, spells, selected) {
-    var meta = stack.getItemMeta();
-    if (!meta) return false;
-    var pdc = meta.getPersistentDataContainer();
-    var arr = [];
-    for (var i = 0; i < spells.length; i++) arr.push(spells[i] ? String(spells[i]) : "");
-    pdc.set(KEY_SPELLS, PersistentDataType.STRING, JSON.stringify(arr));
-    pdc.set(KEY_SELECTED, PersistentDataType.INTEGER, toJavaInt(selected));
-    stack.setItemMeta(meta);
-    return true;
+function stripColor(str) {
+    return String(str).replace(/§x(§[0-9a-fA-F]){6}/g, "").replace(/§./g, "");
 }
 
-function getStaffMeta(stack) {
-    if (!isMageStaffItem(stack)) return null;
-    if (!ensureStaffCfg()) return null;
-    var id = getSfId(stack);
-    var entry = STAFF_CFG.getStaffEntry(id);
-    if (!entry) {
-        entry = {
-            name: id,
-            spellSlots: id === "VASA_辉墨摇篮" ? 6 : 2,
-            defaultSpells: []
-        };
+function skipColorIndex(s, i) {
+    if (i >= s.length || s.charAt(i) !== "§") return i;
+    if (i + 1 < s.length && (s.charAt(i + 1) === "x" || s.charAt(i + 1) === "X")) {
+        return Math.min(s.length, i + 14);
     }
-    var cap = Number(STAFF_CFG.clampSlots(entry.spellSlots)) || 2;
-    var meta = stack.getItemMeta();
-    if (!meta) return null;
-    var pdc = meta.getPersistentDataContainer();
-    var spells = [];
-    var i;
-    if (pdc.has(KEY_SPELLS, PersistentDataType.STRING)) {
-        try {
-            var parsed = JSON.parse(pdc.get(KEY_SPELLS, PersistentDataType.STRING));
-            if (parsed && parsed.length != null) {
-                for (i = 0; i < cap; i++) spells.push(parsed[i] ? String(parsed[i]) : "");
+    return Math.min(s.length, i + 2);
+}
+
+function shortItemDisplayName(coloredDn) {
+    var dn = String(coloredDn || "");
+    if (!dn) return "";
+    var sepIdx = dn.indexOf("丨");
+    if (sepIdx < 0) sepIdx = dn.indexOf("|");
+    if (sepIdx >= 0) return dn.substring(sepIdx + 1).replace(/^\s+/, "");
+    var plain = stripColor(dn);
+    var prefixes = ["施术技能核心", "术式载体"];
+    for (var p = 0; p < prefixes.length; p++) {
+        var pref = prefixes[p];
+        var at = plain.indexOf(pref);
+        if (at < 0) continue;
+        var need = at + pref.length;
+        var ci = 0;
+        var pc = 0;
+        while (ci < dn.length && pc < need) {
+            if (dn.charAt(ci) === "§") {
+                ci = skipColorIndex(dn, ci);
+                continue;
             }
-        } catch (e) {}
+            pc++;
+            ci++;
+        }
+        return dn.substring(ci).replace(/^\s+/, "");
     }
-    var selected = 0;
-    if (spells.length != cap) {
-        spells = [];
-        var defaults = entry.defaultSpells || [];
-        for (i = 0; i < cap; i++) spells.push(defaults[i] ? String(defaults[i]) : "");
-        writeStaffMeta(stack, spells, 0);
-    } else if (pdc.has(KEY_SELECTED, PersistentDataType.INTEGER)) {
-        try { selected = Number(pdc.get(KEY_SELECTED, PersistentDataType.INTEGER)) || 0; } catch (e2) {}
-    }
-    if (selected < 0 || selected >= cap) selected = 0;
-    return { staffId: id, capacity: cap, spells: spells, selected: selected, entry: entry };
+    return dn;
 }
 
-function setSelectedSpell(player, slotIndex) {
-    var hand = player.getInventory().getItemInMainHand();
-    var data = getStaffMeta(hand);
-    if (!data) return false;
-    slotIndex = Number(slotIndex);
-    if (slotIndex < 0 || slotIndex >= data.capacity) return false;
-    var prevId = data.spells[data.selected] ? String(data.spells[data.selected]) : "";
-    writeStaffMeta(hand, data.spells, slotIndex);
-    player.getInventory().setItemInMainHand(hand);
-    var nextId = data.spells[slotIndex] ? String(data.spells[slotIndex]) : "";
-    if (prevId !== nextId) scheduleNotifySpellContextChange(player, nextId, "switch");
-    return true;
-}
-
-function spellPlainName(spellId) {
-    if (!spellId) return "未装填";
-    if (!SPELL_CFG) return String(spellId);
-    return SPELL_CFG.getSpellName(spellId) || String(spellId);
+/** 播报/提示用：items.yml name 去前缀（保留颜色） */
+function spellDisplayName(spellId, fallback) {
+    try {
+        if (SlimefunItem) {
+            var sf = SlimefunItem.getById(String(spellId));
+            if (sf) {
+                var meta = sf.getItem().getItemMeta();
+                if (meta && meta.hasDisplayName()) {
+                    var short = shortItemDisplayName(String(meta.getDisplayName()));
+                    if (short && stripColor(short).length > 0) return short;
+                }
+            }
+        }
+    } catch (e) {}
+    if (fallback != null && String(fallback).length) return String(fallback);
+    try {
+        if (SPELL_CFG && SPELL_CFG.getSpellName) return String(SPELL_CFG.getSpellName(spellId) || spellId);
+    } catch (e2) {}
+    return spellId ? String(spellId) : "";
 }
 
 function requireSingleStaff(player) {
+    try {
+        var hand = player.getInventory().getItemInMainHand();
+        if (!isMageStaffItem(hand)) return false;
+        if (hand.getAmount() !== 1) {
+            player.sendMessage(GLTC_PREFIX + C_MSG + staffDisplayLabel() + " §c数量必须为 1。");
+            return false;
+        }
+        return true;
+    } catch (e) { return false; }
+}
+
+function getStaffMeta(stack) {
+    if (!loadDeps()) return null;
+    var api = getStaffMetaApi();
+    if (api && api.readStaffMeta) {
+        return api.readStaffMeta(stack, STAFF_CFG, isMageStaffItem, SKILL_CORE_CFG);
+    }
+    return null;
+}
+
+function writeStaffMeta(stack, spells, selected) {
+    var api = getStaffMetaApi();
+    if (api && api.writeStaffMeta) return api.writeStaffMeta(stack, spells, selected);
+    return false;
+}
+
+function setSelectedSpell(player, index) {
     var hand = player.getInventory().getItemInMainHand();
-    if (!hand || hand.getType() === Material.AIR || !isMageStaffItem(hand)) {
-        player.sendMessage(GLTC_PREFIX + C_MSG + "只有手持施术道具时才能使用。");
-        return false;
-    }
-    if (hand.getAmount() !== 1) {
-        player.sendMessage(GLTC_PREFIX + C_MSG + "请将施术道具数量分离为 §e1 " + C_MSG + "后再使用。");
-        return false;
-    }
+    var data = getStaffMeta(hand);
+    if (!data) return false;
+    if (index < 0 || index >= data.capacity || !data.spells[index]) return false;
+    data.selected = index;
+    writeStaffMeta(hand, data.spells, data.selected);
+    player.getInventory().setItemInMainHand(hand);
+    // 打开 GUI 后再点同一术式也视为切换（会再走 onSelectSpell / 核心技能）
+    notifyContext(player, data.spells[index], "switch");
+    invokeHook(getStaffHooks(player), "onSelectSpell", player);
     return true;
 }
 
-function resolveSpellCooldownMs(player, baseCd, erosionLevel) {
-    var need = Number(baseCd) || 1000;
-    try {
-        if (MAGE_API && typeof MAGE_API.calcSpellCooldownMs === "function") {
-            need = Number(MAGE_API.calcSpellCooldownMs(player, baseCd || 1000));
-        }
-    } catch (e) { need = Number(baseCd) || 1000; }
-    var erosion = Math.max(0, Math.floor(Number(erosionLevel) || 0));
-    if (erosion > 0) need = Math.floor(need * erosion);
-    if (!isFinite(need) || need < 50) need = 50;
-    return need;
+function getSelectedSpellId(player) {
+    var data = getStaffMeta(player.getInventory().getItemInMainHand());
+    if (!data || data.selected < 0) return null;
+    return data.spells[data.selected] || null;
 }
 
-function checkCastCooldown(player, spellId, baseCd, commit, erosionLevel) {
-    var key = player.getUniqueId().toString() + "|" + spellId;
-    var now = Date.now();
-    var need = resolveSpellCooldownMs(player, baseCd, erosionLevel);
-    var last = castCdMap.get(key);
-    if (last != null) {
-        var elapsed = now - Number(last);
-        if (elapsed < need) return { ok: false, left: need - elapsed, need: need };
+function hookGet(hooks, key) {
+    if (!hooks) return null;
+    try {
+        if (hooks.get != null) {
+            var v = hooks.get(java.lang.String.valueOf(key));
+            if (v != null) return v;
+            v = hooks.get(key);
+            if (v != null) return v;
+        }
+    } catch (e0) {}
+    try { return hooks[key]; } catch (e1) { return null; }
+}
+
+function getStaffHooks(player) {
+    // 权威：嵌入的技能核心 → 技能登记（核心技能_*.js）
+    // 不再读取 staff_hooks Map（遗留法杖脚本写入无效）
+    try {
+        var data = getStaffMeta(player.getInventory().getItemInMainHand());
+        if (!data || !data.skillCoreId) return null;
+        if (!loadDeps() || !SKILL_CFG || !SKILL_CORE_CFG) return null;
+        if (typeof SKILL_CFG.getHooksForCore !== "function") return null;
+        var hooks = SKILL_CFG.getHooksForCore(data.skillCoreId, SKILL_CORE_CFG);
+        if (!hooks) return null;
+        return {
+            onAfterCast: hookGet(hooks, "onAfterCast"),
+            onSneakUse: hookGet(hooks, "onSneakUse"),
+            onSelectSpell: hookGet(hooks, "onSelectSpell"),
+            skillHint: hookGet(hooks, "skillHint")
+        };
+    } catch (e) { return null; }
+}
+
+/** @deprecated 遗留 API；当前施术不读 staff_hooks，请用核心技能_*.js */
+function registerStaffHooks(staffId, hooks) {
+    if (!staffId || !hooks) return false;
+    staffHooksMap().put(java.lang.String.valueOf(String(staffId)), hooks);
+    return true;
+}
+
+function invokeHook(hooks, key, player) {
+    if (!hooks) return;
+    var fn = hookGet(hooks, key);
+    if (fn == null) return;
+    try {
+        if (fn.accept != null) { fn.accept(player); return; }
+    } catch (e0) {}
+    try { fn(player); } catch (e1) {
+        try { Bukkit.getLogger().warning("[GLTC施术] hook " + key + ": " + e1); } catch (e2) {}
     }
-    if (commit) castCdMap.put(key, java.lang.Long.parseLong(String(Math.floor(now)), 10));
-    return { ok: true, need: need };
 }
 
-function getMageLevel(player) {
-    try {
-        var stats = MAGE_API.getTotalStats(player, false);
-        return Math.max(0, Math.min(8, Number(stats.mageLevel) || 0));
-    } catch (e) {
-        try {
-            var data = MAGE_API.getPlayerStats(player.getUniqueId().toString());
-            return Math.max(0, Math.min(8, Number(data.mageLevel) || 0));
-        } catch (e2) { return 0; }
-    }
+function notifyContext(player, keepSpellId, reason) {
+    var rt = getRuntime();
+    if (!rt || !rt.onContextChange) return;
+    try { rt.onContextChange(player, keepSpellId || "", reason || "switch"); } catch (e) {}
 }
 
-function getPlayerMaxHealth(player) {
+function isSpellGuiOpen(player) {
+    return GUI_API && GUI_API.isOpen && GUI_API.isOpen(player);
+}
+
+function getGuiContext() {
+    loadDeps();
+    return {
+        SPELL_CFG: SPELL_CFG,
+        getStaffMeta: getStaffMeta,
+        getStaffHooks: getStaffHooks,
+        setSelectedSpell: setSelectedSpell,
+        onGuiOpen: function(player) {
+            notifyContext(player, "", "gui");
+        }
+    };
+}
+
+function openSpellGui(player) {
+    if (!loadDeps() || !GUI_API) return false;
+    return GUI_API.open(player, getGuiContext()) === true;
+}
+
+function getMaxHealth(player) {
     try {
-        if (_AttrGenericMaxHealth == null) {
-            try { _AttrGenericMaxHealth = Java.type("org.bukkit.attribute.Attribute").GENERIC_MAX_HEALTH; } catch (eA0) {}
-        }
-        if (_AttrGenericMaxHealth != null) {
-            var attr = player.getAttribute(_AttrGenericMaxHealth);
-            if (attr != null) return Number(attr.getValue());
-        }
-    } catch (e) {}
-    try {
-        if (_AttrMaxHealth == null) {
-            try { _AttrMaxHealth = Java.type("org.bukkit.attribute.Attribute").MAX_HEALTH; } catch (eA1) {}
-        }
-        if (_AttrMaxHealth != null) {
-            var attr2 = player.getAttribute(_AttrMaxHealth);
-            if (attr2 != null) return Number(attr2.getValue());
-        }
-    } catch (e2) {}
-    try { return Number(player.getMaxHealth()); } catch (e3) { return 20; }
+        var attr = player.getAttribute(Java.type("org.bukkit.attribute.Attribute").GENERIC_MAX_HEALTH);
+        if (attr != null) return Number(attr.getValue());
+    } catch (e0) {}
+    try { return Number(player.getMaxHealth()); } catch (e1) {}
+    return 20;
 }
 
 function resolveCastCost(player, spell) {
-    var ring = spell.ring != null ? Number(spell.ring) : 1;
-    if (!(ring > 0)) ring = 1;
-    var level = getMageLevel(player);
-    var erosion = 0;
-    if (ring > level) {
-        erosion = Math.floor(ring - level);
-        if (erosion < 1) erosion = 1;
+    var level = 0;
+    try {
+        var api = resolveMageApi();
+        if (api != null && api.getTotalStats != null) {
+            var stats = api.getTotalStats(player, true);
+            level = Number(stats.mageLevel) || 0;
+        }
+    } catch (e) {}
+    var ring = Number(spell.ring) || 1;
+    var erosion = ring > level ? (ring - level) : 0;
+    return { erosion: erosion, level: level, ring: ring };
+}
+
+function readEpochMs(v) {
+    if (v == null) return 0;
+    try {
+        var n = Number(v);
+        if (isFinite(n)) return n;
+    } catch (e0) {}
+    try {
+        return java.lang.Long.parseLong(String(v), 10);
+    } catch (e1) {
+        return 0;
     }
-    return { ring: ring, level: level, erosion: erosion };
+}
+
+function readCastCdEndMs(player, spellId) {
+    var endMs = 0;
+    // 1) 玩家 Metadata：不依赖共享根，Graal 跨上下文最稳
+    try {
+        var mk = castCdMetaKey(spellId);
+        if (player != null && player.hasMetadata(mk)) {
+            var metaEnd = readEpochMs(player.getMetadata(mk).get(0).value());
+            if (metaEnd > endMs) endMs = metaEnd;
+        }
+    } catch (e0) {}
+    // 2) 共享根 cast_cd（镜像；存字符串避免 Number(Java Long) 读失败）
+    try {
+        var uuid = String(player.getUniqueId().toString());
+        var key = jUuid(uuid + "|" + spellId);
+        var prev = castCdMap().get(key);
+        if (prev != null) {
+            var mapEnd = readEpochMs(prev);
+            if (mapEnd > endMs) endMs = mapEnd;
+        }
+    } catch (e1) {}
+    return endMs;
+}
+
+function writeCastCdEndMs(player, spellId, untilMs) {
+    var until = Math.floor(Number(untilMs) || 0);
+    var untilStr = String(until);
+    try {
+        if (player != null && FixedMetadataValue != null && PLUGIN != null) {
+            player.setMetadata(castCdMetaKey(spellId), new FixedMetadataValue(PLUGIN, untilStr));
+        }
+    } catch (e0) {}
+    try {
+        var uuid = String(player.getUniqueId().toString());
+        var key = jUuid(uuid + "|" + spellId);
+        castCdMap().put(key, java.lang.String.valueOf(untilStr));
+    } catch (e1) {}
+}
+
+function clearCastCd(player, spellId) {
+    try {
+        if (player != null && PLUGIN != null) {
+            player.removeMetadata(castCdMetaKey(spellId), PLUGIN);
+        }
+    } catch (e0) {}
+    try {
+        var uuid = String(player.getUniqueId().toString());
+        castCdMap().remove(jUuid(uuid + "|" + spellId));
+    } catch (e1) {}
+}
+
+function checkCastCooldown(player, spellId, baseMs, write, erosion) {
+    var now = Date.now();
+    var cd = baseMs;
+    try {
+        var api = resolveMageApi();
+        if (api != null && api.calcSpellCooldownMs != null) {
+            cd = api.calcSpellCooldownMs(player, baseMs, erosion);
+        }
+    } catch (eCd) {
+        cd = Math.max(50, Math.floor(Number(baseMs) || 1000));
+    }
+    cd = Math.max(50, Math.floor(Number(cd) || 1000));
+    var endMs = readCastCdEndMs(player, spellId);
+    var left = endMs - now;
+    if (left > 0) return { ok: false, left: left };
+    if (write) writeCastCdEndMs(player, spellId, now + cd);
+    return { ok: true, left: 0, cd: cd };
 }
 
 function applyErosionSelfDamage(player, erosion, spellName) {
-    if (!(erosion > 0) || !player || !player.isOnline()) return 0;
-    var maxHp = getPlayerMaxHealth(player);
-    if (!(maxHp > 0)) return 0;
-    var dmg = erosion * EROSION_HP_PCT * maxHp;
-    if (!(dmg > 0)) return 0;
-    var util = ensureSpellUtil();
-    try {
-        if (util && util.ensureSpellDamageListener) util.ensureSpellDamageListener();
-        if (util && util.dealPulseSpellDamage) {
-            util.dealPulseSpellDamage(player, dmg, player, {
-                name: spellName || "侵蚀反噬",
-                kind: "erosion",
-                targetName: player.getName()
-            }, MAGE_API);
-            return dmg;
-        }
-    } catch (ePulse) {}
-    try {
-        if (MAGE_API && typeof MAGE_API.dealPulseDamage === "function") {
-            MAGE_API.dealPulseDamage(player, dmg, player);
-        } else {
-            var next = Number(player.getHealth()) - dmg;
-            player.setHealth(next <= 0 ? 0 : next);
-        }
-    } catch (e2) {
-        try { player.damage(dmg); } catch (e3) {}
+    if (!(erosion > 0)) return;
+    var amt = getMaxHealth(player) * EROSION_HP_PCT * erosion;
+    var rt = getRuntime();
+    if (rt && rt.dealPulseSpellDamage) {
+        rt.dealPulseSpellDamage(player, amt, player, {
+            name: spellName || "侵蚀",
+            kind: "erosion",
+            damageType: "pulse"
+        });
     }
-    return dmg;
 }
 
-function tryCastSelected(player, opts) {
-    opts = opts || {};
-    if (!loadDeps()) {
-        player.sendMessage(GLTC_PREFIX + C_MSG + "施术系统未加载。");
-        return { ok: false };
-    }
-    if (player.isSneaking()) return { ok: false };
+function mageReadyForCast() {
+    if (resolveMageApi() != null) return true;
+    return bridgeGet("gltcMage_calcSpellDamage") != null;
+}
+
+function tryCast(player) {
+    if (!loadDeps()) return { ok: false };
     if (!requireSingleStaff(player)) return { ok: false };
     if (isSpellGuiOpen(player)) return { ok: false };
+    if (player.isSneaking()) return { ok: false };
 
     var uuid = String(player.getUniqueId().toString());
-    var acquired = false;
+    var flight = castInFlightMap();
     try {
-        var prev = castInFlightMap.get(mapUuidKey(uuid));
-        if (prev != null) {
-            var age = Date.now() - Number(prev);
-            if (age >= 0 && age < 3000) return { ok: false };
-            castInFlightMap.remove(mapUuidKey(uuid));
-        }
-        var raced = castInFlightMap.putIfAbsent(mapUuidKey(uuid), java.lang.Long.parseLong(String(Math.floor(Date.now())), 10));
+        var raced = flight.putIfAbsent(jUuid(uuid), toJavaLong(Date.now()));
         if (raced != null) return { ok: false };
-        acquired = true;
-    } catch (eLock) {
-        try {
-            if (castInFlightMap.containsKey(mapUuidKey(uuid))) return { ok: false };
-            castInFlightMap.put(mapUuidKey(uuid), java.lang.Long.parseLong(String(Math.floor(Date.now())), 10));
-            acquired = true;
-        } catch (eLock2) { return { ok: false }; }
-    }
+    } catch (eL) { return { ok: false }; }
 
     try {
         var hand = player.getInventory().getItemInMainHand();
         var data = getStaffMeta(hand);
         if (!data) {
-            player.sendMessage(GLTC_PREFIX + C_MSG + "无法读取施术道具数据。");
+            player.sendMessage(GLTC_PREFIX + C_MSG + "无法读取 " + staffDisplayLabel() + " §c数据。");
             return { ok: false };
         }
-        player.getInventory().setItemInMainHand(hand);
-
-        var spellId = data.spells[data.selected];
+        var spellId = data.selected >= 0 ? data.spells[data.selected] : null;
         if (!spellId) {
-            player.sendMessage(GLTC_PREFIX + C_MSG + "当前槽位没有术式。");
+            player.sendMessage(GLTC_PREFIX + C_MSG + "当前未选择术式。");
+            return { ok: false };
+        }
+        if (data.capacity <= 0) {
+            player.sendMessage(GLTC_PREFIX + C_MSG + "未嵌入施术技能核心，无法施术。");
             return { ok: false };
         }
         var spell = SPELL_CFG.getSpell(spellId);
@@ -943,257 +982,143 @@ function tryCastSelected(player, opts) {
             return { ok: false };
         }
         checkCastCooldown(player, spellId, spell.cooldownMs || 1000, true, resolved.erosion);
-
-        if (!invokeSessionBridgeClear(player, String(spellId), null, "recast")) {
-            try { invokeSessionMethod("clear", [player, { onlySpellId: String(spellId), reason: "recast" }]); } catch (eRc) {}
-        }
-        cancelPendingSpellContextChange(player);
-        notifySpellContextChange(player, String(spellId), "cast");
+        notifyContext(player, String(spellId), "cast");
 
         var castOk = false;
         try {
-            var ret = spell.cast(player, MAGE_API);
+            var runtime = getRuntime();
+            if (!runtime) {
+                Bukkit.getLogger().warning("[GLTC施术] 运行时未就绪，无法施展 " + spellId);
+                clearCastCd(player, spellId);
+                player.sendMessage(GLTC_PREFIX + C_MSG + "§c施术系统未就绪，请稍后重试。");
+                return { ok: false };
+            }
+            // prepareCastApi 每次现读术士/Java桥；缺桥时仍有系数回退，禁止硬拦施术
+            var castApi = prepareCastApi(runtime);
+            if (!mageReadyForCast()) {
+                try { logMageDiag("cast"); } catch (eDiag) {}
+            }
+            var ret = spell.cast(player, castApi);
             castOk = (ret !== false && ret !== 0);
         } catch (e) {
             Bukkit.getLogger().warning("[GLTC施术] 术式异常 " + spellId + ": " + e);
         }
         if (!castOk) {
-            try { castCdMap.remove(player.getUniqueId().toString() + "|" + spellId); } catch (eCd) {}
+            clearCastCd(player, spellId);
             player.sendMessage(GLTC_PREFIX + C_MSG + "施术失败。");
             return { ok: false };
         }
-
-        var spellName = spell.name || spellPlainName(spellId) || spellId;
+        var spellName = spellDisplayName(spellId, spell.name || spellId);
         if (resolved.erosion > 0) applyErosionSelfDamage(player, resolved.erosion, spellName);
-
-        player.sendMessage(GLTC_PREFIX + C_MSG + "成功施展 " + C_SPELL + spellName);
-        if (opts.onAfterCast != null) invokeStaffConsumer(opts.onAfterCast, player);
-        return { ok: true, spell: spell, spellId: spellId, erosion: resolved.erosion };
+        // 命中播报由运行时 announceSpellHit 负责；此处仅 ActionBar 短确认，避免双重「成功施展」
+        try { player.sendActionBar(C_MSG + "已施展 " + spellName); } catch (eAb) {
+            try { player.sendMessage(GLTC_PREFIX + C_MSG + "已施展 " + spellName); } catch (eMsg) {}
+        }
+        invokeHook(getStaffHooks(player), "onAfterCast", player);
+        return { ok: true, spellId: spellId };
     } finally {
-        if (acquired) {
-            try { castInFlightMap.remove(mapUuidKey(uuid)); } catch (eFin) {}
-        }
+        try { flight.remove(jUuid(uuid)); } catch (eF) {}
     }
 }
 
-function handleStaffUse(player, opts) {
-    if (!player || !(player instanceof Player)) return;
-    if (shouldClickDebounce(player)) return;
-    if (!requireSingleStaff(player)) return;
-    opts = mergeStaffOpts(player, opts);
-    var uuid = String(player.getUniqueId().toString());
-    try { lastMainStaffMap.put(mapUuidKey(uuid), java.lang.Boolean.TRUE); } catch (eLs) {}
-
-    if (player.isSneaking()) {
-        if (isSpellGuiOpen(player)) return;
-        var opened = openSpellGui(player);
-        if (opened) {
-            grantStaffSneakAbilityToken(player);
-            var hooks = mergeStaffOpts(player, opts);
-            if (hooks.onSneakUse != null) invokeStaffConsumer(hooks.onSneakUse, player);
-        }
-        return;
-    }
-    if (isSpellGuiOpen(player)) return;
-    tryCastSelected(player, opts);
-}
-
-function getSharedSpellMap(field) {
-    try {
-        var m = PLUGIN[field];
-        if (m != null && (m instanceof java.util.concurrent.ConcurrentHashMap)) return m;
-    } catch (e0) {}
-    return null;
-}
-
-/**
- * 左键投出：直接从 PLUGIN 上的 Java ConcurrentHashMap 读 Runnable。
- * 不经过 Graal 跨上下文 JS API / Bridge（那些在此环境经常静默失效）。
- */
-function dispatchActiveLeftClickFromStore(player) {
-    if (!player || !(player instanceof Player)) return false;
-    if (!isMageStaffItem(player.getInventory().getItemInMainHand())) return false;
-    try {
-        if (player.getInventory().getItemInMainHand().getAmount() !== 1) return false;
-    } catch (eAmt) { return false; }
-
-    var store = getSharedSpellMap("gltc_spell_active_left_click");
-    if (store == null) return false;
-
-    var uuid = mapUuidKey(String(player.getUniqueId().toString()));
-    var ent = null;
-    try { ent = store.get(uuid); } catch (eGet) {}
-    if (ent == null) return false;
-
-    var spellId = "";
-    var runnable = null;
-    try {
-        if (ent instanceof java.util.Map) {
-            spellId = String(ent.get("spellId"));
-            runnable = ent.get("runnable");
-        }
-    } catch (eMap) {}
-    if (runnable == null) return false;
-
-    var gateStore = getSharedSpellMap("gltc_spell_lclick_gate_ms");
-    if (gateStore != null) {
-        var now = Date.now();
-        var prev = gateStore.get(uuid);
-        if (prev != null && now - Number(prev) < 250) return true;
-        try { gateStore.put(uuid, java.lang.Long.parseLong(String(Math.floor(now)), 10)); } catch (eGate) {}
-    }
-
-    if (FixedMetadataValue != null && spellId) {
-        try {
-            player.setMetadata("gltc_spell_sig:" + spellId + ":lclick",
-                new FixedMetadataValue(PLUGIN, java.lang.Boolean.TRUE));
-        } catch (eSig) {}
-    }
-
-    try { runnable.run(); } catch (eRun) {
-        Bukkit.getLogger().warning("[GLTC施术] activeLeftClick " + spellId + ": " + eRun);
-    }
+function staffUseDebounced(player) {
+    var key = jUuid(String(player.getUniqueId().toString()));
+    var now = Date.now();
+    var prev = staffUseMsMap().get(key);
+    if (prev != null && now - readEpochMs(prev) < STAFF_USE_DEBOUNCE_MS) return false;
+    try { staffUseMsMap().put(key, toJavaLong(now)); } catch (e) {}
     return true;
 }
 
-function trySpellLeftClick(player) {
+function handleStaffUse(player, opts) {
     if (!player || !(player instanceof Player)) return false;
-    if (player.isSneaking()) return false;
-    if (!isMageStaffItem(player.getInventory().getItemInMainHand())) return false;
-    try {
-        if (player.getInventory().getItemInMainHand().getAmount() !== 1) return false;
-    } catch (eAmt) { return false; }
-    try {
-        if (dispatchActiveLeftClickFromStore(player)) return true;
-        var sid = getSelectedSpellId(player);
-        if (invokeSessionBridgeLeftClick(player, sid)) return true;
-        var sess = getSpellSessionApi();
-        if (sess) {
-            var ret = invokeSessionMethod("handleLeftClick", [player, sid]);
-            if (ret === true) return true;
-        }
-    } catch (eHook) {}
-    return false;
+    if (!loadDeps()) {
+        try {
+            player.sendMessage(GLTC_PREFIX + C_MSG + "§c施术系统未就绪，请稍后重试或联系管理重载插件。");
+        } catch (e0) {}
+        return false;
+    }
+    if (!requireSingleStaff(player)) return false;
+    if (!staffUseDebounced(player)) return false;
+    if (player.isSneaking()) {
+        var opened = openSpellGui(player);
+        if (opened) invokeHook(getStaffHooks(player), "onSneakUse", player);
+        return true;
+    }
+    tryCast(player);
+    return true;
 }
 
 function handleStaffLeftClick(player) {
     if (!player || !(player instanceof Player)) return false;
-    if (!isMageStaffItem(player.getInventory().getItemInMainHand())) return false;
+    if (!loadDeps()) return false;
     if (!requireSingleStaff(player)) return true;
     if (isSpellGuiOpen(player)) return true;
     if (player.isSneaking()) {
         var opened = openSpellGui(player);
-        if (opened) {
-            grantStaffSneakAbilityToken(player);
-            var hooks = mergeStaffOpts(player, {});
-            if (hooks.onSneakUse != null) invokeStaffConsumer(hooks.onSneakUse, player);
-        }
+        if (opened) invokeHook(getStaffHooks(player), "onSneakUse", player);
         return true;
     }
-    trySpellLeftClick(player);
+    var rt = getRuntime();
+    if (rt && rt.dispatchLeftClick) rt.dispatchLeftClick(player);
     return true;
 }
 
-var SPELL_CORE_LISTENER_VER = 22;
-
-function purgePlayerStaffMaps(uuid) {
-    uuid = String(uuid);
-    var gk = mapUuidKey(uuid);
-    try { castInFlightMap.remove(gk); } catch (e0) {}
-    try { staffUseMsMap.remove(gk); } catch (e3) {}
-    try { staffUseTickMap.remove(gk); } catch (e4) {}
-    try { staffInteractTickMap.remove(gk); } catch (e5) {}
-    try { lastMainStaffMap.remove(gk); } catch (e6) {}
+function syncStaffHoldState(player, reasonIfLost) {
+    if (!player) return;
+    var uuid = String(player.getUniqueId().toString());
+    var holding = false;
     try {
-        var prefix = uuid + "|";
-        var toRemove = new java.util.ArrayList();
-        var it = castCdMap.keySet().iterator();
-        while (it.hasNext()) {
-            var k = String(it.next());
-            if (k.indexOf(prefix) === 0) toRemove.add(k);
-        }
-        for (var ri = 0; ri < toRemove.size(); ri++) {
-            try { castCdMap.remove(toRemove.get(ri)); } catch (eCd) {}
-        }
-    } catch (eCast) {}
+        var hand = player.getInventory().getItemInMainHand();
+        holding = isMageStaffItem(hand) && hand.getAmount() === 1;
+    } catch (e0) {}
+    var map = lastMainStaffMap();
+    var was = false;
     try {
-        var huimo = huimoAbilityCdMap();
-        if (huimo != null) {
-            huimo.remove(gk);
-            huimo.remove(uuid);
-        }
-    } catch (eH) {}
-}
-
-function unregisterSpellCoreListenerInstance(inst) {
-    if (inst == null) return;
-    try { PlayerInteractEvent.getHandlerList().unregister(inst); } catch (e0) {}
-    try { EntityDamageByEntityEvent.getHandlerList().unregister(inst); } catch (e0b) {}
-    try { PlayerQuitEvent.getHandlerList().unregister(inst); } catch (e1) {}
-    try { PlayerItemHeldEvent.getHandlerList().unregister(inst); } catch (e2) {}
-    try { PlayerSwapHandItemsEvent.getHandlerList().unregister(inst); } catch (e2b) {}
-    try { InventoryClickEvent.getHandlerList().unregister(inst); } catch (e2c) {}
-}
-
-function unregisterAllStoredCoreListeners() {
-    try {
-        var list = PLUGIN.gltcSpellCoreListenerAll;
-        if (list != null) {
-            for (var i = 0; i < list.size(); i++) unregisterSpellCoreListenerInstance(list.get(i));
-            list.clear();
-        }
-    } catch (eList) {}
-    unregisterSpellCoreListenerInstance(PLUGIN.gltcSpellCoreListener);
-    try { PLUGIN.gltcSpellCoreListener = null; } catch (eNull) {}
-}
-
-function registerListeners(opts) {
-    opts = opts || {};
-    var force = opts.force === true;
-    try {
-        if (!force && PLUGIN.gltcSpellCoreListener != null
-            && Number(PLUGIN.gltcSpellCoreListenerVer) === SPELL_CORE_LISTENER_VER) {
-            return false;
-        }
-    } catch (eSkip) {}
-
-    try { unregisterAllStoredCoreListeners(); } catch (eUn) {}
-    if (force) {
-        try { SPELL_CFG = evalScriptExport("术式/登记.js"); } catch (eSpell) {}
+        var prev = map.get(jUuid(uuid));
+        was = prev != null && (prev === true || prev === java.lang.Boolean.TRUE);
+    } catch (eWas) {}
+    try { map.put(jUuid(uuid), holding ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE); } catch (ePut) {}
+    if (was && !holding) {
+        if (isSpellGuiOpen(player) && GUI_API && GUI_API.scheduleClose) GUI_API.scheduleClose(player);
+        notifyContext(player, "", reasonIfLost || "hold");
     }
+}
+
+function ensureListeners(force) {
+    if (_listenersReady && !force) return;
+    loadDeps();
+    try {
+        if (PLUGIN.gltcSpellCoreListenerV2 != null) {
+            try { PlayerInteractEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e0) {}
+            try { EntityDamageByEntityEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e1) {}
+            try { PlayerQuitEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e2) {}
+            try { PlayerItemHeldEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e3) {}
+        }
+    } catch (eU) {}
 
     var ListenerClass = Java.extend(Listener, {});
-    var listenerInstance = new ListenerClass();
-    try { PLUGIN.gltcSpellCoreListener = listenerInstance; } catch (eL) {}
+    var listener = new ListenerClass();
     try {
-        if (PLUGIN.gltcSpellCoreListenerAll == null) {
-            PLUGIN.gltcSpellCoreListenerAll = new java.util.concurrent.CopyOnWriteArrayList();
-        }
-        PLUGIN.gltcSpellCoreListenerAll.add(listenerInstance);
-    } catch (eStore) {}
+        PLUGIN.gltcSpellCoreListenerV2 = listener;
+        PLUGIN.gltcSpellCoreListenerVer = SPELL_CORE_LISTENER_VER;
+        PLUGIN.gltcSpellCoreListener = listener;
+    } catch (eL) {}
 
     Bukkit.getPluginManager().registerEvent(
-        PlayerInteractEvent, listenerInstance, EventPriority.LOWEST,
+        PlayerInteractEvent, listener, EventPriority.HIGH,
         function(l, event) {
             try {
                 if (event.getHand() != null && event.getHand() !== EquipmentSlot.HAND) return;
-                var actionName = String(event.getAction().name());
                 var who = event.getPlayer();
                 if (!(who instanceof Player)) return;
+                // 先识别法杖，避免误取消其它物品
                 if (!isMageStaffItem(who.getInventory().getItemInMainHand())) return;
+                var actionName = String(event.getAction().name());
+                var isLeft = actionName === "LEFT_CLICK_AIR" || actionName === "LEFT_CLICK_BLOCK";
+                var isRight = actionName === "RIGHT_CLICK_AIR" || actionName === "RIGHT_CLICK_BLOCK";
+                if (!isLeft && !isRight) return;
 
-                if (actionName === "LEFT_CLICK_AIR" || actionName === "LEFT_CLICK_BLOCK") {
-                    event.setCancelled(true);
-                    try {
-                        if (EventResult != null) {
-                            event.setUseItemInHand(EventResult.DENY);
-                            event.setUseInteractedBlock(EventResult.DENY);
-                        }
-                    } catch (eDenyL) {}
-                    handleStaffLeftClick(who);
-                    return;
-                }
-                if (actionName !== "RIGHT_CLICK_AIR" && actionName !== "RIGHT_CLICK_BLOCK") return;
                 event.setCancelled(true);
                 try {
                     if (EventResult != null) {
@@ -1201,8 +1126,13 @@ function registerListeners(opts) {
                         event.setUseInteractedBlock(EventResult.DENY);
                     }
                 } catch (eDeny) {}
-                handleStaffUse(who, getStaffHooksFor(who));
-                markStaffInteractHandled(who);
+
+                if (isLeft) {
+                    handleStaffLeftClick(who);
+                    return;
+                }
+                // 右键：施展 / 蹲下开 GUI（与 通用施术.js onUse 双入口，防抖合并）
+                handleStaffUse(who, { from: "interact" });
             } catch (e) {
                 try { Bukkit.getLogger().warning("[GLTC施术] interact: " + e); } catch (e2) {}
             }
@@ -1210,110 +1140,79 @@ function registerListeners(opts) {
     );
 
     Bukkit.getPluginManager().registerEvent(
-        EntityDamageByEntityEvent, listenerInstance, EventPriority.NORMAL,
+        EntityDamageByEntityEvent, listener, EventPriority.NORMAL,
         function(l, event) {
             try {
                 if (event.isCancelled()) return;
-                var damager = damageByEntityDamager(event);
-                if (damager == null || !(damager instanceof Player)) return;
+                var damager = event.getDamager();
+                if (!(damager instanceof Player)) return;
                 if (!isMageStaffItem(damager.getInventory().getItemInMainHand())) return;
                 if (!requireSingleStaff(damager)) return;
                 if (damager.isSneaking()) return;
                 if (isSpellGuiOpen(damager)) return;
-                if (trySpellLeftClick(damager)) event.setCancelled(true);
-            } catch (eDmg) {
-                try { Bukkit.getLogger().warning("[GLTC施术] leftAttack: " + eDmg); } catch (eDmg2) {}
-            }
+                var rt = getRuntime();
+                if (rt && rt.dispatchLeftClick && rt.dispatchLeftClick(damager)) event.setCancelled(true);
+            } catch (eDmg) {}
         }, PLUGIN
     );
 
     Bukkit.getPluginManager().registerEvent(
-        PlayerQuitEvent, listenerInstance, EventPriority.MONITOR,
+        PlayerQuitEvent, listener, EventPriority.MONITOR,
         function(l, event) {
             try {
                 var p = event.getPlayer();
-                var quuid = String(p.getUniqueId().toString());
-                purgePlayerStaffMaps(quuid);
-                try { lastMainStaffMap.remove(mapUuidKey(quuid)); } catch (eLs) {}
-                if (!invokeSessionBridgeClear(p, "", "", "quit")) {
-                    try { invokeSessionMethod("clear", [quuid, { reason: "quit" }]); } catch (eQ) {}
-                }
+                notifyContext(p, "", "quit");
+                lastMainStaffMap().remove(jUuid(String(p.getUniqueId().toString())));
                 try {
-                    var sess = getSpellSessionApi();
-                    if (sess && sess.stacks != null) sess.stacks.clear(quuid, null, null);
-                } catch (eSt) {}
+                    var rtQ = getRuntime();
+                    if (rtQ && typeof rtQ.purgePlayerRuntimeState === "function") {
+                        rtQ.purgePlayerRuntimeState(p);
+                    }
+                } catch (ePurge) {}
             } catch (e) {}
         }, PLUGIN
     );
 
     Bukkit.getPluginManager().registerEvent(
-        PlayerItemHeldEvent, listenerInstance, EventPriority.MONITOR,
-        function(l, event) {
-            try {
-                var p = event.getPlayer();
-                if (isSpellGuiOpen(p)) scheduleClosePlayerInventory(p);
-                scheduleNotifySpellContextChange(p, "", "hotbar");
-                Bukkit.getScheduler().runTask(PLUGIN, function() {
-                    try { syncStaffHoldState(p, "hold"); } catch (eH) {}
-                });
-            } catch (e) {}
-        }, PLUGIN
-    );
-
-    Bukkit.getPluginManager().registerEvent(
-        PlayerSwapHandItemsEvent, listenerInstance, EventPriority.MONITOR,
+        PlayerItemHeldEvent, listener, EventPriority.MONITOR,
         function(l, event) {
             try {
                 var p = event.getPlayer();
                 Bukkit.getScheduler().runTask(PLUGIN, function() {
-                    try { syncStaffHoldState(p, "hold"); } catch (eH) {}
+                    try {
+                        // 放下法杖时 sync 会 notify(hold) 清会话；勿再二次 hotbar 全清
+                        syncStaffHoldState(p, "hotbar");
+                    } catch (e2) {}
                 });
             } catch (e) {}
         }, PLUGIN
     );
 
-    Bukkit.getPluginManager().registerEvent(
-        InventoryClickEvent, listenerInstance, EventPriority.MONITOR,
-        function(l, event) {
-            try {
-                var who = event.getWhoClicked();
-                if (!(who instanceof Player)) return;
-                Bukkit.getScheduler().runTask(PLUGIN, function() {
-                    try { syncStaffHoldState(who, "hold"); } catch (eH) {}
-                });
-            } catch (e) {}
-        }, PLUGIN
-    );
-
+    _listenersReady = true;
     try {
-        PLUGIN.gltcSpellCoreListenerVer = SPELL_CORE_LISTENER_VER;
-        PLUGIN.gltcSpellCoreInteractReady = java.lang.Boolean.TRUE;
-    } catch (eVer) {}
-    return true;
+        if (!PLUGIN.gltcSpellCoreListenLogged) {
+            PLUGIN.gltcSpellCoreListenLogged = true;
+            Bukkit.getLogger().info("[GLTC施术] 核心 v2 已挂载交互：右键施展 / 蹲下开GUI / 左键二次操作");
+        }
+    } catch (eLog) {
+        Bukkit.getLogger().info("[GLTC施术] 核心 v2 已挂载交互：右键施展 / 蹲下开GUI / 左键二次操作");
+    }
 }
 
-loadDeps();
-registerListeners({ force: false });
-
-var CAST_API_EXPORT = {
+({
     handleStaffUse: handleStaffUse,
     handleStaffLeftClick: handleStaffLeftClick,
-    requireSingleStaff: requireSingleStaff,
-    tryCastSelected: tryCastSelected,
-    openSpellGui: openSpellGui,
-    isSpellGuiOpen: isSpellGuiOpen,
-    getStaffMeta: getStaffMeta,
-    setSelectedSpell: setSelectedSpell,
-    writeStaffMeta: writeStaffMeta,
-    isMageStaffItem: isMageStaffItem,
+    ensureListeners: ensureListeners,
     registerStaffHooks: registerStaffHooks,
-    getSpellSessionApi: getSpellSessionApi,
-    notifySpellContextChange: notifySpellContextChange,
-    scheduleNotifySpellContextChange: scheduleNotifySpellContextChange,
-    ensureListeners: function(force) { registerListeners({ force: !!force }); },
-    isStaffUseHandledByInteract: isStaffUseHandledByInteract,
-    shouldSkipStaffOnUse: shouldSkipStaffOnUse
-};
-try { PLUGIN.gltcCastApi = CAST_API_EXPORT; } catch (eCastApi) {}
-try { PLUGIN.gltcStaffUseInteractOnly = true; } catch (eFlag) {}
-CAST_API_EXPORT;
+    getStaffMeta: getStaffMeta,
+    writeStaffMeta: writeStaffMeta,
+    setSelectedSpell: setSelectedSpell,
+    isMageStaffItem: isMageStaffItem,
+    getRuntime: getRuntime,
+    bindRuntime: bindRuntime,
+    bindMageApi: bindMageApi,
+    getMageApi: resolveMageApi,
+    tryCast: tryCast,
+    openSpellGui: openSpellGui,
+    notifyContext: notifyContext
+});

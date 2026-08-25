@@ -1,47 +1,70 @@
 /**
- * 术式登记加载器
- * - 每个术式单独一个 JS（见下方 SPELL_FILES）
- * - 编写规范：scripts/_术式与施术道具编写指南.js
- * - 文件命名：流派_环数_名称.js（例：环夜谷_1_火球术.js、沃土_4_花如画卷.js）
- * - 术式脚本需导出：{ id, name, ring, cost, cooldownMs, book?, school?, cast }
- * - book:true 的 ID 可作为术式刻录载体（附魔书物品 ID = 术式 ID）
- * - school：流派键；未写时从文件名前缀推断
+ * 术式登记 v2
+ * 自动扫描 scripts/术式/*.js（排除 _ 开头与 登记.js）
+ * 每个术式导出 { id, name, ring, cooldownMs, book?, school?, cast }
+ * book:true = 存在同 ID 的术式载体物品（items.yml 流派色潜影盒）
  *
- * 流派潜影盒色（转换仪槽位）：
- *   红 / 黄 / 浅绿(lime) / 蓝 / 粉 —— 见 SCHOOL_SHULKER
+ * 可配置：下方 SCHOOL_* 决定 GUI 潜影盒材质与流派显示名
  */
-
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var Material = Java.type("org.bukkit.Material");
-var File = java.io.File;
-var Files = java.nio.file.Files;
-var StandardCharsets = java.nio.charset.StandardCharsets;
-var ByteBuffer = Java.type("java.nio.ByteBuffer");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+var LOADER = null;
 
-/** 在此追加新术式文件名（相对 scripts/，不含路径前缀重复） */
-var SPELL_FILES = [
-    "术式/环夜谷_1_火球术.js",
-    "术式/沃土_1_送花.js",
-    "术式/沃土_2_微风花流.js",
-    "术式/沃土_3_庇护脉络.js",
-    "术式/沃土_4_花如画卷.js"
-];
+function getLoader() {
+    if (LOADER != null) return LOADER;
+    try {
+        if (PLUGIN.gltcScriptLoader != null) {
+            LOADER = PLUGIN.gltcScriptLoader;
+            return LOADER;
+        }
+    } catch (e0) {}
+    try {
+        var File = java.io.File;
+        var Files = java.nio.file.Files;
+        var StandardCharsets = java.nio.charset.StandardCharsets;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var f = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/_gltcScriptLoader.js");
+        if (!f.exists()) {
+            f = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/_gltcScriptLoader.js");
+        }
+        if (f.exists()) {
+            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString();
+            LOADER = (0, eval)(code);
+            try { PLUGIN.gltcScriptLoader = LOADER; } catch (e1) {}
+            return LOADER;
+        }
+    } catch (e2) {}
+    return null;
+}
 
-/**
- * 流派 → 潜影盒材质（红黄绿蓝粉）
- * 键用短名；显示名可含「xx流派」后缀，解析时会归一。
- */
+function isSpellScriptPath(rel, fileName) {
+    if (!fileName || fileName === "登记.js") return false;
+    if (fileName.charAt(0) === "_") return false;
+    return /\.js$/i.test(fileName);
+}
+
+function discoverSpellFiles() {
+    var loader = getLoader();
+    if (loader && loader.listScriptFiles) {
+        return loader.listScriptFiles("术式", isSpellScriptPath);
+    }
+    return ["术式/环夜谷_1_火球术.js"];
+}
+
+var SPELL_FILES = discoverSpellFiles();
+
+// === 流派 → GUI 潜影盒材质（可增改）===
 var SCHOOL_SHULKER = {
     "环夜谷": "BLUE_SHULKER_BOX",
     "沃土": "LIME_SHULKER_BOX",
-    // 预留
     "赤焰": "RED_SHULKER_BOX",
     "金律": "YELLOW_SHULKER_BOX",
     "绯梦": "PINK_SHULKER_BOX"
 };
 
+// === 流派 → 玩家可见显示名（刻录仪 lore 等）===
 var SCHOOL_DISPLAY = {
     "环夜谷": "环夜谷标准流派",
     "沃土": "沃土奥法流派",
@@ -50,48 +73,22 @@ var SCHOOL_DISPLAY = {
     "绯梦": "绯梦流派"
 };
 
-var EMPTY_SPELL_SHULKER = "LIGHT_GRAY_SHULKER_BOX";
+// === 空槽 / 未解锁回退材质 ===
+var EMPTY_SPELL_SHULKER  = "LIGHT_GRAY_SHULKER_BOX";
 var LOCKED_SPELL_SHULKER = "OBSIDIAN";
 
 var SPELL_REGISTRY = {};
 var SPELL_BOOK_IDS = {};
 
-function findScriptFile(relativeUnderScripts) {
-    var candidates = [
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/" + relativeUnderScripts),
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/" + relativeUnderScripts)
-    ];
-    try {
-        var addonsDir = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons");
-        if (addonsDir.exists()) {
-            var list = addonsDir.listFiles();
-            if (list) {
-                for (var i = 0; i < list.length; i++) {
-                    candidates.push(new File(list[i], "scripts/" + relativeUnderScripts));
-                }
-            }
-        }
-    } catch (e) {}
-    for (var c = 0; c < candidates.length; c++) {
-        if (candidates[c].exists()) return candidates[c];
-    }
-    return null;
-}
-
 function evalScriptExport(relativeUnderScripts) {
-    var file = findScriptFile(relativeUnderScripts);
-    if (!file) return null;
-    try {
-        var bytes = Files.readAllBytes(file.toPath());
-        var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes)).toString();
-        return (0, eval)(code);
-    } catch (e) {
-        Bukkit.getLogger().warning("[GLTC术式] 加载失败 " + relativeUnderScripts + ": " + e);
+    var loader = getLoader();
+    if (loader && loader.evalScriptExport) {
+        // 隔离加载，避免多术式全局 var 互相覆盖
+        return loader.evalScriptExport(relativeUnderScripts, { isolated: true });
     }
     return null;
 }
 
-/** 从文件路径推断流派键：术式/环夜谷_1_火球术.js → 环夜谷 */
 function schoolFromSource(source) {
     if (!source) return "";
     var base = String(source).replace(/\\/g, "/");
@@ -103,7 +100,6 @@ function schoolFromSource(source) {
     return base;
 }
 
-/** 归一流派键：环夜谷标准流派 / 环夜谷 → 环夜谷 */
 function normalizeSchoolKey(school) {
     var s = String(school || "").trim();
     if (!s) return "";
@@ -127,16 +123,16 @@ function materialByName(name, fallback) {
 
 function getSchoolShulkerMaterial(school) {
     var key = normalizeSchoolKey(school);
-    var matName = key && SCHOOL_SHULKER[key] ? SCHOOL_SHULKER[key] : EMPTY_SPELL_SHULKER;
-    return materialByName(matName, EMPTY_SPELL_SHULKER);
+    var matName = key && SCHOOL_SHULKER[key] ? SCHOOL_SHULKER[key] : "LIGHT_GRAY_SHULKER_BOX";
+    return materialByName(matName, "LIGHT_GRAY_SHULKER_BOX");
 }
 
 function getEmptySpellShulkerMaterial() {
-    return materialByName(EMPTY_SPELL_SHULKER, "LIGHT_GRAY_SHULKER_BOX");
+    return materialByName(EMPTY_SPELL_SHULKER, EMPTY_SPELL_SHULKER);
 }
 
 function getLockedSpellShulkerMaterial() {
-    return materialByName(LOCKED_SPELL_SHULKER, "OBSIDIAN");
+    return materialByName(LOCKED_SPELL_SHULKER, LOCKED_SPELL_SHULKER);
 }
 
 function getSchoolDisplayName(school) {
@@ -150,27 +146,39 @@ function registerSpellDef(def, source) {
         Bukkit.getLogger().warning("[GLTC术式] 无效术式定义: " + source);
         return false;
     }
+    var id = String(def.id);
+    if (SPELL_REGISTRY[id]) {
+        Bukkit.getLogger().warning("[GLTC术式] 重复 ID " + id + "，后者覆盖: " + source);
+    }
     var school = normalizeSchoolKey(def.school || schoolFromSource(source));
-    SPELL_REGISTRY[def.id] = {
-        name: def.name || def.id,
+    SPELL_REGISTRY[id] = {
+        name: def.name || id,
         ring: def.ring || 1,
-        cost: def.cost || 0,
         cooldownMs: def.cooldownMs || 1000,
         school: school,
         cast: def.cast
     };
-    if (def.onLeftClick != null) SPELL_REGISTRY[def.id].onLeftClick = def.onLeftClick;
-    if (def.book) SPELL_BOOK_IDS[def.id] = true;
+    if (def.book) SPELL_BOOK_IDS[id] = true;
     return true;
 }
 
 function loadAllSpells() {
+    SPELL_REGISTRY = {};
+    SPELL_BOOK_IDS = {};
+    SPELL_FILES = discoverSpellFiles();
     for (var i = 0; i < SPELL_FILES.length; i++) {
         var path = SPELL_FILES[i];
         var def = evalScriptExport(path);
         if (def) registerSpellDef(def, path);
     }
-    Bukkit.getLogger().info("[GLTC术式] 已加载 " + Object.keys(SPELL_REGISTRY).length + " 个术式");
+    try {
+        if (!PLUGIN.gltcSpellLoadLogged) {
+            PLUGIN.gltcSpellLoadLogged = true;
+            Bukkit.getLogger().info("[GLTC术式] v2 已加载 " + Object.keys(SPELL_REGISTRY).length + " 个术式");
+        }
+    } catch (eLog) {
+        Bukkit.getLogger().info("[GLTC术式] v2 已加载 " + Object.keys(SPELL_REGISTRY).length + " 个术式");
+    }
 }
 
 loadAllSpells();
@@ -214,5 +222,6 @@ function getSpellIdFromBook(itemId) {
     isSpellBook: isSpellBook,
     getSpellIdFromBook: getSpellIdFromBook,
     registerSpellDef: registerSpellDef,
-    loadAllSpells: loadAllSpells
+    loadAllSpells: loadAllSpells,
+    discoverSpellFiles: discoverSpellFiles
 });

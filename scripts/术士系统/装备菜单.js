@@ -13,10 +13,6 @@ var InventoryDragEvent = Java.type("org.bukkit.event.inventory.InventoryDragEven
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var ClickType = Java.type("org.bukkit.event.inventory.ClickType");
-var File = Java.type("java.io.File");
-var Files = Java.type("java.nio.file.Files");
-var StandardCharsets = Java.type("java.nio.charset.StandardCharsets");
-var ByteBuffer = Java.type("java.nio.ByteBuffer");
 var Arrays = Java.type("java.util.Arrays");
 var HashSet = Java.type("java.util.HashSet");
 var HashMap = Java.type("java.util.HashMap");
@@ -73,7 +69,7 @@ var activeInventories = new HashSet();
 /** inv -> { uuid, stats, dirty }  加点草稿，关闭时写盘 */
 var sessionByInv = new HashMap();
 var _listenerRegistered = false;
-var MAGE_API = null;
+var MENU_MAGE_API = null;
 /** hash -> 已生成头颅（clone 用）；避免重复 Java.type / JAR 扫描 */
 var _skullItemCache = new HashMap();
 var _skullJavaReady = false;
@@ -105,50 +101,73 @@ function initSkullJavaTypes() {
 initSkullJavaTypes();
 
 function loadMageCore() {
-    // 每次优先对齐全局单例（补充剂/施术可能已热更过核心）
-    try {
-        if (PLUGIN.gltcMageApi != null
-            && typeof PLUGIN.gltcMageApi.spendPotentialOnData === "function"
-            && typeof PLUGIN.gltcMageApi.getTotalStatsFromBase === "function"
-            && typeof PLUGIN.gltcMageApi.getEquipmentBonuses === "function"
-            && typeof PLUGIN.gltcMageApi.getCurrentParticles === "function") {
-            MAGE_API = PLUGIN.gltcMageApi;
-            return true;
-        }
-    } catch (ePref) {}
-    if (MAGE_API && typeof MAGE_API.spendPotentialOnData === "function"
-        && typeof MAGE_API.getTotalStatsFromBase === "function"
-        && typeof MAGE_API.getEquipmentBonuses === "function"
-        && typeof MAGE_API.getCurrentParticles === "function") return true;
-    MAGE_API = null;
-    var candidates = [
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js"),
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js")
-    ];
-    try {
-        var addonsDir = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons");
-        if (addonsDir.exists()) {
-            var list = addonsDir.listFiles();
-            if (list) {
-                for (var i = 0; i < list.length; i++) candidates.push(new File(list[i], "scripts/术士系统/核心.js"));
-            }
-        }
-    } catch (e) {}
-    for (var c = 0; c < candidates.length; c++) {
-        var file = candidates[c];
-        if (!file.exists()) continue;
+    function probe(api) {
+        if (api == null) return false;
         try {
-            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
-            var exported = (0, eval)(code);
-            if (exported && typeof exported.spendPotentialOnData === "function"
-                && typeof exported.getTotalStatsFromBase === "function") {
-                MAGE_API = exported;
-                try { PLUGIN.gltcMageApi = exported; } catch (eSet) {}
+            var cfg = api.getGearConfig != null ? api.getGearConfig() : null;
+            if (cfg != null && cfg.EQUIP_SLOT_DEFS != null) return true;
+        } catch (e0) {}
+        try {
+            if (typeof api.getGearConfig === "function") {
+                var cfg2 = api.getGearConfig();
+                if (cfg2 != null) return true;
+            }
+        } catch (e1) {}
+        return false;
+    }
+    if (probe(MENU_MAGE_API)) return true;
+    MENU_MAGE_API = null;
+    // 物品脚本独立 Graal 上下文：监听 cache / PLUGIN 字段里的 JS 对象不可调用，直接本上下文加载
+    try {
+        var loader = PLUGIN.gltcScriptLoader;
+        if (loader && loader.evalScriptExport) {
+            var fromLoader = loader.evalScriptExport("术士系统/核心.js", { isolated: true, cache: false });
+            if (probe(fromLoader)) {
+                MENU_MAGE_API = fromLoader;
+                try {
+                    if (typeof fromLoader.publishMageJavaBridges === "function") {
+                        fromLoader.publishMageJavaBridges(fromLoader);
+                    }
+                } catch (ePub) {}
                 return true;
             }
-        } catch (e2) {
-            Bukkit.getLogger().warning("[GLTC术士] 加载核心失败: " + e2);
         }
+    } catch (eLoader) {}
+    try {
+        var File = java.io.File;
+        var Files = java.nio.file.Files;
+        var StandardCharsets = java.nio.charset.StandardCharsets;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var dataDir = null;
+        try { dataDir = PLUGIN.getDataFolder(); } catch (eDf) {}
+        if (dataDir == null) {
+            try {
+                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+                if (RSC.INSTANCE != null) dataDir = RSC.INSTANCE.getDataFolder();
+            } catch (eR) {}
+        }
+        if (dataDir != null) {
+            var candidates = [
+                new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js"),
+                new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js")
+            ];
+            for (var i = 0; i < candidates.length; i++) {
+                if (!candidates[i].exists()) continue;
+                var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(candidates[i].toPath()))).toString();
+                var exported = (0, eval)(code);
+                if (probe(exported)) {
+                    MENU_MAGE_API = exported;
+                    try {
+                        if (typeof exported.publishMageJavaBridges === "function") {
+                            exported.publishMageJavaBridges(exported);
+                        }
+                    } catch (ePub) {}
+                    return true;
+                }
+            }
+        }
+    } catch (eEval) {
+        try { Bukkit.getLogger().warning("[GLTC装备菜单] 本地加载术士核心失败: " + eEval); } catch (eL) {}
     }
     return false;
 }
@@ -156,17 +175,17 @@ function loadMageCore() {
 loadMageCore();
 
 function getSlotDefs() {
-    var cfg = MAGE_API.getGearConfig();
+    var cfg = MENU_MAGE_API.getGearConfig();
     return cfg ? cfg.EQUIP_SLOT_DEFS : [];
 }
 
 function getSeparatorSlot() {
-    var cfg = MAGE_API.getGearConfig();
+    var cfg = MENU_MAGE_API.getGearConfig();
     return cfg ? cfg.SEPARATOR_GUI_SLOT : 37;
 }
 
 function categoryDisplayName(cat) {
-    var cfg = MAGE_API.getGearConfig();
+    var cfg = MENU_MAGE_API.getGearConfig();
     if (cfg && cfg.CATEGORY_NAMES && cfg.CATEGORY_NAMES[cat]) return cfg.CATEGORY_NAMES[cat];
     return cat;
 }
@@ -420,12 +439,12 @@ function getSession(inv) {
 
 function getSessionBase(session, player) {
     if (session && session.stats) return session.stats;
-    return MAGE_API.getPlayerStats(player.getUniqueId().toString());
+    return MENU_MAGE_API.getPlayerStats(player.getUniqueId().toString());
 }
 
 function getSpentPts(base, pool, statKey) {
     try {
-        if (typeof MAGE_API.ensureSpentMaps === "function") MAGE_API.ensureSpentMaps(base);
+        if (typeof MENU_MAGE_API.ensureSpentMaps === "function") MENU_MAGE_API.ensureSpentMaps(base);
     } catch (e0) {}
     var sf = statKey + "Spent";
     if (base[sf] != null) return Math.max(0, Math.floor(Number(base[sf]) || 0));
@@ -436,15 +455,15 @@ function getSpentPts(base, pool, statKey) {
 
 function gearSlotItem(slot) {
     if (!slot) return null;
-    if (typeof MAGE_API.getGearSlotItem === "function") return MAGE_API.getGearSlotItem(slot);
+    if (typeof MENU_MAGE_API.getGearSlotItem === "function") return MENU_MAGE_API.getGearSlotItem(slot);
     var b64 = typeof slot === "string" ? slot : slot.item;
-    return b64 ? MAGE_API.itemFromBase64(b64) : null;
+    return b64 ? MENU_MAGE_API.itemFromBase64(b64) : null;
 }
 
 function getEquipBonuses(player) {
     try {
-        if (typeof MAGE_API.getEquipmentBonuses === "function") {
-            return MAGE_API.getEquipmentBonuses(player.getUniqueId().toString()) || {};
+        if (typeof MENU_MAGE_API.getEquipmentBonuses === "function") {
+            return MENU_MAGE_API.getEquipmentBonuses(player.getUniqueId().toString()) || {};
         }
     } catch (e) {}
     return {};
@@ -452,7 +471,7 @@ function getEquipBonuses(player) {
 
 function hardCapOf(statKey, isPct) {
     try {
-        var caps = MAGE_API.HARD_CAPS;
+        var caps = MENU_MAGE_API.HARD_CAPS;
         if (!caps || caps[statKey] == null) return null;
         return caps[statKey];
     } catch (e) {
@@ -464,20 +483,20 @@ function refreshStatIcons(inv, player) {
     var session = getSession(inv);
     var base = getSessionBase(session, player);
     try {
-        if (typeof MAGE_API.ensureSpentMaps === "function") MAGE_API.ensureSpentMaps(base);
+        if (typeof MENU_MAGE_API.ensureSpentMaps === "function") MENU_MAGE_API.ensureSpentMaps(base);
     } catch (eEns) {}
 
     var total;
-    if (session && session.stats && typeof MAGE_API.getTotalStatsFromBase === "function") {
-        total = MAGE_API.getTotalStatsFromBase(player, session.stats);
+    if (session && session.dirty && session.stats && typeof MENU_MAGE_API.getTotalStatsFromBase === "function") {
+        total = MENU_MAGE_API.getTotalStatsFromBase(player, session.stats);
     } else {
-        try { MAGE_API.invalidatePlayerCache(player.getUniqueId().toString()); } catch (eInv) {}
-        total = MAGE_API.getTotalStats(player, true);
+        try { MENU_MAGE_API.invalidatePlayerCache(player.getUniqueId().toString()); } catch (eInv) {}
+        total = MENU_MAGE_API.getTotalStats(player, true);
     }
     var equip = getEquipBonuses(player);
-    var mageOpt = MAGE_API.MAGE_POINT_OPTIONS || {};
-    var bodyOpt = MAGE_API.BODY_POINT_OPTIONS || {};
-    var gli = MAGE_API.getGLI();
+    var mageOpt = MENU_MAGE_API.MAGE_POINT_OPTIONS || {};
+    var bodyOpt = MENU_MAGE_API.BODY_POINT_OPTIONS || {};
+    var gli = MENU_MAGE_API.getGLI();
     var saveTip = (session && session.dirty) ? descLine("※ 有未保存修改，关闭后写入") : null;
 
     inv.setItem(STAT_SLOTS.level, pane(Material.EXPERIENCE_BOTTLE, "§d术士等级 §f+ " + formatNum(total.mageLevel), [
@@ -615,7 +634,7 @@ function paintMenu(inv, player) {
 
     inv.setItem(getSeparatorSlot(), buildSeparator());
     var uuid = player.getUniqueId().toString();
-    var gear = MAGE_API.getPlayerGear(uuid);
+    var gear = MENU_MAGE_API.getPlayerGear(uuid);
     var defs = getSlotDefs();
     for (var s = 0; s < defs.length; s++) {
         var def = defs[s];
@@ -628,10 +647,10 @@ function paintMenu(inv, player) {
 
 function syncAllRelatedData(player) {
     if (!player || !(player instanceof Player)) return;
-    if (!loadMageCore() || !MAGE_API) return;
+    if (!loadMageCore() || !MENU_MAGE_API) return;
     var uuid = String(player.getUniqueId().toString());
-    try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
-    try { MAGE_API.applyMageAttributes(player); } catch (e1) {}
+    try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+    try { MENU_MAGE_API.applyMageAttributes(player); } catch (e1) {}
 }
 
 /** 延後到下一 tick，避免在 InventoryClick/Close 事件堆疊中阻塞主執行緒 */
@@ -651,17 +670,17 @@ function openMageMenu(player) {
         player.sendMessage(GLTC_PREFIX + "§c术士核心未加载。");
         return;
     }
-    if (!MAGE_API.getGearConfig()) {
+    if (!MENU_MAGE_API.getGearConfig()) {
         player.sendMessage(GLTC_PREFIX + "§c装备加成表未加载。");
         return;
     }
     var uuid = String(player.getUniqueId().toString());
-    try { MAGE_API.invalidatePlayerCache(uuid); } catch (eInv) {}
+    try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (eInv) {}
     scheduleSyncAllRelatedData(player);
     var inv = Bukkit.createInventory(null, 54, GUI_TITLE);
-    var stats = cloneData(MAGE_API.getPlayerStats(uuid));
+    var stats = cloneData(MENU_MAGE_API.getPlayerStats(uuid));
     try {
-        if (typeof MAGE_API.ensureSpentMaps === "function") MAGE_API.ensureSpentMaps(stats);
+        if (typeof MENU_MAGE_API.ensureSpentMaps === "function") MENU_MAGE_API.ensureSpentMaps(stats);
     } catch (e1) {}
     var session = {
         uuid: uuid,
@@ -672,6 +691,7 @@ function openMageMenu(player) {
     paintMenu(inv, player);
     activeInventories.add(inv);
     player.openInventory(inv);
+    try { player.playSound(player.getLocation(), "minecraft:block.vault.open_shutter", 1.0, 1.0); } catch (eSnd) {}
 }
 
 function equipSlotIndex(rawSlot) {
@@ -707,7 +727,7 @@ function findEmptyEquipSlot(stack, gear, playerUuid) {
     var defs = getSlotDefs();
     for (var i = 0; i < defs.length; i++) {
         if (gear.slots[i]) continue;
-        if (MAGE_API.canEquipInSlot(stack, i, playerUuid)) return i;
+        if (MENU_MAGE_API.canEquipInSlot(stack, i, playerUuid)) return i;
     }
     return -1;
 }
@@ -715,10 +735,10 @@ function findEmptyEquipSlot(stack, gear, playerUuid) {
 function equipFromPlayerInv(player, top, bottom, slot) {
     var stack = bottom.getItem(slot);
     if (!stack || stack.getType() === Material.AIR) return;
-    if (!MAGE_API.isMageAccessory(stack)) return;
+    if (!MENU_MAGE_API.isMageAccessory(stack)) return;
 
     var uuid = player.getUniqueId().toString();
-    var gear = MAGE_API.getPlayerGear(uuid);
+    var gear = MENU_MAGE_API.getPlayerGear(uuid);
     var idx = findEmptyEquipSlot(stack, gear, uuid);
     if (idx < 0) {
         player.sendMessage(GLTC_PREFIX + "§c没有可装配的空槽（类型不匹配或已满）。");
@@ -726,17 +746,17 @@ function equipFromPlayerInv(player, top, bottom, slot) {
     }
     var one = takeOneFromInventorySlot(bottom, slot);
     if (!one) return;
-    if (typeof MAGE_API.dedupeUgwOnEquip === "function") {
-        one = MAGE_API.dedupeUgwOnEquip(player, one);
+    if (typeof MENU_MAGE_API.dedupeUgwOnEquip === "function") {
+        one = MENU_MAGE_API.dedupeUgwOnEquip(player, one);
     }
-    if (typeof MAGE_API.syncUgwLore === "function") {
-        one = MAGE_API.syncUgwLore(one);
+    if (typeof MENU_MAGE_API.syncUgwLore === "function") {
+        one = MENU_MAGE_API.syncUgwLore(one);
     }
-    var ugwId = typeof MAGE_API.getUgwIdFromItem === "function" ? MAGE_API.getUgwIdFromItem(one) : null;
+    var ugwId = typeof MENU_MAGE_API.getUgwIdFromItem === "function" ? MENU_MAGE_API.getUgwIdFromItem(one) : null;
     var defs = getSlotDefs();
-    gear.slots[idx] = { ugwId: ugwId, item: MAGE_API.itemToBase64(one) };
-    MAGE_API.savePlayerGear(uuid, gear);
-    try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+    gear.slots[idx] = { ugwId: ugwId, item: MENU_MAGE_API.itemToBase64(one) };
+    MENU_MAGE_API.savePlayerGear(uuid, gear);
+    try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
     scheduleSyncAllRelatedData(player);
     top.setItem(defs[idx].gui, one.clone());
     refreshStatIcons(top, player);
@@ -745,18 +765,18 @@ function equipFromPlayerInv(player, top, bottom, slot) {
 
 function unequipToPlayerInv(player, top, idx) {
     var uuid = player.getUniqueId().toString();
-    var gear = MAGE_API.getPlayerGear(uuid);
+    var gear = MENU_MAGE_API.getPlayerGear(uuid);
     var slotEntry = gear.slots[idx];
     if (!slotEntry) return;
     var item = gearSlotItem(slotEntry);
     gear.slots[idx] = null;
-    MAGE_API.savePlayerGear(uuid, gear);
-    try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+    MENU_MAGE_API.savePlayerGear(uuid, gear);
+    try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
     scheduleSyncAllRelatedData(player);
     var defs = getSlotDefs();
     top.setItem(defs[idx].gui, buildEmptySlot(defs[idx]));
     if (item) {
-        if (typeof MAGE_API.syncUgwLore === "function") item = MAGE_API.syncUgwLore(item);
+        if (typeof MENU_MAGE_API.syncUgwLore === "function") item = MENU_MAGE_API.syncUgwLore(item);
         giveOrDrop(player, item);
     }
     refreshStatIcons(top, player);
@@ -768,7 +788,7 @@ function trySpendClick(player, raw, inv) {
     if (!session || !session.stats) return false;
 
     if (raw === STAT_SLOTS.resetPts) {
-        var rr = MAGE_API.resetAllPotentialsOnData(session.stats);
+        var rr = MENU_MAGE_API.resetAllPotentialsOnData(session.stats);
         if (!rr.ok) { player.sendMessage(GLTC_PREFIX + "§c" + rr.msg); return true; }
         session.dirty = true;
         player.sendMessage(GLTC_PREFIX + "§a已重置潜能：§d术士 +" + rr.mage + " §7/ §a体能 +" + rr.body
@@ -777,7 +797,7 @@ function trySpendClick(player, raw, inv) {
         return true;
     }
     if (MAGE_CLICK[raw]) {
-        var r = MAGE_API.spendPotentialOnData(session.stats, "mage", MAGE_CLICK[raw]);
+        var r = MENU_MAGE_API.spendPotentialOnData(session.stats, "mage", MAGE_CLICK[raw]);
         if (!r.ok) { player.sendMessage(GLTC_PREFIX + "§c" + r.msg); return true; }
         session.dirty = true;
         player.sendMessage(GLTC_PREFIX + "§a术士潜能：§f" + r.msg + " §7(剩余 " + r.left + ") §8(待关闭保存)");
@@ -785,7 +805,7 @@ function trySpendClick(player, raw, inv) {
         return true;
     }
     if (BODY_CLICK[raw]) {
-        var r2 = MAGE_API.spendPotentialOnData(session.stats, "body", BODY_CLICK[raw]);
+        var r2 = MENU_MAGE_API.spendPotentialOnData(session.stats, "body", BODY_CLICK[raw]);
         if (!r2.ok) { player.sendMessage(GLTC_PREFIX + "§c" + r2.msg); return true; }
         session.dirty = true;
         player.sendMessage(GLTC_PREFIX + "§a体能潜能：§f" + r2.msg + " §7(剩余 " + r2.left + ") §8(待关闭保存)");
@@ -799,10 +819,26 @@ function commitMageSession(player, session) {
     if (!session || !loadMageCore()) return;
     var uuid = session.uuid;
     if (session.dirty) {
-        try { MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
-        var ok = MAGE_API.savePlayerStats(uuid, session.stats);
-        if (ok) player.sendMessage(GLTC_PREFIX + "§a潜能改动已写入。");
-        else player.sendMessage(GLTC_PREFIX + "§c潜能写入失败。");
+        try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+        var ok = MENU_MAGE_API.savePlayerStats(uuid, session.stats);
+        if (ok) {
+            player.sendMessage(GLTC_PREFIX + "§a潜能改动已写入。");
+            // 通知监听上下文清缓存，并重发 Java 桥（闭包钉死最新 API）
+            try {
+                var store = PLUGIN.gltcJavaBridges;
+                if (store != null) {
+                    var invBr = store.get("gltcMage_invalidateCache");
+                    if (invBr != null && invBr.accept != null) invBr.accept(String(uuid));
+                }
+            } catch (eInvBr) {}
+            try {
+                if (typeof MENU_MAGE_API.publishMageJavaBridges === "function") {
+                    MENU_MAGE_API.publishMageJavaBridges(MENU_MAGE_API);
+                }
+            } catch (ePub) {}
+        } else {
+            player.sendMessage(GLTC_PREFIX + "§c潜能写入失败。");
+        }
     }
     scheduleSyncAllRelatedData(player);
 }
@@ -876,7 +912,7 @@ function registerListeners() {
             // 背包：左键点击组件 → 自动找空槽装备
             if (clicked != null && clicked !== top) {
                 var cur = event.getCurrentItem();
-                if (cur && cur.getType() !== Material.AIR && MAGE_API.isMageAccessory(cur)) {
+                if (cur && cur.getType() !== Material.AIR && MENU_MAGE_API.isMageAccessory(cur)) {
                     event.setCancelled(true);
                     if (click !== ClickType.LEFT) return;
                     equipFromPlayerInv(player, top, clicked, event.getSlot());
@@ -906,7 +942,7 @@ function registerListeners() {
                 try { session = sessionByInv.get(inv); sessionByInv.remove(inv); } catch (e1) {}
             }
             var p = event.getPlayer();
-            if (p instanceof Player && MAGE_API) {
+            if (p instanceof Player && MENU_MAGE_API) {
                 scheduleCommitMageSession(p, session);
             }
         }, PLUGIN

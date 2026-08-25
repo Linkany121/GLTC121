@@ -1,20 +1,12 @@
-/**
- * 术式承载转换仪
- * 交互：左键点背包物品自动放入；左键点菜单槽位卸回背包
- *
- * 布局（3 行 / 27 格，白玻璃填充）：
- *  第二行：
- *    9  提示（附魔台）
- *   10  施术道具槽
- *   12~17 术式载体槽（6）
- *
- * 注意：不 eval 施术核心（避免重复注册监听 / Graal 挂载 JS 对象到 Plugin 失效）
- */
+// ===================================================================
+// 术式承载转换仪 v2 — 刻录 / 镶嵌 GUI（machines.yml script）
+// 单排：0 法杖 | 1 技能核心 | 2 黑玻璃 | 3–8 术式槽
+// 背包左/右键自动放入；核心/术式显示名为 items.yml 去前缀彩名
+// ===================================================================
 
+// === Java 类型导入 ===
 var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
 var Bukkit = Java.type("org.bukkit.Bukkit");
-var NamespacedKey = Java.type("org.bukkit.NamespacedKey");
-var PersistentDataType = Java.type("org.bukkit.persistence.PersistentDataType");
 var Material = Java.type("org.bukkit.Material");
 var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
 var Enchantment = Java.type("org.bukkit.enchantments.Enchantment");
@@ -31,42 +23,133 @@ var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
 
-var GUI_TITLE = null; // 下方 colorize 后赋值
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var SF_ITEM_KEY = new NamespacedKey("slimefun", "slimefun_item");
-var KEY_SPELLS = new NamespacedKey("gltc", "staff_spells");
-var KEY_SELECTED = new NamespacedKey("gltc", "staff_selected");
-var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
+var STAFF_META = null;
+var KEY_SPELLS = null;
+var KEY_SELECTED = null;
+var PersistentDataType = null;
+var NamespacedKey = null;
+var KEY_GUI_PLACEHOLDER = null;
+try { PersistentDataType = Java.type("org.bukkit.persistence.PersistentDataType"); } catch (ePdc) {}
+try {
+    NamespacedKey = Java.type("org.bukkit.NamespacedKey");
+    KEY_GUI_PLACEHOLDER = new NamespacedKey("gltc", "engraving_placeholder");
+} catch (eKey) {}
 
-var INV_SIZE = 27;
-/** 第二行：提示 / 施术道具 / （空）/ 术式槽×6 */
-var INFO_SLOT = 9;
-var STAFF_SLOT = 10;
-var SPELL_SLOTS = [12, 13, 14, 15, 16, 17];
+// === 播报 / 法杖显示名 ===
+var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
+var STAFF_LABEL = "§x§7§4§c§5§f§fN§x§7§a§b§1§f§fT§x§8§0§9§c§f§fC§x§8§7§8§8§f§f外§x§8§d§7§3§f§f置§x§9§7§6§9§f§f粒§x§a§5§6§a§f§f子§x§b§4§6§b§f§f控§x§c§2§6§c§f§f制§x§d§0§6§d§f§f仪";
+
+// === GUI 布局（可调，改后须同步 refresh / 点击判定）===
+var STAFF_SLOT   = 0;                    // 法杖格
+var CORE_SLOT    = 1;                    // 技能核心格
+var SPELL_SLOTS  = [3, 4, 5, 6, 7, 8];   // 术式槽 rawSlot
+var FILLER_SLOTS = [2];                  // 黑玻璃间隔
+var INV_SIZE     = 9;                    // 单排
+var GUI_TITLE    = "§x§c§9§a§0§f§f术§x§b§8§8§a§f§f式§x§a§7§7§4§f§f承§x§9§6§6§0§f§f载§x§8§5§6§0§f§f转§x§7§4§5§0§f§f换§x§6§3§4§0§f§f仪";
+
+// === 空槽占位材质 ===
+var MAT_STAFF_EMPTY = Material.WOODEN_SWORD; // 空法杖占位
+var MAT_CORE_EMPTY  = Material.GRAY_WOOL;    // 空核心占位
+var MAT_FILLER      = Material.BLACK_STAINED_GLASS_PANE;
+var MAT_SPELL_LOCKED = Material.OBSIDIAN;
+var MAT_SPELL_EMPTY  = Material.LIGHT_GRAY_SHULKER_BOX;
+
+// === GUI 音效 ===
+var SND_OPEN         = "block.end_portal_frame.fill"; // 打开刻录界面
+var SND_OPEN_VOL     = 0.75;
+var SND_OPEN_PITCH   = 1.05;
+var SND_CLICK        = "block.note_block.bell";        // 置入/取回/嵌入
+var SND_CLICK_VOL    = 0.8;
+var SND_CLICK_PITCH  = 1.25;
+var SND_ENGRAVE      = "block.end_portal_frame.fill"; // 刻录术式成功
+var SND_ENGRAVE_VOL  = 0.9;
+var SND_ENGRAVE_PITCH = 0.95;
+
+function playGuiSound(player, sound, vol, pitch) {
+    if (!player) return;
+    try { player.playSound(player.getLocation(), sound, vol, pitch); } catch (e) {}
+}
+
+function ensureStaffMetaApi() {
+    if (STAFF_META != null) return STAFF_META;
+    STAFF_META = evalExport("施术道具/_staffMeta.js");
+    if (STAFF_META) {
+        KEY_SPELLS = STAFF_META.KEY_SPELLS;
+        KEY_SELECTED = STAFF_META.KEY_SELECTED;
+    }
+    return STAFF_META;
+}
+
+/** 取消点击事件后改背包必须延后 1 tick，否则 Paper 会回滚导致吞物品 */
+function runNextTick(fn) {
+    try {
+        Bukkit.getScheduler().runTask(PLUGIN, function() {
+            try { fn(); } catch (eRun) {
+                Bukkit.getLogger().warning("[GLTC刻录仪] 延后任务异常: " + eRun);
+            }
+        });
+    } catch (e0) {
+        try { fn(); } catch (e1) {}
+    }
+}
+
+function markPlaceholder(stack) {
+    if (!stack || !KEY_GUI_PLACEHOLDER || !PersistentDataType) return stack;
+    try {
+        var m = stack.getItemMeta();
+        if (!m) return stack;
+        m.getPersistentDataContainer().set(KEY_GUI_PLACEHOLDER, PersistentDataType.BYTE, java.lang.Byte.valueOf(1));
+        stack.setItemMeta(m);
+    } catch (e) {}
+    return stack;
+}
+
+function hasPlaceholderMark(stack) {
+    if (!stack || !KEY_GUI_PLACEHOLDER || !PersistentDataType) return false;
+    try {
+        var m = stack.getItemMeta();
+        if (!m) return false;
+        return m.getPersistentDataContainer().has(KEY_GUI_PLACEHOLDER, PersistentDataType.BYTE);
+    } catch (e) { return false; }
+}
 
 var activeInventories = new java.util.HashSet();
 var _listenerRegistered = false;
 var SPELL_CFG = null;
 var STAFF_CFG = null;
+var SKILL_CORE_CFG = null;
 
-var FILLER;
-(function() {
-    FILLER = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-    var meta = FILLER.getItemMeta();
-    meta.setDisplayName("§f");
-    FILLER.setItemMeta(meta);
+var FILLER = (function() {
+    var s = new ItemStack(MAT_FILLER);
+    var m = s.getItemMeta();
+    m.setDisplayName("§0");
+    s.setItemMeta(m);
+    return s;
 })();
 
-var STAFF_PLACEHOLDER;
-(function() {
-    STAFF_PLACEHOLDER = new ItemStack(Material.OBSIDIAN);
-    var meta = STAFF_PLACEHOLDER.getItemMeta();
-    meta.setDisplayName("§5§l[ 施术道具槽 ]");
-    meta.setLore(java.util.Arrays.asList(
-        "§7放入施术道具",
-        "§e左键点击将自动置入或取回"
+var STAFF_PLACEHOLDER = (function() {
+    var s = new ItemStack(MAT_STAFF_EMPTY);
+    var m = s.getItemMeta();
+    m.setDisplayName("§6§l" + STAFF_LABEL);
+    m.setLore(java.util.Arrays.asList(
+        "§7待放入 " + STAFF_LABEL,
+        "§e点击左/右键自动放入或取回"
     ));
-    STAFF_PLACEHOLDER.setItemMeta(meta);
+    s.setItemMeta(m);
+    return markPlaceholder(s);
+})();
+
+var CORE_PLACEHOLDER = (function() {
+    var s = new ItemStack(MAT_CORE_EMPTY);
+    var m = s.getItemMeta();
+    m.setDisplayName("§7§l[ 施术技能核心 ]");
+    m.setLore(java.util.Arrays.asList(
+        "§7嵌入后解锁可刻录术式位置与核心技能",
+        "§e点击左/右键自动放入或取回"
+    ));
+    s.setItemMeta(m);
+    return markPlaceholder(s);
 })();
 
 function findScriptFile(rel) {
@@ -79,9 +162,7 @@ function findScriptFile(rel) {
         if (addonsDir.exists()) {
             var list = addonsDir.listFiles();
             if (list) {
-                for (var i = 0; i < list.length; i++) {
-                    candidates.push(new File(list[i], "scripts/" + rel));
-                }
+                for (var i = 0; i < list.length; i++) candidates.push(new File(list[i], "scripts/" + rel));
             }
         }
     } catch (e) {}
@@ -94,143 +175,300 @@ function findScriptFile(rel) {
 function evalExport(rel) {
     var file = findScriptFile(rel);
     if (!file) return null;
+    // 与全局缓存共用，避免重复加载术式登记刷屏
+    try {
+        var cache = PLUGIN.gltcEvalCache;
+        if (cache == null) {
+            cache = new java.util.concurrent.ConcurrentHashMap();
+            PLUGIN.gltcEvalCache = cache;
+        }
+        var hit = cache.get(String(rel).replace(/\\/g, "/"));
+        if (hit != null) return hit;
+    } catch (eC) {}
     try {
         var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
-        return (0, eval)(code);
+        var body = String(code).replace(/\s+$/, "");
+        if (!/\breturn\s+/.test(body.slice(-80))) {
+            if (/\(\s*\{[\s\S]*\}\s*\)\s*;?\s*$/.test(body)) {
+                body = body.replace(/\(\s*\{([\s\S]*)\}\s*\)\s*;?\s*$/, "return ({\n$1\n});");
+            } else if (/(?:^|[\n;])\s*([A-Za-z_$][\w$]*)\s*;\s*$/.test(body)) {
+                body = body.replace(/([A-Za-z_$][\w$]*)\s*;\s*$/, "return $1;");
+            }
+        }
+        var result = (0, eval)("(function(){\n" + body + "\n})();");
+        if (result != null) {
+            try { PLUGIN.gltcEvalCache.put(String(rel).replace(/\\/g, "/"), result); } catch (eP) {}
+        }
+        return result;
     } catch (e) {
-        Bukkit.getLogger().warning("[GLTC转换仪] 加载失败 " + rel + ": " + e);
+        Bukkit.getLogger().warning("[GLTC刻录仪] 加载失败 " + rel + ": " + e);
         return null;
     }
 }
 
 function loadApis() {
-    if (!SPELL_CFG || typeof SPELL_CFG.getSchoolShulkerMaterial !== "function") {
-        SPELL_CFG = evalExport("术式/登记.js");
+    if (!STAFF_CFG) STAFF_CFG = evalExport("施术道具/登记.js");
+    if (!SPELL_CFG) SPELL_CFG = evalExport("术式/登记.js");
+    if (!SKILL_CORE_CFG) SKILL_CORE_CFG = evalExport("施术道具/技能核心登记.js");
+    ensureStaffMetaApi();
+    var ok = !!(SPELL_CFG && STAFF_CFG && SKILL_CORE_CFG && STAFF_META
+        && typeof SPELL_CFG.isSpellBook === "function"
+        && typeof STAFF_META.readStaffMeta === "function");
+    if (!ok) {
+        try {
+            if (!PLUGIN.gltcEngraveApiWarned) {
+                PLUGIN.gltcEngraveApiWarned = true;
+                Bukkit.getLogger().warning("[GLTC刻录仪] API未就绪"
+                    + " staff=" + !!STAFF_CFG
+                    + " spell=" + !!SPELL_CFG
+                    + " spellBook=" + !!(SPELL_CFG && typeof SPELL_CFG.isSpellBook === "function")
+                    + " core=" + !!SKILL_CORE_CFG
+                    + " meta=" + !!(STAFF_META && typeof STAFF_META.readStaffMeta === "function"));
+            }
+        } catch (eW) {}
     }
-    if (!STAFF_CFG || !STAFF_CFG.STAFF_REGISTRY) {
-        STAFF_CFG = evalExport("施术道具/登记.js");
-    }
-    return !!(SPELL_CFG && STAFF_CFG && typeof SPELL_CFG.isSpellBook === "function");
+    return ok;
 }
 
 function getSlimefunId(stack) {
     if (!stack || stack.getType() === Material.AIR) return null;
     try {
-        var meta = stack.getItemMeta();
-        if (meta) {
-            var pdc = meta.getPersistentDataContainer();
-            if (pdc.has(SF_ITEM_KEY, PersistentDataType.STRING)) {
-                return pdc.get(SF_ITEM_KEY, PersistentDataType.STRING);
-            }
-        }
-    } catch (e) {}
-    try {
         var sf = SoftItemByItem(stack);
-        return sf ? sf.getId() : null;
-    } catch (e2) {}
-    return null;
+        return sf != null ? String(sf.getId()) : null;
+    } catch (e) { return null; }
 }
 
 function SoftItemByItem(stack) {
-    return SlimefunItem.getByItem(stack);
+    try { return SlimefunItem.getByItem(stack); } catch (e) { return null; }
 }
 
 function SoftItemById(id) {
-    try { return SlimefunItem.getById(id); } catch (e) { return null; }
+    try { return SlimefunItem.getById(String(id)); } catch (e) { return null; }
 }
 
 function toJavaInt(n) {
-    var v = Math.floor(Number(n));
-    if (!isFinite(v)) v = 0;
-    return java.lang.Integer.parseInt(String(v), 10);
+    ensureStaffMetaApi();
+    if (STAFF_META && STAFF_META.toJavaInt) return STAFF_META.toJavaInt(n);
+    return java.lang.Integer.parseInt(String(Math.floor(Number(n) || 0)), 10);
 }
 
 function isStaff(stack) {
-    if (!stack || stack.getType() === Material.AIR) return false;
-    if (stack.getType() === Material.OBSIDIAN) return false;
+    if (!loadApis()) return false;
     var id = getSlimefunId(stack);
-    return !!(id && STAFF_CFG && STAFF_CFG.STAFF_REGISTRY && STAFF_CFG.STAFF_REGISTRY[id]);
+    return !!(id && STAFF_CFG.STAFF_REGISTRY[id]);
+}
+
+function isSkillCore(stack) {
+    if (!loadApis() || !stack || stack.getType() === Material.AIR) return false;
+    var id = getSlimefunId(stack);
+    return !!(id && SKILL_CORE_CFG.isSkillCoreItem && SKILL_CORE_CFG.isSkillCoreItem(id));
+}
+
+function isCorePlaceholder(stack) {
+    if (!stack || stack.getType() === Material.AIR) return true;
+    if (isSkillCore(stack)) return false;
+    if (hasPlaceholderMark(stack)) return true;
+    return stack.getType() === MAT_CORE_EMPTY;
 }
 
 function isStaffPlaceholder(stack) {
-    return !stack || stack.getType() === Material.AIR || stack.getType() === Material.OBSIDIAN;
+    if (!stack || stack.getType() === Material.AIR) return true;
+    // 真法杖绝不当占位符（避免误判吞物品）
+    if (isStaff(stack)) return false;
+    if (hasPlaceholderMark(stack)) return true;
+    return stack.getType() === MAT_STAFF_EMPTY;
+}
+
+/** 术式载体：登记 book:true，或 items.yml 流派色潜影盒（名称含「术式载体」） */
+function isSpellCarrier(stack) {
+    if (!loadApis() || !stack || stack.getType() === Material.AIR) return false;
+    var id = getSlimefunId(stack);
+    if (!id || STAFF_CFG.STAFF_REGISTRY[id]) return false;
+    if (SPELL_CFG.isSpellBook(id)) return true;
+    try {
+        var t = String(stack.getType().name());
+        if (t.indexOf("SHULKER_BOX") < 0) return false;
+        var meta = stack.getItemMeta();
+        if (meta && meta.hasDisplayName()) {
+            var dn = stripColor(String(meta.getDisplayName()));
+            if (dn.indexOf("术式载体") >= 0) return true;
+        }
+        if (meta && meta.hasLore()) {
+            var lore = meta.getLore();
+            for (var i = 0; i < lore.size(); i++) {
+                if (stripColor(String(lore.get(i))).indexOf("术式承载转换仪") >= 0) return true;
+            }
+        }
+    } catch (e) {}
+    return false;
+}
+
+function skipColorIndex(s, i) {
+    if (i >= s.length || s.charAt(i) !== "§") return i;
+    if (i + 1 < s.length && (s.charAt(i + 1) === "x" || s.charAt(i + 1) === "X")) {
+        return Math.min(s.length, i + 14);
+    }
+    return Math.min(s.length, i + 2);
+}
+
+/**
+ * items.yml 显示名去前缀：
+ * - 「术式载体 丨 xxx」→ xxx（保留颜色）
+ * - 「施术技能核心 xxx」→ xxx（保留颜色）
+ */
+function shortItemDisplayName(coloredDn) {
+    var dn = String(coloredDn || "");
+    if (!dn) return "";
+    var sepIdx = dn.indexOf("丨");
+    if (sepIdx < 0) sepIdx = dn.indexOf("|");
+    if (sepIdx >= 0) {
+        return dn.substring(sepIdx + 1).replace(/^\s+/, "");
+    }
+    var plain = stripColor(dn);
+    var prefixes = ["施术技能核心", "术式载体"];
+    for (var p = 0; p < prefixes.length; p++) {
+        var pref = prefixes[p];
+        var at = plain.indexOf(pref);
+        if (at < 0) continue;
+        var need = at + pref.length;
+        var ci = 0;
+        var pc = 0;
+        while (ci < dn.length && pc < need) {
+            if (dn.charAt(ci) === "§") {
+                ci = skipColorIndex(dn, ci);
+                continue;
+            }
+            pc++;
+            ci++;
+        }
+        return dn.substring(ci).replace(/^\s+/, "");
+    }
+    return dn;
+}
+
+function sfShortDisplay(itemId, fallback) {
+    try {
+        var sf = SoftItemById(itemId);
+        if (sf) {
+            var meta = sf.getItem().getItemMeta();
+            if (meta && meta.hasDisplayName()) {
+                var short = shortItemDisplayName(String(meta.getDisplayName()));
+                if (short && stripColor(short).length > 0) return short;
+            }
+        }
+    } catch (e) {}
+    if (fallback != null && String(fallback).length) return String(fallback);
+    return itemId ? String(itemId) : "";
+}
+
+function coreDisplayName(coreId) {
+    var fb = coreId;
+    try {
+        if (SKILL_CORE_CFG && SKILL_CORE_CFG.getCoreName) fb = SKILL_CORE_CFG.getCoreName(coreId);
+    } catch (e) {}
+    return sfShortDisplay(coreId, fb);
+}
+
+function spellDisplayName(spellId) {
+    var fb = spellId;
+    try {
+        if (SPELL_CFG && SPELL_CFG.getSpellName) fb = SPELL_CFG.getSpellName(spellId);
+    } catch (e) {}
+    return sfShortDisplay(spellId, fb);
 }
 
 function pane(mat, name, loreArr, glow) {
-    var item = new ItemStack(mat);
+    var item = new ItemStack(mat || MAT_SPELL_EMPTY, 1);
     var meta = item.getItemMeta();
-    meta.setDisplayName(name);
-    if (loreArr) meta.setLore(java.util.Arrays.asList(loreArr));
+    meta.setDisplayName(name || " ");
+    if (loreArr && loreArr.length) meta.setLore(java.util.Arrays.asList(loreArr));
     if (glow) {
-        try {
-            var ench = Enchantment.DURABILITY;
-            try { if (Enchantment.UNBREAKING != null) ench = Enchantment.UNBREAKING; } catch (eU) {}
-            meta.addEnchant(ench, 1, true);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        } catch (eG) {}
+        try { meta.addEnchant(Enchantment.UNBREAKING, 1, true); } catch (e0) {}
+        try { meta.addItemFlags(ItemFlag.HIDE_ENCHANTS); } catch (e1) {}
     }
     item.setItemMeta(meta);
     return item;
 }
 
 function spellLockedPane(index) {
-    var mat = Material.OBSIDIAN;
-    try {
-        if (SPELL_CFG && typeof SPELL_CFG.getLockedSpellShulkerMaterial === "function") {
-            mat = SPELL_CFG.getLockedSpellShulkerMaterial();
-        }
-    } catch (e) {}
-    return pane(mat, "§8未解锁 §7#" + (index + 1), [
-        "§7施术道具存储等级不足"
-    ]);
+    return pane(MAT_SPELL_LOCKED, "§8[未解锁] §7#" + (index + 1), [
+        "§7需嵌入核心或提升核心等级以解锁"
+    ], false);
 }
 
 function spellEmptyPane(index) {
-    var mat = Material.LIGHT_GRAY_SHULKER_BOX;
-    try {
-        if (SPELL_CFG && typeof SPELL_CFG.getEmptySpellShulkerMaterial === "function") {
-            mat = SPELL_CFG.getEmptySpellShulkerMaterial();
-        }
-    } catch (e) {}
-    return pane(mat, "§5术式槽 §f#" + (index + 1), [
-        "§7[ 未装填 ]",
-        "§e左键点击背包中术式载体自动刻录",
-        "§e左键点击已写入槽可卸下到背包"
-    ]);
+    return pane(MAT_SPELL_EMPTY, "§7[未装填] §8#" + (index + 1), [
+        "§7左键点击术式载体自动刻录",
+        "§8空槽"
+    ], false);
 }
 
-/** 展示板：流派色潜影盒；不是真实术式书，关闭界面不会掉落 */
+function coreEmptyPane() {
+    return CORE_PLACEHOLDER.clone();
+}
+
+function coreFilledItem(coreId) {
+    var item = createCleanSkillCore(coreId);
+    if (item) {
+        try {
+            var meta = item.getItemMeta();
+            if (meta && meta.hasDisplayName()) {
+                var short = shortItemDisplayName(String(meta.getDisplayName()));
+                if (short && stripColor(short).length > 0) meta.setDisplayName(short);
+                var lore = meta.hasLore() ? meta.getLore() : new java.util.ArrayList();
+                if (lore == null) lore = new java.util.ArrayList();
+                lore.add("§7已嵌入");
+                lore.add("§e左键卸下核心到背包");
+                meta.setLore(lore);
+                item.setItemMeta(meta);
+            }
+        } catch (eMeta) {}
+        return item;
+    }
+    var mat = Material.BROWN_GLAZED_TERRACOTTA;
+    try {
+        if (SKILL_CORE_CFG && SKILL_CORE_CFG.getCoreMaterial) {
+            var matName = SKILL_CORE_CFG.getCoreMaterial(coreId);
+            if (matName) mat = Material.valueOf(matName);
+        }
+    } catch (e0) {}
+    return pane(mat, "§d§l" + coreDisplayName(coreId), [
+        "§7已嵌入",
+        "§e左键卸下核心到背包"
+    ], true);
+}
+
 function spellFilledPane(index, spellId) {
-    var name = SPELL_CFG.getSpellName(spellId);
+    var name = spellDisplayName(spellId);
     var school = "";
-    try { school = SPELL_CFG.getSpellSchool(spellId) || ""; } catch (e0) {}
+    try { if (SPELL_CFG) school = SPELL_CFG.getSpellSchool(spellId) || ""; } catch (e1) {}
     var schoolName = school;
     try {
-        if (typeof SPELL_CFG.getSchoolDisplayName === "function") {
+        if (SPELL_CFG && typeof SPELL_CFG.getSchoolDisplayName === "function") {
             schoolName = SPELL_CFG.getSchoolDisplayName(school);
         }
-    } catch (e1) {}
-    var mat = Material.LIGHT_GRAY_SHULKER_BOX;
+    } catch (e2) {}
+    var mat = MAT_SPELL_EMPTY;
     try {
-        if (typeof SPELL_CFG.getSchoolShulkerMaterial === "function") {
+        if (SPELL_CFG && typeof SPELL_CFG.getSchoolShulkerMaterial === "function") {
             mat = SPELL_CFG.getSchoolShulkerMaterial(school);
         }
-    } catch (e2) {}
-    return pane(mat, "§b" + name + " §7#" + (index + 1), [
-        "§7已刻录施术道具",
+    } catch (e3) {}
+    return pane(mat, name + " §7#" + (index + 1), [
+        "§7已刻录术式载体",
         "§7流派：§f" + (schoolName || "未知"),
         "§8ID: §f" + spellId,
         "§e左键点击卸下术式载体到背包"
     ], true);
 }
 
-function createCleanSpellBook(spellId) {
+function createCleanSpellCarrier(spellId) {
     try {
         var sf = SoftItemById(spellId);
         if (!sf) return null;
-        var book = sf.getItem().clone();
-        book.setAmount(1);
-        return book;
+        var item = sf.getItem().clone();
+        item.setAmount(1);
+        return item;
     } catch (e) {
         return null;
     }
@@ -249,60 +487,53 @@ function getStaff(inv) {
     return stack;
 }
 
+function parseSpellsRaw(raw, cap) {
+    ensureStaffMetaApi();
+    if (STAFF_META && STAFF_META.parseSpellsRaw) return STAFF_META.parseSpellsRaw(raw, cap);
+    return [];
+}
+
 function readStaffMeta(stack) {
-    if (!isStaff(stack)) return null;
-    var id = getSlimefunId(stack);
-    var entry = STAFF_CFG.getStaffEntry(id);
-    if (!entry) return null;
-    var cap = STAFF_CFG.clampSlots(entry.spellSlots);
-    var meta = stack.getItemMeta();
-    if (!meta) return null;
-    var pdc = meta.getPersistentDataContainer();
-    var spells = [];
-    var i;
-    var ok = false;
-    if (pdc.has(KEY_SPELLS, PersistentDataType.STRING)) {
-        try {
-            var parsed = JSON.parse(pdc.get(KEY_SPELLS, PersistentDataType.STRING));
-            if (parsed && parsed.length != null) {
-                for (i = 0; i < cap; i++) spells.push(parsed[i] ? String(parsed[i]) : "");
-                ok = (spells.length === cap);
-            }
-        } catch (e) {}
-    }
-    if (!ok) {
-        spells = [];
-        var defaults = entry.defaultSpells || [];
-        for (i = 0; i < cap; i++) spells.push(defaults[i] ? String(defaults[i]) : "");
-        writeStaffMeta(stack, spells, 0);
-    }
-    var selected = 0;
-    meta = stack.getItemMeta();
-    pdc = meta.getPersistentDataContainer();
-    if (pdc.has(KEY_SELECTED, PersistentDataType.INTEGER)) {
-        try { selected = pdc.get(KEY_SELECTED, PersistentDataType.INTEGER); } catch (e2) { selected = 0; }
-    }
-    if (selected < 0 || selected >= cap) selected = 0;
-    return { staffId: id, capacity: cap, spells: spells, selected: selected };
+    ensureStaffMetaApi();
+    if (!STAFF_META || !STAFF_META.readStaffMeta) return null;
+    return STAFF_META.readStaffMeta(stack, STAFF_CFG, isStaff, SKILL_CORE_CFG);
 }
 
-function writeStaffMeta(stack, spells, selected) {
-    var meta = stack.getItemMeta();
-    if (!meta) return false;
-    var pdc = meta.getPersistentDataContainer();
-    var arr = [];
-    for (var i = 0; i < spells.length; i++) arr.push(spells[i] ? String(spells[i]) : "");
-    pdc.set(KEY_SPELLS, PersistentDataType.STRING, JSON.stringify(arr));
-    pdc.set(KEY_SELECTED, PersistentDataType.INTEGER, toJavaInt(selected));
-    stack.setItemMeta(meta);
-    syncStaffSpellLore(stack, arr, arr.length);
-    return true;
+function writeStaffSkillCore(stack, skillCoreId) {
+    ensureStaffMetaApi();
+    if (!STAFF_META || !STAFF_META.writeStaffSkillCore) return false;
+    return STAFF_META.writeStaffSkillCore(stack, skillCoreId);
 }
 
-/** &#RRGGBB / &码 → § 序列（与物品 yml 一致） */
+function createCleanSkillCore(coreId) {
+    try {
+        var sf = SoftItemById(coreId);
+        if (!sf) return null;
+        var item = sf.getItem().clone();
+        item.setAmount(1);
+        return item;
+    } catch (e) { return null; }
+}
+
+function ejectSpellsAboveCapacity(player, staff, data) {
+    if (!data || !staff) return;
+    var changed = false;
+    for (var i = data.capacity; i < SPELL_SLOTS.length; i++) {
+        if (!data.spells[i]) continue;
+        var carrier = createCleanSpellCarrier(data.spells[i]);
+        if (carrier) giveOrDrop(player, carrier);
+        data.spells[i] = null;
+        if (data.selected === i) data.selected = -1;
+        changed = true;
+    }
+    if (changed) {
+        writeStaffMeta(staff, data.spells, data.selected);
+    }
+}
+
 function colorize(str) {
     var out = String(str);
-    out = out.replace(/&#([0-9a-fA-F]{6})/g, function (full, h) {
+    out = out.replace(/&#([0-9a-fA-F]{6})/g, function(full, h) {
         var r = "§x";
         for (var i = 0; i < 6; i++) r += "§" + h.charAt(i);
         return r;
@@ -311,80 +542,66 @@ function colorize(str) {
     return out;
 }
 
-GUI_TITLE = colorize("&#c9a0ff术&#b88aff式&#a774ff承&#9660ff载&#8560ff转&#7450ff换&#6340ff仪");
-
 function stripColor(str) {
     return String(str).replace(/§x(§[0-9a-fA-F]){6}/g, "").replace(/§./g, "");
 }
 
 var LORE_HEADER_MARK = "已刻录术式";
+var LORE_CORE_MARK = "当前核心";
 var LORE_EMPTY_SLOT = colorize("&f[&7未刻录&f]&f");
 var LORE_SPELL_HEADER = colorize("&f[&e已刻录术式&f]&#e1ccbd：");
+var LORE_CORE_EMPTY = colorize("&f[&#96bed6当前核心&f] &7未镶嵌核心");
+var LORE_NO_CORE_HINT = colorize("&f[&8未嵌入核心&f]&f");
 
 function isSpellSlotLorePlain(plain) {
     if (!plain) return false;
     if (plain.indexOf("未刻录") >= 0) return true;
+    if (plain.indexOf("未嵌入核心") >= 0) return true;
     if (plain.indexOf("已刻录术式") >= 0) return false;
+    if (plain.indexOf("当前核心") >= 0) return false;
     return /^\s*\[[^\]]+\]\s*$/.test(plain);
 }
 
-/** 从术式书 lore 抽出带色术式名；失败则纯名 */
 function spellSlotLoreLine(spellId) {
     if (!spellId) return LORE_EMPTY_SLOT;
-    try {
-        var sf = SoftItemById(spellId);
-        if (sf) {
-            var book = sf.getItem();
-            var bm = book.getItemMeta();
-            if (bm && bm.hasLore()) {
-                var bl = bm.getLore();
-                for (var i = 0; i < bl.size(); i++) {
-                    var line = String(bl.get(i));
-                    if (stripColor(line).indexOf("[术式]") < 0) continue;
-                    var rb = line.lastIndexOf("]");
-                    if (rb >= 0 && rb < line.length - 1) {
-                        return colorize("&f[") + line.substring(rb + 1) + colorize("&f]");
-                    }
-                }
-            }
-        }
-    } catch (e) {}
-    var name = "未知";
-    try { if (SPELL_CFG) name = SPELL_CFG.getSpellName(spellId) || spellId; } catch (e2) { name = String(spellId); }
-    return colorize("&f[&b" + name + "&f]");
+    return colorize("&f[") + spellDisplayName(spellId) + colorize("&f]");
+}
+
+/** 与 items.yml 一致：当前核心行用短显示名（去「施术技能核心」前缀） */
+function coreLoreLine(coreId) {
+    if (!coreId) return LORE_CORE_EMPTY;
+    return colorize("&f[&#96bed6当前核心&f] ") + coreDisplayName(coreId);
 }
 
 /**
- * 参照辉墨摇篮：在 lore「已刻录术式」标题下写入与槽位数量一致的行。
- * 无该段时自动追加到 lore 末尾。
+ * 同步法杖 lore：当前核心行 + 已刻录术式段（对齐 items.yml）
+ * capacity<=0 时显示「未嵌入核心」占位行
  */
-function syncStaffSpellLore(stack, spells, capacity) {
-    if (!stack || capacity <= 0) return;
+function syncStaffSpellLore(stack, spells, capacity, skillCoreId) {
+    if (!stack) return;
+    capacity = capacity != null ? Number(capacity) : 0;
+    if (!(capacity > 0)) capacity = 0;
+    spells = spells || [];
     var meta = stack.getItemMeta();
     if (!meta) return;
-
     var old = meta.hasLore() ? meta.getLore() : null;
     var before = new java.util.ArrayList();
     var after = new java.util.ArrayList();
-    var phase = 0; // 0 标题前 · 1 跳过旧槽位行 · 2 标题段之后
-    var skipped = 0;
-
+    var phase = 0;
     if (old != null) {
         for (var i = 0; i < old.size(); i++) {
             var raw = old.get(i);
             var plain = stripColor(String(raw));
             if (phase === 0) {
-                if (plain.indexOf(LORE_HEADER_MARK) >= 0) {
+                if (plain.indexOf(LORE_CORE_MARK) >= 0 || plain.indexOf(LORE_HEADER_MARK) >= 0) {
                     phase = 1;
-                    skipped = 0;
                     continue;
                 }
                 before.add(raw);
             } else if (phase === 1) {
-                if (skipped < capacity && isSpellSlotLorePlain(plain)) {
-                    skipped++;
-                    continue;
-                }
+                if (plain.indexOf(LORE_CORE_MARK) >= 0) continue;
+                if (plain.indexOf(LORE_HEADER_MARK) >= 0) continue;
+                if (isSpellSlotLorePlain(plain)) continue;
                 phase = 2;
                 after.add(raw);
             } else {
@@ -392,59 +609,96 @@ function syncStaffSpellLore(stack, spells, capacity) {
             }
         }
     }
-
     var rebuilt = new java.util.ArrayList();
     var a;
     for (a = 0; a < before.size(); a++) rebuilt.add(before.get(a));
+    rebuilt.add(coreLoreLine(skillCoreId || null));
     rebuilt.add(LORE_SPELL_HEADER);
-    for (var c = 0; c < capacity; c++) rebuilt.add(spellSlotLoreLine(spells[c] || ""));
+    if (capacity <= 0) {
+        rebuilt.add(LORE_NO_CORE_HINT);
+    } else {
+        for (var c = 0; c < capacity; c++) rebuilt.add(spellSlotLoreLine(spells[c] || ""));
+    }
     for (a = 0; a < after.size(); a++) rebuilt.add(after.get(a));
-
     meta.setLore(rebuilt);
     stack.setItemMeta(meta);
 }
 
+function syncStaffLoreFromData(stack, data) {
+    if (!stack || !data) {
+        syncStaffSpellLore(stack, [], 0, null);
+        return;
+    }
+    syncStaffSpellLore(stack, data.spells || [], data.capacity || 0, data.skillCoreId || null);
+}
+
+function writeStaffMeta(stack, spells, selected) {
+    ensureStaffMetaApi();
+    if (STAFF_META && STAFF_META.writeStaffMeta) {
+        if (!STAFF_META.writeStaffMeta(stack, spells, selected)) return false;
+        var data = readStaffMeta(stack);
+        if (data) syncStaffLoreFromData(stack, data);
+        else syncStaffSpellLore(stack, spells, 0, null);
+        return true;
+    }
+    if (!KEY_SPELLS || !PersistentDataType) return false;
+    var meta = stack.getItemMeta();
+    if (!meta) return false;
+    var pdc = meta.getPersistentDataContainer();
+    var arr = [];
+    for (var i = 0; i < spells.length; i++) arr.push(spells[i] ? String(spells[i]) : "");
+    pdc.set(KEY_SPELLS, PersistentDataType.STRING, JSON.stringify(arr));
+    if (selected >= 0) pdc.set(KEY_SELECTED, PersistentDataType.INTEGER, toJavaInt(selected));
+    else try { pdc.remove(KEY_SELECTED); } catch (eR) {}
+    stack.setItemMeta(meta);
+    var data2 = readStaffMeta(stack);
+    if (data2) syncStaffLoreFromData(stack, data2);
+    else syncStaffSpellLore(stack, arr, 0, null);
+    return true;
+}
+
 function refreshGui(inv) {
+    for (var f = 0; f < FILLER_SLOTS.length; f++) {
+        inv.setItem(FILLER_SLOTS[f], FILLER.clone());
+    }
     var staff = getStaff(inv);
     if (!staff) {
-        inv.setItem(STAFF_SLOT, STAFF_PLACEHOLDER.clone());
+        // 若槽里有非占位物品却不是登记法杖，先还给玩家逻辑由调用方处理；此处只摆占位
+        var raw = inv.getItem(STAFF_SLOT);
+        if (raw && raw.getType() !== Material.AIR && !isStaffPlaceholder(raw) && !isStaff(raw)) {
+            // 未知物品：保留原样，避免误删
+        } else {
+            inv.setItem(STAFF_SLOT, STAFF_PLACEHOLDER.clone());
+        }
+        inv.setItem(CORE_SLOT, CORE_PLACEHOLDER.clone());
         for (var i = 0; i < SPELL_SLOTS.length; i++) {
             inv.setItem(SPELL_SLOTS[i], spellLockedPane(i));
         }
-        inv.setItem(INFO_SLOT, pane(Material.ENCHANTING_TABLE, colorize("&#c9a0ff术&#b88aff式&#a774ff承&#9660ff载&#8560ff转&#7450ff换&#6340ff仪"), [
-            "§71. 左键点击背包中施术道具自动放入",
-            "§72. 左键点击背包中术式书自动写入空槽",
-            "§73. 左键点击菜单中槽位卸回背包",
-            "§74. 关闭界面自动归还施术道具"
-        ]));
         return;
     }
-
     var data = readStaffMeta(staff);
-    if (data) {
-        syncStaffSpellLore(staff, data.spells, data.capacity);
+    if (!data) {
+        // 绝不能用占位符覆盖真法杖（此前会吞掉）
+        inv.setItem(STAFF_SLOT, staff);
+        inv.setItem(CORE_SLOT, CORE_PLACEHOLDER.clone());
+        for (var j = 0; j < SPELL_SLOTS.length; j++) inv.setItem(SPELL_SLOTS[j], spellLockedPane(j));
+        return;
     }
     inv.setItem(STAFF_SLOT, staff);
-    var cap = data ? data.capacity : 0;
-    var spells = data ? data.spells : [];
-    var filled = 0;
+    if (data.skillCoreId) {
+        inv.setItem(CORE_SLOT, coreFilledItem(data.skillCoreId));
+    } else {
+        inv.setItem(CORE_SLOT, coreEmptyPane());
+    }
     for (var s = 0; s < SPELL_SLOTS.length; s++) {
-        if (s >= cap) {
+        if (s >= data.capacity) {
             inv.setItem(SPELL_SLOTS[s], spellLockedPane(s));
-            continue;
-        }
-        if (spells[s]) {
-            filled++;
-            inv.setItem(SPELL_SLOTS[s], spellFilledPane(s, spells[s]));
+        } else if (data.spells[s]) {
+            inv.setItem(SPELL_SLOTS[s], spellFilledPane(s, data.spells[s]));
         } else {
             inv.setItem(SPELL_SLOTS[s], spellEmptyPane(s));
         }
     }
-    inv.setItem(INFO_SLOT, pane(Material.ENCHANTING_TABLE, colorize("&#c9a0ff术&#b88aff式&#a774ff承&#9660ff载&#8560ff转&#7450ff换&#6340ff仪"), [
-        "§7存储：§f" + filled + "§7/§f" + cap,
-        "§8关闭后施术道具回到背包",
-        "§e左键背包物品自动放入 · 左键槽位卸回"
-    ]));
 }
 
 function spellIndex(raw) {
@@ -454,13 +708,15 @@ function spellIndex(raw) {
     return -1;
 }
 
-function clearCursor(event) {
-    try { event.setCursor(null); } catch (e) {
-        try {
-            var c = event.getCursor();
-            if (c) c.setAmount(0);
-        } catch (e2) {}
-    }
+function refundCursor(player, event) {
+    try {
+        var cursor = event.getCursor();
+        if (cursor != null && cursor.getType() !== Material.AIR) {
+            var copy = cursor.clone();
+            event.setCursor(null);
+            giveOrDrop(player, copy);
+        }
+    } catch (e) {}
 }
 
 function takeOneFromInventorySlot(inv, slot) {
@@ -477,7 +733,6 @@ function takeOneFromInventorySlot(inv, slot) {
 }
 
 function findEmptySpellSlot(data) {
-    if (!data) return -1;
     for (var i = 0; i < data.capacity; i++) {
         if (!data.spells[i]) return i;
     }
@@ -485,134 +740,258 @@ function findEmptySpellSlot(data) {
 }
 
 function unequipStaffToInv(player, topInv) {
+    if (!activeInventories.contains(topInv)) return;
     var current = topInv.getItem(STAFF_SLOT);
     if (isStaffPlaceholder(current) || !isStaff(current)) return;
-    giveOrDrop(player, current.clone());
+    var give = current.clone();
     topInv.setItem(STAFF_SLOT, STAFF_PLACEHOLDER.clone());
     refreshGui(topInv);
-    player.sendMessage(GLTC_PREFIX + "§e已取回施术道具");
+    giveOrDrop(player, give);
+    playGuiSound(player, SND_CLICK, SND_CLICK_VOL, 0.9);
+    player.sendMessage(GLTC_PREFIX + "§e已取回 " + STAFF_LABEL + "§e。");
 }
 
 function placeStaffFromInv(player, topInv, bottom, slot) {
+    if (!activeInventories.contains(topInv)) return false;
     var stack = bottom.getItem(slot);
     if (!isStaff(stack)) return false;
+    var current = topInv.getItem(STAFF_SLOT);
+    if (isStaff(current) && !isStaffPlaceholder(current)) {
+        player.sendMessage(GLTC_PREFIX + "§c请先取下当前 " + STAFF_LABEL + "§c。");
+        return true;
+    }
     var one = takeOneFromInventorySlot(bottom, slot);
     if (!one) return false;
-    readStaffMeta(one);
-    var current = topInv.getItem(STAFF_SLOT);
-    if (current && isStaff(current)) {
-        giveOrDrop(player, current.clone());
-        player.sendMessage(GLTC_PREFIX + "§a已更换施术道具");
-    } else {
-        player.sendMessage(GLTC_PREFIX + "§a已放入施术道具");
-    }
     topInv.setItem(STAFF_SLOT, one);
+    try {
+        var data0 = readStaffMeta(one);
+        if (data0) syncStaffLoreFromData(one, data0);
+        else syncStaffSpellLore(one, [], 0, null);
+        topInv.setItem(STAFF_SLOT, one);
+    } catch (eSync) {}
     refreshGui(topInv);
-    try { player.playSound(player.getLocation(), "item.flintandsteel.use", 0.5, 1.2); } catch (e) {}
+    // 校验：写入后槽内必须仍是法杖
+    if (!getStaff(topInv)) {
+        giveOrDrop(player, one);
+        topInv.setItem(STAFF_SLOT, STAFF_PLACEHOLDER.clone());
+        refreshGui(topInv);
+        player.sendMessage(GLTC_PREFIX + "§c置入失败，已退回。");
+        return true;
+    }
+    player.sendMessage(GLTC_PREFIX + "§a已置入 " + STAFF_LABEL + "§a。");
+    playGuiSound(player, SND_CLICK, SND_CLICK_VOL, SND_CLICK_PITCH);
+    return true;
+}
+
+function unequipCoreToInv(player, topInv) {
+    if (!activeInventories.contains(topInv)) return;
+    var staff = getStaff(topInv);
+    if (!staff) {
+        player.sendMessage(GLTC_PREFIX + "§c请先放入 " + STAFF_LABEL + "§c。");
+        return;
+    }
+    ensureStaffMetaApi();
+    var data = readStaffMeta(staff);
+    if (!data || !data.skillCoreId) return;
+    var coreId = data.skillCoreId;
+    var coreItem = createCleanSkillCore(coreId);
+    if (!coreItem) {
+        player.sendMessage(GLTC_PREFIX + "§c无法生成技能核心：" + coreId);
+        return;
+    }
+    if (!writeStaffSkillCore(staff, null)) {
+        player.sendMessage(GLTC_PREFIX + "§c卸下核心失败。");
+        return;
+    }
+    data = readStaffMeta(staff);
+    if (data) {
+        ejectSpellsAboveCapacity(player, staff, data);
+        syncStaffLoreFromData(staff, data);
+    } else {
+        syncStaffSpellLore(staff, [], 0, null);
+    }
+    topInv.setItem(STAFF_SLOT, staff);
+    refreshGui(topInv);
+    giveOrDrop(player, coreItem);
+    playGuiSound(player, SND_CLICK, SND_CLICK_VOL, 0.9);
+    player.sendMessage(GLTC_PREFIX + "§e已卸下施术技能核心 " + coreDisplayName(coreId));
+}
+
+function placeCoreFromInv(player, topInv, bottom, slot) {
+    if (!activeInventories.contains(topInv)) return false;
+    var stack = bottom.getItem(slot);
+    if (!isSkillCore(stack)) return false;
+    var staff = getStaff(topInv);
+    if (!staff) {
+        player.sendMessage(GLTC_PREFIX + "§c请先放入 " + STAFF_LABEL + "§c。");
+        return true;
+    }
+    ensureStaffMetaApi();
+    if (!STAFF_META || !STAFF_META.writeStaffSkillCore) {
+        player.sendMessage(GLTC_PREFIX + "§c技能核心系统未加载。");
+        return true;
+    }
+    var coreId = getSlimefunId(stack);
+    if (!coreId || !SKILL_CORE_CFG.isSkillCoreItem(coreId)) {
+        player.sendMessage(GLTC_PREFIX + "§c无法识别技能核心。");
+        return true;
+    }
+    var data = readStaffMeta(staff);
+    if (!data) {
+        player.sendMessage(GLTC_PREFIX + "§c无法读取 " + STAFF_LABEL + " §c数据。");
+        return true;
+    }
+    if (data.skillCoreId) {
+        if (data.skillCoreId === coreId) {
+            player.sendMessage(GLTC_PREFIX + "§c已嵌入相同的核心。");
+            return true;
+        }
+        player.sendMessage(GLTC_PREFIX + "§c请先卸下当前施术技能核心。");
+        return true;
+    }
+    var one = takeOneFromInventorySlot(bottom, slot);
+    if (!one) return true;
+    if (!writeStaffSkillCore(staff, coreId)) {
+        giveOrDrop(player, one);
+        player.sendMessage(GLTC_PREFIX + "§c嵌入失败，已退回核心。");
+        return true;
+    }
+    data = readStaffMeta(staff);
+    if (!data || data.skillCoreId !== coreId) {
+        writeStaffSkillCore(staff, null);
+        giveOrDrop(player, one);
+        topInv.setItem(STAFF_SLOT, staff);
+        refreshGui(topInv);
+        player.sendMessage(GLTC_PREFIX + "§c嵌入校验失败，已退回核心。");
+        return true;
+    }
+    syncStaffLoreFromData(staff, data);
+    topInv.setItem(STAFF_SLOT, staff);
+    refreshGui(topInv);
+    var core = SKILL_CORE_CFG.getCoreEntry(coreId);
+    player.sendMessage(GLTC_PREFIX + "§a已嵌入 " + coreDisplayName(coreId)
+        + " §7→ 刻录上限 §e" + (core ? core.spellSlots : "?"));
+    playGuiSound(player, SND_CLICK, SND_CLICK_VOL, SND_CLICK_PITCH);
     return true;
 }
 
 function unequipSpellToInv(player, topInv, idx) {
+    if (!activeInventories.contains(topInv)) return;
     var staff = getStaff(topInv);
     if (!staff) {
-        player.sendMessage(GLTC_PREFIX + "§c请先放入施术道具。");
+        player.sendMessage(GLTC_PREFIX + "§c请先放入 " + STAFF_LABEL + "§c。");
         return;
     }
     var data = readStaffMeta(staff);
-    if (!data || idx >= data.capacity) {
-        player.sendMessage(GLTC_PREFIX + "§c该槽位未解锁。");
+    if (!data || idx < 0 || idx >= data.capacity || !data.spells[idx]) return;
+    var spellId = data.spells[idx];
+    var carrier = createCleanSpellCarrier(spellId);
+    if (!carrier) {
+        player.sendMessage(GLTC_PREFIX + "§c无法生成术式载体：" + spellId);
         return;
     }
-    var spells = [];
-    for (var si = 0; si < data.capacity; si++) spells.push(data.spells[si] || "");
-    if (!spells[idx]) return;
-    var takeId = spells[idx];
-    spells[idx] = "";
-    writeStaffMeta(staff, spells, data.selected || 0);
+    data.spells[idx] = null;
+    if (data.selected === idx) data.selected = -1;
+    writeStaffMeta(staff, data.spells, data.selected);
     topInv.setItem(STAFF_SLOT, staff);
-    var out = createCleanSpellBook(takeId);
-    if (out) giveOrDrop(player, out);
     refreshGui(topInv);
-    player.sendMessage(GLTC_PREFIX + "§e已卸下：§b" + SPELL_CFG.getSpellName(takeId));
+    giveOrDrop(player, carrier);
+    playGuiSound(player, SND_CLICK, SND_CLICK_VOL, 0.9);
+    player.sendMessage(GLTC_PREFIX + "§e已卸下术式载体 " + spellDisplayName(spellId));
 }
 
 function placeSpellFromInv(player, topInv, bottom, slot) {
+    if (!activeInventories.contains(topInv)) return false;
     var stack = bottom.getItem(slot);
-    if (!stack || stack.getType() === Material.AIR) return false;
-    var bookId = getSlimefunId(stack);
-    if (!SPELL_CFG.isSpellBook(bookId)) return false;
-
+    if (!isSpellCarrier(stack)) return false;
     var staff = getStaff(topInv);
     if (!staff) {
-        player.sendMessage(GLTC_PREFIX + "§c请先放入施术道具。");
+        player.sendMessage(GLTC_PREFIX + "§c请先放入 " + STAFF_LABEL + "§c。");
+        return true;
+    }
+    var spellId = getSlimefunId(stack);
+    if (!spellId || !isSpellCarrier(stack)) return false;
+    // 必须已在术式登记中（有 cast），禁止「仅有载体物品、无脚本」
+    if (!SPELL_CFG || typeof SPELL_CFG.getSpell !== "function" || !SPELL_CFG.getSpell(spellId)) {
+        player.sendMessage(GLTC_PREFIX + "§c该术式尚未实装，无法刻录。");
         return true;
     }
     var data = readStaffMeta(staff);
-    if (!data || data.capacity <= 0) {
-        player.sendMessage(GLTC_PREFIX + "§c该施术道具没有可用术式槽。");
+    if (!data) {
+        player.sendMessage(GLTC_PREFIX + "§c无法读取 " + STAFF_LABEL + " §c数据。");
         return true;
     }
-    var idx = findEmptySpellSlot(data);
-    if (idx < 0) {
-        player.sendMessage(GLTC_PREFIX + "§c没有空闲术式槽。");
+    if (data.capacity <= 0) {
+        player.sendMessage(GLTC_PREFIX + "§c请先嵌入施术技能核心。");
         return true;
     }
-    var newSpell = SPELL_CFG.getSpellIdFromBook(bookId);
-    if (!newSpell) {
-        player.sendMessage(GLTC_PREFIX + "§c无法识别该术式书。");
+    for (var i = 0; i < data.capacity; i++) {
+        if (data.spells[i] === spellId) {
+            player.sendMessage(GLTC_PREFIX + "§c该术式已刻录。");
+            return true;
+        }
+    }
+    var empty = findEmptySpellSlot(data);
+    if (empty < 0) {
+        player.sendMessage(GLTC_PREFIX + "§c术式槽已满或未嵌入技能核心。");
         return true;
     }
-    if (!takeOneFromInventorySlot(bottom, slot)) return true;
-
-    var spells = [];
-    for (var si = 0; si < data.capacity; si++) spells.push(data.spells[si] || "");
-    spells[idx] = newSpell;
-    writeStaffMeta(staff, spells, data.selected || 0);
+    var one = takeOneFromInventorySlot(bottom, slot);
+    if (!one) return true;
+    data.spells[empty] = spellId;
+    if (data.selected < 0) data.selected = empty;
+    if (!writeStaffMeta(staff, data.spells, data.selected)) {
+        giveOrDrop(player, one);
+        player.sendMessage(GLTC_PREFIX + "§c刻录失败，已退回术式载体。");
+        return true;
+    }
     topInv.setItem(STAFF_SLOT, staff);
     refreshGui(topInv);
-    player.sendMessage(GLTC_PREFIX + "§a已写入：§b" + SPELL_CFG.getSpellName(newSpell));
-    try { player.playSound(player.getLocation(), "block.enchantment_table.use", 0.7, 1.2); } catch (e) {}
+    playGuiSound(player, SND_ENGRAVE, SND_ENGRAVE_VOL, SND_ENGRAVE_PITCH);
+    player.sendMessage(GLTC_PREFIX + "§a已刻录 " + spellDisplayName(spellId) + " §7→ 槽位 " + (empty + 1));
     return true;
+}
+
+function openGui(player) {
+    if (!loadApis()) {
+        player.sendMessage(GLTC_PREFIX + "§c术式系统未加载。");
+        return;
+    }
+    ensureStaffMetaApi();
+    var inv = Bukkit.createInventory(null, INV_SIZE, GUI_TITLE);
+    refreshGui(inv);
+    activeInventories.add(inv);
+    player.openInventory(inv);
+    playGuiSound(player, SND_OPEN, SND_OPEN_VOL, SND_OPEN_PITCH);
 }
 
 function onUse(event) {
     var player;
     try { player = event.getPlayer(); } catch (e) { return; }
-    if (!player || !(player instanceof Player)) return;
-    if (!loadApis()) {
-        player.sendMessage(GLTC_PREFIX + "§c施术登记未加载，无法打开转换仪。");
-        return;
-    }
-
-    var inv = Bukkit.createInventory(null, INV_SIZE, GUI_TITLE);
-    for (var i = 0; i < INV_SIZE; i++) inv.setItem(i, FILLER.clone());
-    refreshGui(inv);
-    activeInventories.add(inv);
-    player.openInventory(inv);
+    if (!(player instanceof Player)) return;
+    openGui(player);
 }
 
 function registerListeners() {
-    if (_listenerRegistered) return;
-    _listenerRegistered = true;
-
+    // 热重载安全：先卸旧监听
     try {
-        if (PLUGIN.gltcSpellConverterListener != null) {
-            try { InventoryClickEvent.getHandlerList().unregister(PLUGIN.gltcSpellConverterListener); } catch (e0) {}
-            try { InventoryDragEvent.getHandlerList().unregister(PLUGIN.gltcSpellConverterListener); } catch (e1) {}
-            try { InventoryCloseEvent.getHandlerList().unregister(PLUGIN.gltcSpellConverterListener); } catch (e2) {}
+        var old = PLUGIN.gltcEngraveListener;
+        if (old != null) {
+            try { InventoryClickEvent.getHandlerList().unregister(old); } catch (eU0) {}
+            try { InventoryDragEvent.getHandlerList().unregister(old); } catch (eU1) {}
+            try { InventoryCloseEvent.getHandlerList().unregister(old); } catch (eU2) {}
         }
-    } catch (e) {}
-
+    } catch (eOld) {}
+    _listenerRegistered = true;
     var ListenerClass = Java.extend(Listener, {});
-    var listenerInstance = new ListenerClass();
-    try { PLUGIN.gltcSpellConverterListener = listenerInstance; } catch (e3) {}
+    var listener = new ListenerClass();
+    try { PLUGIN.gltcEngraveListener = listener; } catch (eSet) {}
 
     Bukkit.getPluginManager().registerEvent(
-        InventoryClickEvent, listenerInstance, EventPriority.HIGH,
+        InventoryClickEvent, listener, EventPriority.HIGH,
         function(l, event) {
-            var topInv = event.getView().getTopInventory();
-            if (!activeInventories.contains(topInv)) return;
-
+            var top = event.getView().getTopInventory();
+            if (!activeInventories.contains(top)) return;
             var player = event.getWhoClicked();
             if (!(player instanceof Player)) return;
             if (!loadApis()) {
@@ -620,43 +999,68 @@ function registerListeners() {
                 return;
             }
 
-            var clickedInv = event.getClickedInventory();
-            var slot = event.getRawSlot();
+            var raw = event.getRawSlot();
+            var clicked = event.getClickedInventory();
             var click = event.getClick();
+            var bagSlot = event.getSlot();
 
-            // 菜单槽：仅左键卸下到背包
-            if (clickedInv === topInv) {
+            // 禁止一切拖放式操作
+            if (click === ClickType.DOUBLE_CLICK || click === ClickType.NUMBER_KEY
+                || click === ClickType.SWAP_OFFHAND || click === ClickType.DROP
+                || click === ClickType.CONTROL_DROP || click === ClickType.CREATIVE
+                || click === ClickType.SHIFT_LEFT || click === ClickType.SHIFT_RIGHT) {
                 event.setCancelled(true);
-                if (click !== ClickType.LEFT) return;
-                if (slot === STAFF_SLOT) {
-                    unequipStaffToInv(player, topInv);
-                    return;
-                }
-                var idx = spellIndex(slot);
-                if (idx >= 0) unequipSpellToInv(player, topInv, idx);
                 return;
             }
 
-            // 背包：左键施术道具/术式书 → 自动放入
-            if (clickedInv != null) {
-                var cur = event.getCurrentItem();
-                if (cur && cur.getType() !== Material.AIR) {
-                    var sfId = getSlimefunId(cur);
-                    if (isStaff(cur) || SPELL_CFG.isSpellBook(sfId)) {
-                        event.setCancelled(true);
-                        if (click !== ClickType.LEFT) return;
-                        if (isStaff(cur)) placeStaffFromInv(player, topInv, clickedInv, event.getSlot());
-                        else placeSpellFromInv(player, topInv, clickedInv, event.getSlot());
-                        return;
-                    }
+            if (clicked === top) {
+                event.setCancelled(true);
+                refundCursor(player, event);
+                if (click !== ClickType.LEFT && click !== ClickType.RIGHT) return;
+                // 延后 1 tick，避免取消事件回滚吞物品
+                if (raw === STAFF_SLOT) {
+                    runNextTick(function() { unequipStaffToInv(player, top); });
+                    return;
                 }
-                if (event.isShiftClick()) event.setCancelled(true);
+                if (raw === CORE_SLOT) {
+                    runNextTick(function() { unequipCoreToInv(player, top); });
+                    return;
+                }
+                var idx = spellIndex(raw);
+                if (idx >= 0) {
+                    if (click !== ClickType.LEFT) return;
+                    runNextTick(function() { unequipSpellToInv(player, top, idx); });
+                    return;
+                }
+                return;
+            }
+
+            // 背包：左/右键自动装填
+            if (clicked != null && clicked !== top) {
+                event.setCancelled(true);
+                refundCursor(player, event);
+                if (click !== ClickType.LEFT && click !== ClickType.RIGHT) return;
+                var cur = event.getCurrentItem();
+                if (!cur || cur.getType() === Material.AIR) return;
+                var action = null;
+                if (isStaff(cur)) action = "staff";
+                else if (isSkillCore(cur)) action = "core";
+                else if (isSpellCarrier(cur)) action = "spell";
+                if (!action) return;
+                runNextTick(function() {
+                    if (!activeInventories.contains(top)) return;
+                    if (!player.isOnline()) return;
+                    var bottom = player.getOpenInventory().getBottomInventory();
+                    if (action === "staff") placeStaffFromInv(player, top, bottom, bagSlot);
+                    else if (action === "core") placeCoreFromInv(player, top, bottom, bagSlot);
+                    else if (action === "spell") placeSpellFromInv(player, top, bottom, bagSlot);
+                });
             }
         }, PLUGIN
     );
 
     Bukkit.getPluginManager().registerEvent(
-        InventoryDragEvent, listenerInstance, EventPriority.HIGH,
+        InventoryDragEvent, listener, EventPriority.HIGH,
         function(l, event) {
             if (!activeInventories.contains(event.getInventory())) return;
             event.setCancelled(true);
@@ -664,26 +1068,31 @@ function registerListeners() {
     );
 
     Bukkit.getPluginManager().registerEvent(
-        InventoryCloseEvent, listenerInstance, EventPriority.NORMAL,
+        InventoryCloseEvent, listener, EventPriority.MONITOR,
         function(l, event) {
             var inv = event.getInventory();
             if (!activeInventories.contains(inv)) return;
-
-            var player = event.getPlayer();
-            if (player instanceof Player) {
-                var staff = getStaff(inv);
-                if (staff) {
-                    giveOrDrop(player, staff.clone());
-                    inv.setItem(STAFF_SLOT, null);
-                }
-            }
-            for (var i = 0; i < SPELL_SLOTS.length; i++) inv.setItem(SPELL_SLOTS[i], null);
-            inv.setItem(INFO_SLOT, null);
             activeInventories.remove(inv);
+            var p = event.getPlayer();
+            if (!(p instanceof Player)) return;
+            var staff = inv.getItem(STAFF_SLOT);
+            // 先清空 GUI，再归还，避免与下一 tick 取放互相覆盖
+            if (isStaff(staff) && !isStaffPlaceholder(staff)) {
+                var give = staff.clone();
+                inv.setItem(STAFF_SLOT, null);
+                inv.setItem(CORE_SLOT, null);
+                for (var i = 0; i < SPELL_SLOTS.length; i++) inv.setItem(SPELL_SLOTS[i], null);
+                for (var f = 0; f < FILLER_SLOTS.length; f++) inv.setItem(FILLER_SLOTS[f], null);
+                giveOrDrop(p, give);
+            } else {
+                inv.setItem(STAFF_SLOT, null);
+                inv.setItem(CORE_SLOT, null);
+                for (var i2 = 0; i2 < SPELL_SLOTS.length; i2++) inv.setItem(SPELL_SLOTS[i2], null);
+                for (var f2 = 0; f2 < FILLER_SLOTS.length; f2++) inv.setItem(FILLER_SLOTS[f2], null);
+            }
         }, PLUGIN
     );
 }
 
-function tick(info) {}
-loadApis();
 registerListeners();
+function tick(info) {}

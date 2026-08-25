@@ -90,7 +90,7 @@ var GEAR_REGISTRY = {
     // "VASA_示例潜能": {
     //     category: "potential",
     //     name: "示例潜能激发模组",
-    //     bonuses: { particlePower: 0.3, pituitaryCapacity: 5 }
+    //     bonuses: { particlePower: 0.3 }
     // },
 
     "VASA_测试戒指": {

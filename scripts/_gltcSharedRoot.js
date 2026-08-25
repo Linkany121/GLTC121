@@ -117,38 +117,51 @@ function getRscInstance() {
     } catch (e) { return null; }
 }
 
-function getBridgeMapLegacy() {
-    var inst = getRscInstance();
-    var map = null;
-    try {
-        if (inst != null) map = inst.gltcJavaBridges;
-    } catch (e0) {}
-    var plugin = getPlugin();
-    var root = getGltcSharedRoot();
-    if (map == null && root != null) {
+/** 权威 Java 桥 Map：优先 Metadata（跨 Graal 上下文），再 INSTANCE 动态字段 */
+function readBridgeMapFromMetadata() {
+    var plug = getPlugin();
+    var map = pluginGetMetadataValue(plug, "gltc_java_bridges");
+    if (map != null) return map;
+    var root = pluginGetMetadataValue(plug, META_KEY);
+    if (root != null) {
         try {
             var nested = root.get("gltcJavaBridges");
-            if (nested != null) map = nested;
-        } catch (e1) {}
+            if (nested != null) return nested;
+        } catch (e0) {}
     }
-    if (map == null && inst != null) {
-        try { map = inst.gltcJavaBridges; } catch (e2) {}
-    }
-    if (map == null && plugin != null) {
-        try { map = plugin.gltcJavaBridges; } catch (e3) {}
-    }
-    if (map == null) {
-        map = new CHM();
-    }
+    return null;
+}
+
+function publishBridgeMapToMetadata(map) {
+    if (map == null) return;
+    var plug = getPlugin();
+    pluginSetMetadata(plug, "gltc_java_bridges", map);
     try {
-        if (plugin != null) plugin.gltcJavaBridges = map;
-    } catch (e4) {}
+        var root = getGltcSharedRoot();
+        if (root != null) root.put("gltcJavaBridges", map);
+    } catch (e0) {}
     try {
+        var inst = getRscInstance();
         if (inst != null) inst.gltcJavaBridges = map;
-    } catch (e5) {}
-    if (root != null) {
-        try { root.put("gltcJavaBridges", map); } catch (e6) {}
+    } catch (e1) {}
+    try { if (plug != null) plug.gltcJavaBridges = map; } catch (e2) {}
+}
+
+function getBridgeMapLegacy() {
+    var map = readBridgeMapFromMetadata();
+    if (map != null) return map;
+    var inst = getRscInstance();
+    try {
+        if (inst != null && inst.gltcJavaBridges != null) map = inst.gltcJavaBridges;
+    } catch (e0) {}
+    if (map == null) {
+        try {
+            var plug = getPlugin();
+            if (plug != null && plug.gltcJavaBridges != null) map = plug.gltcJavaBridges;
+        } catch (e3) {}
     }
+    if (map == null) map = new CHM();
+    publishBridgeMapToMetadata(map);
     return map;
 }
 
@@ -172,6 +185,7 @@ function putJavaBridge(key, bridge) {
         if (leg != null) {
             leg.put(k, bridge);
             ok = true;
+            publishBridgeMapToMetadata(leg);
         }
     } catch (e1) {}
     return ok;
@@ -180,21 +194,15 @@ function putJavaBridge(key, bridge) {
 function getJavaBridge(key) {
     if (key == null) return null;
     var k = String(key);
-    var inst = getRscInstance();
+    // 1) Metadata 权威桥 Map（物品脚本跨上下文最稳）
     try {
-        if (inst != null && inst.gltcJavaBridges != null) {
-            var fromInst = inst.gltcJavaBridges.get(k);
-            if (fromInst != null) return fromInst;
+        var metaMap = readBridgeMapFromMetadata();
+        if (metaMap != null) {
+            var fromMeta = metaMap.get(k);
+            if (fromMeta != null) return fromMeta;
         }
-    } catch (eInst) {}
-    try {
-        if (inst != null && k === "gltcHandleStaffUse" && inst.gltcHandleStaffUseConsumer != null) {
-            return inst.gltcHandleStaffUseConsumer;
-        }
-        if (inst != null && k === "gltcEnsureSpellListeners" && inst.gltcEnsureSpellCoreListeners != null) {
-            return inst.gltcEnsureSpellCoreListeners;
-        }
-    } catch (eNamed) {}
+    } catch (eMeta) {}
+    // 2) 共享根直挂
     var root = getGltcSharedRoot();
     if (root != null) {
         try {
@@ -202,11 +210,36 @@ function getJavaBridge(key) {
             if (v != null) return v;
         } catch (e0) {}
     }
+    // 3) 施术 Consumer 专用 Metadata
+    if (k === "gltcHandleStaffUse") {
+        var staffMeta = pluginGetMetadataValue(getPlugin(), "gltc_handle_staff_use");
+        if (staffMeta != null) return staffMeta;
+    }
+    var inst = getRscInstance();
+    try {
+        if (inst != null && k === "gltcHandleStaffUse" && inst.gltcHandleStaffUseConsumer != null) {
+            return inst.gltcHandleStaffUseConsumer;
+        }
+        if (inst != null && k === "gltcEnsureSpellListeners" && inst.gltcEnsureSpellCoreListeners != null) {
+            return inst.gltcEnsureSpellCoreListeners;
+        }
+        if (inst != null && inst.gltcJavaBridges != null) {
+            var fromInst = inst.gltcJavaBridges.get(k);
+            if (fromInst != null) return fromInst;
+        }
+    } catch (eInst) {}
     try {
         var leg = getBridgeMapLegacy();
         if (leg != null) return leg.get(k);
     } catch (e1) {}
     return null;
+}
+
+/** 物品 script 统一入口：施术右键 Consumer */
+function resolveStaffUseConsumer() {
+    var c = getJavaBridge("gltcHandleStaffUse");
+    if (c != null) return c;
+    return pluginGetMetadataValue(getPlugin(), "gltc_handle_staff_use");
 }
 
 ({
@@ -215,6 +248,9 @@ function getJavaBridge(key) {
     publishGltcSharedRoot: publishGltcSharedRoot,
     putJavaBridge: putJavaBridge,
     getJavaBridge: getJavaBridge,
+    resolveStaffUseConsumer: resolveStaffUseConsumer,
+    readBridgeMapFromMetadata: readBridgeMapFromMetadata,
+    publishBridgeMapToMetadata: publishBridgeMapToMetadata,
     getBridgeMapLegacy: getBridgeMapLegacy,
     pluginGetMetadataValue: pluginGetMetadataValue,
     pluginSetMetadata: pluginSetMetadata,

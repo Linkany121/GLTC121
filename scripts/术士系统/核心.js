@@ -810,11 +810,39 @@ function buildTotalStatsObject(base, equip, staff) {
     return out;
 }
 
+function playerUuidString(player) {
+    if (player == null) return "";
+    try { return String(player.getUniqueId().toString()); } catch (e0) {}
+    try {
+        return String(player.getClass().getMethod("getUniqueId").invoke(player).toString());
+    } catch (e1) {}
+    return "";
+}
+
+/** 跨 Graal 上下文：物品/术式脚本传入的 Player 可能是代理，必须按 UUID 换回在线实体 */
+function resolveBridgePlayer(player) {
+    if (player == null) return null;
+    var uuid = playerUuidString(player);
+    if (!uuid) return player;
+    try {
+        var online = Bukkit.getPlayer(java.util.UUID.fromString(uuid));
+        if (online != null) return online;
+    } catch (eU) {}
+    return player;
+}
+
 function getTotalStats(player, includeStaff) {
-    var uuid = player.getUniqueId().toString();
+    var p = resolveBridgePlayer(player);
+    var uuid = playerUuidString(p);
+    if (!uuid) {
+        try { uuid = String(player.getUniqueId().toString()); } catch (e) {
+            return buildTotalStatsObject(defaultStats(), emptyBonuses(), emptyBonuses());
+        }
+    }
+    var withStaff = includeStaff !== false;
     var base = getPlayerStats(uuid);
     var equip = getEquipmentBonuses(uuid);
-    var staff = (includeStaff === true) ? getStaffBonuses(player) : emptyBonuses();
+    var staff = withStaff ? getStaffBonuses(p || player) : emptyBonuses();
     return buildTotalStatsObject(base, equip, staff);
 }
 
@@ -825,8 +853,7 @@ function getGLI() {
 }
 
 function calcSpellDamage(player, spellCoefficient) {
-    // 不再每次施术 invalidate：装备变更已主动清缓存；避免高频施术反复读盘
-    var stats = getTotalStats(player, true);
+    var stats = getTotalStats(resolveBridgePlayer(player) || player, true);
     return Number(stats.particlePower || 0) * Number(spellCoefficient || 0) * getGLI();
 }
 
@@ -1272,38 +1299,67 @@ function readPublishedMageApi() {
     return _MAGE_BRIDGE_TARGET.api;
 }
 
+/** Java 桥专用：按 UUID 读盘，不依赖跨上下文 Player 代理 */
+function fetchBridgeStats(player, includeStaff) {
+    var withStaff = includeStaff !== false;
+    try {
+        var st = getTotalStats(player, withStaff);
+        if (st != null) return st;
+    } catch (e0) {}
+    try {
+        var uuid = playerUuidString(player);
+        if (!uuid) return null;
+        var base = getPlayerStats(uuid);
+        var equip = getEquipmentBonuses(uuid);
+        var staff = withStaff ? getStaffBonuses(resolveBridgePlayer(player) || player) : emptyBonuses();
+        return buildTotalStatsObject(base, equip, staff);
+    } catch (e1) {
+        return null;
+    }
+}
+
 /**
- * 关键：不要用「单例 BiFunction + cell.api」——异上下文调用时 cell 里的 JS 对象会失效，
- * calcSpellDamage 静默返回 0，火球就变成 1 点物理伤害。
- * 每次 publish 新建桥，闭包钉死本上下文的 api。
+ * 关键：BiFunction 在异上下文被术式调用时，Player 代理会失效 → 默认 mageLevel=0 / particlePower=1。
+ * 桥内必须用 resolveBridgePlayer + UUID 读盘；每次 publish 新建桥，闭包钉死本上下文 api。
  */
-function buildMageBridges(api) {
+function buildMageBridges(api, gliAtPublish) {
     var closed = api;
-    var CalcBF = Java.extend(Java.type("java.util.function.BiFunction"), {
-        apply: function(player, coeff) {
-            try {
-                var v = Number(closed.calcSpellDamage(player, Number(coeff)));
-                if (!isFinite(v)) v = 0;
-                return java.lang.Double.valueOf(v);
-            } catch (e) {
-                return java.lang.Double.valueOf(0);
-            }
-        }
-    });
+    var gli = Number(gliAtPublish);
+    if (!(gli > 0) || !isFinite(gli)) gli = GLI_DEFAULT;
     var StatsBF = Java.extend(Java.type("java.util.function.BiFunction"), {
         apply: function(player, includeStaff) {
             try {
                 var flag = includeStaff === true || includeStaff === java.lang.Boolean.TRUE;
-                var st = closed.getTotalStats(player, flag);
+                var st = fetchBridgeStats(resolveBridgePlayer(player) || player, flag);
                 if (st == null) return null;
-                // 只回传纯数字 Map，避免异上下文读 JS 对象字段失败
                 var out = new java.util.concurrent.ConcurrentHashMap();
                 try { out.put("particlePower", java.lang.Double.valueOf(Number(st.particlePower) || 0)); } catch (e0) {}
                 try { out.put("mageLevel", java.lang.Double.valueOf(Number(st.mageLevel) || 0)); } catch (e1) {}
                 try { out.put("particleRefraction", java.lang.Double.valueOf(Number(st.particleRefraction) || 0)); } catch (e2) {}
                 try { out.put("finalDamageReduction", java.lang.Double.valueOf(Number(st.finalDamageReduction) || 0)); } catch (e3) {}
+                try { out.put("cardiovascular", java.lang.Double.valueOf(Number(st.cardiovascular) || 0)); } catch (e4) {}
                 return out;
             } catch (e) { return null; }
+        }
+    });
+    var statsBridge = new StatsBF();
+    var CalcBF = Java.extend(Java.type("java.util.function.BiFunction"), {
+        apply: function(player, coeff) {
+            try {
+                var coeffN = Number(coeff) || 0;
+                var p = resolveBridgePlayer(player) || player;
+                var raw = statsBridge.apply(p, java.lang.Boolean.TRUE);
+                if (raw != null) {
+                    var pp = Number(raw.get("particlePower")) || 0;
+                    var v = pp * coeffN * gli;
+                    if (isFinite(v) && v > 0) return java.lang.Double.valueOf(v);
+                }
+                var v2 = Number(closed.calcSpellDamage(p, coeffN));
+                if (!isFinite(v2)) v2 = 0;
+                return java.lang.Double.valueOf(v2);
+            } catch (e) {
+                return java.lang.Double.valueOf(0);
+            }
         }
     });
     var PulseC = Java.extend(Java.type("java.util.function.Consumer"), {
@@ -1324,7 +1380,7 @@ function buildMageBridges(api) {
     });
     return {
         calc: new CalcBF(),
-        stats: new StatsBF(),
+        stats: statsBridge,
         pulse: new PulseC(),
         invalidate: new InvalidateC()
     };
@@ -1362,8 +1418,21 @@ function logMageBridgeOnce(calcOk, statsOk, pulseOk) {
     } catch (eLog) {}
 }
 
-function publishMageJavaBridges(api) {
+function publishMageJavaBridges(api, opts) {
     if (api == null) return false;
+    opts = opts || {};
+    var inst = null;
+    try {
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        inst = RSC.INSTANCE;
+    } catch (eR) {}
+    // 监听已发布的桥不要被物品/施术脚本二次 eval 覆盖
+    if (inst != null && inst.gltcMageBridgesLocked === true && opts.force !== true) {
+        return true;
+    }
+    if (opts.force === true || opts.owner === "listener") {
+        try { if (inst != null) inst.gltcMageBridgesLocked = true; } catch (eLockEarly) {}
+    }
     setPublishedMageApi(api);
     var sr = getSharedRootBridgeApi();
     var map = getOrCreateJavaBridgeMap();
@@ -1371,19 +1440,21 @@ function publishMageJavaBridges(api) {
         Bukkit.getLogger().warning("[GLTC术士] Java 桥 Map 创建失败");
         return false;
     }
-    // 闭包钉死 api：异上下文 apply 时仍走本上下文 JS
-    var bridges = buildMageBridges(api);
+    var gliAtPublish = getGLI();
+    var bridges = buildMageBridges(api, gliAtPublish);
     var calcOk = putBridgeEntry(sr, map, "gltcMage_calcSpellDamage", bridges.calc);
     var statsOk = putBridgeEntry(sr, map, "gltcMage_getTotalStats", bridges.stats);
     var pulseOk = putBridgeEntry(sr, map, "gltcMage_dealPulseDamage", bridges.pulse);
     putBridgeEntry(sr, map, "gltcMage_invalidateCache", bridges.invalidate);
     try {
+        if (sr != null && sr.publishBridgeMapToMetadata != null) sr.publishBridgeMapToMetadata(map);
+    } catch (ePubMeta) {}
+    try {
         PLUGIN.setMetadata("gltc_mage_api", new FixedMetadataValue(PLUGIN, api));
     } catch (eMeta) {}
     try { PLUGIN.gltcMageApi = api; } catch (eField) {}
     try {
-        var RSC2 = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
-        if (RSC2.INSTANCE != null) RSC2.INSTANCE.gltcMageApi = api;
+        if (inst != null) inst.gltcMageApi = api;
     } catch (eInst) {}
     logMageBridgeOnce(calcOk, statsOk, pulseOk);
     return calcOk;
@@ -1399,8 +1470,5 @@ try {
     }
 } catch (eRootPub) {}
 try { MAGE_API_EXPORT.publishMageJavaBridges = publishMageJavaBridges; } catch (eExp) {}
-try {
-    setPublishedMageApi(MAGE_API_EXPORT);
-    publishMageJavaBridges(MAGE_API_EXPORT);
-} catch (eAutoPub) {}
+try { setPublishedMageApi(MAGE_API_EXPORT); } catch (eAutoPub) {}
 MAGE_API_EXPORT;

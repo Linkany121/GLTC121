@@ -164,49 +164,66 @@ function findHit(world, loc, casterUuid) {
 
 /** 伤害 = 粒子强度 × 系数 × GLI */
 function calcFireballDamage(player, mageApi) {
-    function bridgeGet(key) {
-        var k = String(key);
+    function bridgeGetLocal(key) {
         try {
-            var loader = PLUGIN != null ? PLUGIN.gltcScriptLoader : null;
-            if (loader == null) {
-                var RSC0 = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
-                if (RSC0.INSTANCE != null) loader = RSC0.INSTANCE.gltcScriptLoader;
+            var mapRef = null;
+            var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+            if (plug != null) {
+                try {
+                    var list = plug.getClass().getMethod("getMetadata", Java.type("java.lang.String"))
+                        .invoke(plug, "gltc_bridge_map_ref");
+                    if (list != null && list.size() > 0) mapRef = list.get(0).value();
+                } catch (eM) {}
             }
-            if (loader && loader.evalScriptExport) {
-                var sr = loader.evalScriptExport("_gltcSharedRoot.js", { isolated: true, cache: true });
-                if (sr != null && sr.getJavaBridge != null) {
-                    var fromSr = sr.getJavaBridge(k);
-                    if (fromSr != null) return fromSr;
+            if (mapRef != null && mapRef.get != null) {
+                var m = mapRef.get();
+                if (m != null) {
+                    var v = m.get(String(key));
+                    if (v != null) return v;
                 }
             }
-        } catch (eSr) {}
+        } catch (e0) {}
         try {
             var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
             if (RSC.INSTANCE != null && RSC.INSTANCE.gltcJavaBridges != null) {
-                var v1 = RSC.INSTANCE.gltcJavaBridges.get(k);
-                if (v1 != null) return v1;
+                return RSC.INSTANCE.gltcJavaBridges.get(String(key));
             }
         } catch (e1) {}
         return null;
     }
+    function particlePowerFromDisk(p) {
+        try {
+            var uuid = "";
+            try { uuid = String(p.getUniqueId().toString()); } catch (e0) {
+                uuid = String(p.getClass().getMethod("getUniqueId").invoke(p).toString());
+            }
+            var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+            var File = java.io.File;
+            var Files = java.nio.file.Files;
+            var StandardCharsets = java.nio.charset.StandardCharsets;
+            var ByteBuffer = Java.type("java.nio.ByteBuffer");
+            var f = new File(plug.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/术士数值/" + uuid + ".json");
+            if (!f.exists()) return SPELL_COEFFICIENT;
+            var data = JSON.parse(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString());
+            var pp = Number(data.particlePower);
+            if (pp > 0 && isFinite(pp)) return pp * SPELL_COEFFICIENT;
+        } catch (e) {}
+        return SPELL_COEFFICIENT;
+    }
     try {
-        var calcBr = bridgeGet("gltcMage_calcSpellDamage");
+        var calcBr = bridgeGetLocal("gltcMage_calcSpellDamage");
         if (calcBr != null) {
             var bv = Number(calcBr.apply(player, java.lang.Double.valueOf(SPELL_COEFFICIENT)));
             if (bv > 0 && isFinite(bv)) return bv;
         }
     } catch (eBr) {}
-    // 2) 同上下文 JS API（施术核心传入的 facade）
     try {
         if (mageApi != null && mageApi.calcSpellDamage != null) {
             var v = Number(mageApi.calcSpellDamage(player, SPELL_COEFFICIENT));
             if (v > 0 && isFinite(v)) return v;
         }
     } catch (eApi) {}
-    try {
-        Bukkit.getLogger().warning("[GLTC火球术] calcSpellDamage 失败，粒子强度未生效");
-    } catch (eLog) {}
-    return SPELL_COEFFICIENT;
+    return particlePowerFromDisk(player);
 }
 
 function castFireball(player, mageApi) {

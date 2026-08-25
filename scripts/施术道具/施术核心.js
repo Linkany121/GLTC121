@@ -40,9 +40,10 @@ var STAFF_USE_DEBOUNCE_MS   = 120;  // 右键施展防抖（毫秒，合并 Inte
 var EROSION_HP_PCT          = 0.2;  // 侵蚀自伤：当前生命上限百分比（按术式侵蚀等级）
 var SPELL_CORE_LISTENER_VER = 1;    // 监听器版本号（热重载升级用）
 
-var CAST_MAGE_API = null;
-/** 用对象属性持有句柄：避免同引擎再次 var 同名时把闭包里的绑定冲成 null */
 var CAST_MAGE_HOLDER = { api: null };
+/** 监听 boot 注入的 Java 桥 Map（闭包直读，不依赖 Graal 动态字段） */
+var BRIDGE_MAP = null;
+var STAFF_USE_CONSUMER = null;
 var STAFF_CFG = null;
 var SPELL_CFG = null;
 var SKILL_CORE_CFG = null;
@@ -105,67 +106,40 @@ function toJavaLong(n) {
 
 function getRuntime() {
     if (RUNTIME != null) return RUNTIME;
-    // 1) 独立 Metadata（跨上下文）
     try {
         if (PLUGIN != null && PLUGIN.hasMetadata("gltc_spell_runtime")) {
-            var direct = PLUGIN.getMetadata("gltc_spell_runtime").get(0).value();
-            if (direct != null) {
-                RUNTIME = direct;
-                return RUNTIME;
-            }
+            RUNTIME = PLUGIN.getMetadata("gltc_spell_runtime").get(0).value();
+            if (RUNTIME != null) return RUNTIME;
         }
-    } catch (eDirect) {}
-    var META_SHARED = "gltc_shared_root_maps";
+    } catch (e0) {}
     try {
-        if (PLUGIN != null && PLUGIN.hasMetadata(META_SHARED)) {
-            var root = PLUGIN.getMetadata(META_SHARED).get(0).value();
-            if (root != null) {
-                var rtMeta = root.get("gltcSpellRuntime");
-                if (rtMeta != null) {
-                    RUNTIME = rtMeta;
-                    return RUNTIME;
-                }
-            }
-        }
-    } catch (eMeta) {}
-    try {
-        if (PLUGIN.gltcSpellRuntime != null) {
+        if (PLUGIN != null && PLUGIN.gltcSpellRuntime != null) {
             RUNTIME = PLUGIN.gltcSpellRuntime;
             return RUNTIME;
         }
-    } catch (e0) {}
+    } catch (e1) {}
     try {
         var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
         if (RSC.INSTANCE != null && RSC.INSTANCE.gltcSpellRuntime != null) {
             RUNTIME = RSC.INSTANCE.gltcSpellRuntime;
             return RUNTIME;
         }
-    } catch (eRsc) {}
+    } catch (e2) {}
     try {
-        var rootApi = evalScript("_gltcSharedRoot.js");
-        if (rootApi && rootApi.getGltcSharedRoot) {
-            var rt = rootApi.getGltcSharedRoot().get("gltcSpellRuntime");
-            if (rt != null) {
-                RUNTIME = rt;
-                return RUNTIME;
-            }
+        var sr = getSharedRootBridgeApi();
+        if (sr != null && sr.getGltcSharedRoot != null) {
+            RUNTIME = sr.getGltcSharedRoot().get("gltcSpellRuntime");
+            if (RUNTIME != null) return RUNTIME;
         }
-    } catch (eRoot) {}
-    // 最后：从 loader 缓存取（boot 已 put）；勿在无缓存时盲目重 eval
+    } catch (e3) {}
     try {
-        var loader = getScriptLoader();
-        if (loader && loader.evalScriptExport) {
-            var cache = null;
-            try { cache = PLUGIN.gltcEvalCache; } catch (eC) {}
-            var cached = null;
-            try { if (cache != null) cached = cache.get("术式运行时/核心.js"); } catch (eC2) {}
-            if (cached != null) {
-                RUNTIME = cached;
-                return RUNTIME;
-            }
+        var cache = PLUGIN != null ? PLUGIN.gltcEvalCache : null;
+        if (cache != null) {
+            RUNTIME = cache.get("术式运行时/核心.js");
+            if (RUNTIME != null) return RUNTIME;
         }
-    } catch (eL) {}
-    return RUNTIME;
+    } catch (e4) {}
+    return null;
 }
 
 /** 由 监听.js 在 boot 时注入同一份运行时句柄（跨 Graal 上下文必做） */
@@ -204,27 +178,106 @@ function getSharedRootBridgeApi() {
     return null;
 }
 
+function pluginMetaValue(key) {
+    if (PLUGIN == null) return null;
+    var k = String(key);
+    try {
+        if (PLUGIN.getMetadata != null) {
+            var list = PLUGIN.getMetadata(k);
+            if (list != null && list.size() > 0) return list.get(0).value();
+        }
+    } catch (e0) {}
+    try {
+        var JString = Java.type("java.lang.String");
+        var list2 = PLUGIN.getClass().getMethod("getMetadata", JString).invoke(PLUGIN, k);
+        if (list2 != null && list2.size() > 0) return list2.get(0).value();
+    } catch (e1) {}
+    return null;
+}
+
+function attachBridges(map, staffConsumer) {
+    if (map != null) BRIDGE_MAP = map;
+    if (staffConsumer != null) STAFF_USE_CONSUMER = staffConsumer;
+    return BRIDGE_MAP != null || STAFF_USE_CONSUMER != null;
+}
+
+function getStaffUseConsumer() {
+    return STAFF_USE_CONSUMER;
+}
+
 function bridgeGet(key) {
+    var k = String(key);
+    if (BRIDGE_MAP != null) {
+        try {
+            var direct = BRIDGE_MAP.get(k);
+            if (direct != null) return direct;
+        } catch (e0) {}
+    }
+    try {
+        var metaMap = pluginMetaValue("gltc_java_bridges");
+        if (metaMap != null) {
+            var fromMeta = metaMap.get(k);
+            if (fromMeta != null) return fromMeta;
+        }
+    } catch (eMeta) {}
+    try {
+        var mapRef = pluginMetaValue("gltc_bridge_map_ref");
+        if (mapRef != null && mapRef.get != null) {
+            var m = mapRef.get();
+            if (m != null) {
+                var fromRef = m.get(k);
+                if (fromRef != null) return fromRef;
+            }
+        }
+    } catch (eRef) {}
+    try {
+        var root = pluginMetaValue("gltc_shared_root_maps");
+        if (root != null) {
+            var fromRoot = root.get(k);
+            if (fromRoot != null) return fromRoot;
+        }
+    } catch (eRoot) {}
+    if (k === "gltcHandleStaffUse") {
+        var staff = pluginMetaValue("gltc_handle_staff_use");
+        if (staff != null) return staff;
+    }
     var sr = getSharedRootBridgeApi();
     if (sr != null && sr.getJavaBridge != null) {
         try {
-            var v = sr.getJavaBridge(key);
+            var v = sr.getJavaBridge(k);
             if (v != null) return v;
         } catch (e0) {}
     }
     try {
         var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
         if (RSC.INSTANCE != null && RSC.INSTANCE.gltcJavaBridges != null) {
-            var v2 = RSC.INSTANCE.gltcJavaBridges.get(String(key));
+            var v2 = RSC.INSTANCE.gltcJavaBridges.get(k);
             if (v2 != null) return v2;
         }
     } catch (e1) {}
     try {
         if (PLUGIN != null && PLUGIN.gltcJavaBridges != null) {
-            return PLUGIN.gltcJavaBridges.get(String(key));
+            return PLUGIN.gltcJavaBridges.get(k);
         }
     } catch (e2) {}
     return null;
+}
+
+function parseStatsRaw(raw) {
+    if (raw == null) return null;
+    function num(k) {
+        try {
+            if (raw.get != null) return Number(raw.get(k)) || 0;
+        } catch (e0) {}
+        try { return Number(raw[k]) || 0; } catch (e1) { return 0; }
+    }
+    return {
+        mageLevel: num("mageLevel"),
+        particlePower: num("particlePower"),
+        cardiovascular: num("cardiovascular"),
+        particleRefraction: num("particleRefraction"),
+        finalDamageReduction: num("finalDamageReduction")
+    };
 }
 
 function mageApiFromJavaBridges() {
@@ -243,21 +296,7 @@ function mageApiFromJavaBridges() {
             if (stats == null) return null;
             try {
                 var flag = includeStaff !== false;
-                var raw = stats.apply(player, flag ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE);
-                if (raw == null) return null;
-                function num(k) {
-                    try {
-                        if (raw.get != null) return Number(raw.get(k)) || 0;
-                    } catch (e0) {}
-                    try { return Number(raw[k]) || 0; } catch (e1) { return 0; }
-                }
-                return {
-                    mageLevel: num("mageLevel"),
-                    particlePower: num("particlePower"),
-                    cardiovascular: num("cardiovascular"),
-                    particleRefraction: num("particleRefraction"),
-                    finalDamageReduction: num("finalDamageReduction")
-                };
+                return parseStatsRaw(stats.apply(player, flag ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE));
             } catch (e) { return null; }
         },
         calcSpellCooldownMs: function(player, baseMs, erosion) {
@@ -289,11 +328,9 @@ function mageApiFromJavaBridges() {
     };
 }
 
-/** boot 注入真实术士 API（会 publish Java 桥）；禁止把 bridge facade 钉进 holder */
+/** boot 注入真实术士 API；禁止把 bridge facade 钉进 holder */
 function rememberMageApi(api) {
-    if (!hasCalcSpellDamage(api)) return false;
-    if (api && api.__fromJavaBridge) return false;
-    CAST_MAGE_API = api;
+    if (!hasCalcSpellDamage(api) || (api && api.__fromJavaBridge)) return false;
     try { CAST_MAGE_HOLDER.api = api; } catch (eH) {}
     try { PLUGIN.gltcMageApi = api; } catch (e0) {}
     try {
@@ -306,16 +343,11 @@ function rememberMageApi(api) {
         }
     } catch (e1) {}
     try {
-        if (PLUGIN.hasMetadata("gltc_shared_root_maps")) {
-            PLUGIN.getMetadata("gltc_shared_root_maps").get(0).value().put("gltcMageApi", api);
+        var sr = getSharedRootBridgeApi();
+        if (sr != null && sr.getGltcSharedRoot != null) {
+            sr.getGltcSharedRoot().put("gltcMageApi", api);
         }
     } catch (e2) {}
-    try {
-        if (bridgeGet("gltcMage_calcSpellDamage") == null
-            && typeof api.publishMageJavaBridges === "function") {
-            api.publishMageJavaBridges(api);
-        }
-    } catch (eBr) {}
     return true;
 }
 
@@ -323,47 +355,14 @@ function bindMageApi(api) {
     return rememberMageApi(api);
 }
 
-function cleanseBridgeFromHolder() {
-    try {
-        var h = CAST_MAGE_HOLDER.api;
-        if (h != null && h.__fromJavaBridge) CAST_MAGE_HOLDER.api = null;
-    } catch (e) {}
-}
-
-/** bridge 缺失时补发一次（不刷屏） */
 function ensureMageJavaBridges() {
-    if (bridgeGet("gltcMage_calcSpellDamage") != null) return true;
-    var api = null;
-    try {
-        var h = CAST_MAGE_HOLDER.api;
-        if (h != null && !h.__fromJavaBridge && hasCalcSpellDamage(h)) api = h;
-    } catch (eH) {}
-    if (api == null) {
-        try {
-            if (PLUGIN != null && hasCalcSpellDamage(PLUGIN.gltcMageApi)) api = PLUGIN.gltcMageApi;
-        } catch (eP) {}
-    }
-    if (api == null) {
-        try {
-            var cache = PLUGIN != null ? PLUGIN.gltcEvalCache : null;
-            if (cache != null) api = cache.get("术士系统/核心.js");
-        } catch (eC) {}
-    }
-    if (api != null && typeof api.publishMageJavaBridges === "function") {
-        try { return !!api.publishMageJavaBridges(api); } catch (ePub) {}
-    }
-    return false;
+    return bridgeGet("gltcMage_calcSpellDamage") != null;
 }
 
-/** 每次现取：同上下文 boot 句柄 → Java 桥 → Metadata */
+/** 现读术士 API：boot 句柄 → PLUGIN/RSC → Java 桥 */
 function resolveMageApi() {
-    cleanseBridgeFromHolder();
-
-    var local = CAST_MAGE_HOLDER.api;
-    if (local && !local.__fromJavaBridge && hasCalcSpellDamage(local)) return local;
-    if (CAST_MAGE_API && !CAST_MAGE_API.__fromJavaBridge && hasCalcSpellDamage(CAST_MAGE_API)) {
-        return CAST_MAGE_API;
-    }
+    var h = CAST_MAGE_HOLDER.api;
+    if (h && !h.__fromJavaBridge && hasCalcSpellDamage(h)) return h;
     try {
         if (PLUGIN != null && hasCalcSpellDamage(PLUGIN.gltcMageApi)) return PLUGIN.gltcMageApi;
     } catch (eP) {}
@@ -373,133 +372,154 @@ function resolveMageApi() {
             return RSC.INSTANCE.gltcMageApi;
         }
     } catch (eInst) {}
-    try {
-        if (PLUGIN != null && PLUGIN.hasMetadata("gltc_mage_api")) {
-            var fromMeta = PLUGIN.getMetadata("gltc_mage_api").get(0).value();
-            if (fromMeta && !fromMeta.__fromJavaBridge && hasCalcSpellDamage(fromMeta)) return fromMeta;
-        }
-    } catch (eM) {}
-
     var bridged = mageApiFromJavaBridges();
     if (bridged != null) return bridged;
-
     ensureMageJavaBridges();
-    bridged = mageApiFromJavaBridges();
-    if (bridged != null) return bridged;
-
-    return null;
+    return mageApiFromJavaBridges();
 }
 
 function logMageDiag(tag) {
     if (_mageDiagOnce) return;
+    if (bridgeGet("gltcMage_calcSpellDamage") != null) return;
+    if (resolveMageApi() != null) return;
+    // 粒子强度/术士等级读盘回退可用时不告警（bridge 缺失仅影响诊断，不影响施术）
+    try {
+        var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+        if (plug != null && plug.getDataFolder != null) {
+            var probe = new File(plug.getDataFolder().getAbsolutePath()
+                + "/addon_configs/GLTC/玩家属性/术士数值");
+            if (probe.exists() && probe.isDirectory()) return;
+        }
+    } catch (eDiskOk) {}
     _mageDiagOnce = true;
     try {
-        var bridgeOk = bridgeGet("gltcMage_calcSpellDamage") != null;
-        var holderOk = false;
-        try {
-            var h = CAST_MAGE_HOLDER.api;
-            holderOk = h != null && !h.__fromJavaBridge && hasCalcSpellDamage(h);
-        } catch (eH) {}
-        if (holderOk || bridgeOk) return;
-        Bukkit.getLogger().warning("[GLTC施术] mage诊断(" + tag
-            + ") holder=" + holderOk
-            + " bridge=" + bridgeOk
-            + " deps=" + _depsReady);
+        Bukkit.getLogger().warning("[GLTC施术] mage诊断(" + tag + ") deps=" + _depsReady
+            + " bridge=" + (bridgeGet("gltcMage_calcSpellDamage") != null)
+            + " map=" + (BRIDGE_MAP != null));
     } catch (eW) {}
 }
 
-/**
- * 施术注入 runtime。
- * 每次方法调用都 resolveMageApi()——禁止钉死开服句柄，粒子强度/等级必须现读。
- */
-function prepareCastApi(runtime) {
-    function live() {
-        cleanseBridgeFromHolder();
-        var a = resolveMageApi();
-        if (a != null) return a;
+function readMageLevelFromDisk(player) {
+    try {
+        var uuid = playerUuidFromPlayer(player);
+        if (!uuid) return 0;
+        var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+        var File = java.io.File;
+        var Files = java.nio.file.Files;
+        var StandardCharsets = java.nio.charset.StandardCharsets;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var f = new File(plug.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/术士数值/" + uuid + ".json");
+        if (!f.exists()) return 0;
+        var data = JSON.parse(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString());
+        return Math.max(0, Math.min(8, Math.floor(Number(data.mageLevel) || 0)));
+    } catch (e) { return 0; }
+}
+
+function readParticlePowerFromDisk(player) {
+    try {
+        var uuid = playerUuidFromPlayer(player);
+        if (!uuid) return 1;
+        var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+        var File = java.io.File;
+        var Files = java.nio.file.Files;
+        var StandardCharsets = java.nio.charset.StandardCharsets;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var f = new File(plug.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/术士数值/" + uuid + ".json");
+        if (!f.exists()) return 1;
+        var data = JSON.parse(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString());
+        var pp = Number(data.particlePower);
+        return (pp > 0 && isFinite(pp)) ? pp : 1;
+    } catch (e) { return 1; }
+}
+
+function playerUuidFromPlayer(player) {
+    if (player == null) return "";
+    try { return String(player.getUniqueId().toString()); } catch (e0) {}
+    try {
+        return String(player.getClass().getMethod("getUniqueId").invoke(player).toString());
+    } catch (e1) {}
+    return "";
+}
+
+function mageCall(method, args, fallback) {
+    if (method === "calcSpellDamage") {
+        var calc = bridgeGet("gltcMage_calcSpellDamage");
+        if (calc != null) {
+            try {
+                var v = Number(calc.apply(args[0], java.lang.Double.valueOf(Number(args[1]) || 0)));
+                if (v > 0 && isFinite(v)) return v;
+            } catch (eCalc) {}
+        }
+        var pp = readParticlePowerFromDisk(args[0]);
+        var c = Number(args[1]) || 0;
+        if (pp > 0 && c > 0) return pp * c;
+    }
+    if (method === "getTotalStats") {
+        var stats = bridgeGet("gltcMage_getTotalStats");
+        if (stats != null) {
+            try {
+                var flag = args[1] !== false;
+                return parseStatsRaw(stats.apply(args[0], flag ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE));
+            } catch (eSt) {}
+        }
+    }
+    if (method === "dealPulseDamage") {
+        var pulse = bridgeGet("gltcMage_dealPulseDamage");
+        if (pulse != null) {
+            try {
+                var list = new java.util.ArrayList();
+                list.add(args[0]);
+                list.add(java.lang.Double.valueOf(Number(args[1]) || 0));
+                list.add(args[2]);
+                pulse.accept(list);
+                return true;
+            } catch (ePu) {}
+        }
+    }
+    var a = resolveMageApi();
+    if (a == null) {
         try { loadDeps(); } catch (eLd) {}
         a = resolveMageApi();
-        if (a != null) return a;
-        ensureMageJavaBridges();
-        return resolveMageApi();
     }
-    if (live() == null) logMageDiag("prepare");
+    if (a != null && a[method] != null) {
+        try { return a[method].apply(a, args); } catch (e0) {}
+    }
+    return typeof fallback === "function" ? fallback.apply(null, args) : fallback;
+}
+
+function prepareCastApi(runtime) {
+    if (resolveMageApi() == null && bridgeGet("gltcMage_calcSpellDamage") == null) {
+        logMageDiag("prepare");
+    }
     return {
-        calcSpellDamage: function(player, spellCoefficient) {
-            var coeff = Number(spellCoefficient) || 0;
-            var calcBr = bridgeGet("gltcMage_calcSpellDamage");
-            if (calcBr != null) {
-                try {
-                    var bv = Number(calcBr.apply(player, java.lang.Double.valueOf(coeff)));
-                    if (bv > 0 && isFinite(bv)) return bv;
-                } catch (eBr) {}
-            }
-            var a = live();
-            if (a != null && hasCalcSpellDamage(a)) {
-                try {
-                    var v = Number(a.calcSpellDamage(player, coeff));
-                    if (v > 0 && isFinite(v)) return v;
-                } catch (e0) {}
-            }
+        calcSpellDamage: function(player, coeff) {
+            var c = Number(coeff) || 0;
+            var v = mageCall("calcSpellDamage", [player, c], c);
+            v = Number(v);
+            if (v > 0 && isFinite(v)) return v;
             logMageDiag("calc");
-            return coeff > 0 ? coeff : 0;
+            return c > 0 ? c : 0;
         },
         calcSpellCooldownMs: function(player, baseMs, erosion) {
-            var a = live();
-            if (a != null && a.calcSpellCooldownMs != null) {
-                try { return a.calcSpellCooldownMs(player, baseMs, erosion); } catch (e0) {}
-            }
-            var cd = Math.max(50, Math.floor(Number(baseMs) || 1000));
-            var er = Math.floor(Number(erosion) || 0);
-            if (er > 0) cd = Math.max(50, Math.floor(cd * er));
-            return cd;
+            return mageCall("calcSpellCooldownMs", [player, baseMs, erosion], function() {
+                var cd = Math.max(50, Math.floor(Number(baseMs) || 1000));
+                var er = Math.floor(Number(erosion) || 0);
+                if (er > 0) cd = Math.max(50, Math.floor(cd * er));
+                return cd;
+            });
         },
         getTotalStats: function(player, includeStaff) {
-            var statsBr = bridgeGet("gltcMage_getTotalStats");
-            if (statsBr != null) {
-                try {
-                    var flag = includeStaff !== false;
-                    var raw = statsBr.apply(player, flag ? java.lang.Boolean.TRUE : java.lang.Boolean.FALSE);
-                    if (raw != null) {
-                        function num(k) {
-                            try {
-                                if (raw.get != null) return Number(raw.get(k)) || 0;
-                            } catch (e0) {}
-                            try { return Number(raw[k]) || 0; } catch (e1) { return 0; }
-                        }
-                        return {
-                            mageLevel: num("mageLevel"),
-                            particlePower: num("particlePower"),
-                            cardiovascular: num("cardiovascular"),
-                            particleRefraction: num("particleRefraction"),
-                            finalDamageReduction: num("finalDamageReduction")
-                        };
-                    }
-                } catch (eBr) {}
-            }
-            var a = live();
-            if (a != null && a.getTotalStats != null) {
-                try {
-                    var out = a.getTotalStats(player, includeStaff !== false);
-                    if (out != null) return out;
-                } catch (e0) {}
-            }
-            return { mageLevel: 0, particlePower: 1 };
+            var out = mageCall("getTotalStats", [player, includeStaff !== false], null);
+            return out != null ? out : { mageLevel: 0, particlePower: 1 };
         },
         dealPulseDamage: function(target, amount, attacker) {
-            var a = live();
-            if (a != null && a.dealPulseDamage != null) {
-                try { return a.dealPulseDamage(target, amount, attacker); } catch (e0) {}
-            }
-            return false;
+            return !!mageCall("dealPulseDamage", [target, amount, attacker], false);
         },
         spellRuntime: runtime,
         runtime: runtime,
         getSpellRuntime: function() {
             try { return runtime != null ? runtime : getRuntime(); } catch (e) { return runtime; }
-        },
-        // 兼容旧术式回退；每次访问请优先走本 facade 的 calc/getTotalStats（已现读）
-        __mageApi: null
+        }
     };
 }
 
@@ -830,11 +850,19 @@ function getMaxHealth(player) {
 function resolveCastCost(player, spell) {
     var level = 0;
     try {
-        var api = resolveMageApi();
-        if (api != null && api.getTotalStats != null) {
-            var stats = api.getTotalStats(player, true);
-            level = Number(stats.mageLevel) || 0;
+        var statsBr = bridgeGet("gltcMage_getTotalStats");
+        if (statsBr != null) {
+            var raw = statsBr.apply(player, java.lang.Boolean.TRUE);
+            if (raw != null) level = Number(raw.get("mageLevel")) || 0;
         }
+        if (level <= 0) {
+            var api = resolveMageApi();
+            if (api != null && api.getTotalStats != null) {
+                var stats = api.getTotalStats(player, true);
+                level = Number(stats.mageLevel) || 0;
+            }
+        }
+        if (level <= 0) level = readMageLevelFromDisk(player);
     } catch (e) {}
     var ring = Number(spell.ring) || 1;
     var erosion = ring > level ? (ring - level) : 0;
@@ -937,8 +965,7 @@ function applyErosionSelfDamage(player, erosion, spellName) {
 }
 
 function mageReadyForCast() {
-    if (resolveMageApi() != null) return true;
-    return bridgeGet("gltcMage_calcSpellDamage") != null;
+    return resolveMageApi() != null || bridgeGet("gltcMage_calcSpellDamage") != null;
 }
 
 function tryCast(player) {
@@ -1203,6 +1230,8 @@ function ensureListeners(force) {
     handleStaffUse: handleStaffUse,
     handleStaffLeftClick: handleStaffLeftClick,
     ensureListeners: ensureListeners,
+    attachBridges: attachBridges,
+    getStaffUseConsumer: getStaffUseConsumer,
     registerStaffHooks: registerStaffHooks,
     getStaffMeta: getStaffMeta,
     writeStaffMeta: writeStaffMeta,

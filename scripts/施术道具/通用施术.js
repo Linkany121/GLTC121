@@ -1,162 +1,93 @@
-// ===================================================================
-// VASA_通用施术道具 — NTC外置粒子控制仪
-// 跨 Graal 上下文：只走 _gltcSharedRoot 的 Metadata + Java 桥，勿读 PLUGIN 动态字段
-// ===================================================================
-
+// VASA_通用施术道具 — onUse（AtomicReference + Metadata 反射，跨 Graal 上下文）
 var Player = Java.type("org.bukkit.entity.Player");
 var Bukkit = Java.type("org.bukkit.Bukkit");
-var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+var JString = Java.type("java.lang.String");
 
-var _staffUseWarned = false;
-var _sharedRootApi = null;
-
-function getSharedRootApi() {
-    if (_sharedRootApi != null) return _sharedRootApi;
-    try {
-        var loader = PLUGIN != null ? PLUGIN.gltcScriptLoader : null;
-        if (loader == null) {
-            try {
-                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
-                if (RSC.INSTANCE != null) loader = RSC.INSTANCE.gltcScriptLoader;
-            } catch (e0) {}
-        }
-        if (loader && loader.evalScriptExport) {
-            _sharedRootApi = loader.evalScriptExport("_gltcSharedRoot.js", { isolated: true, cache: true });
-            if (_sharedRootApi != null) return _sharedRootApi;
-        }
-    } catch (eL) {}
-    try {
-        var File = java.io.File;
-        var Files = java.nio.file.Files;
-        var StandardCharsets = java.nio.charset.StandardCharsets;
-        var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var dataDir = PLUGIN != null ? PLUGIN.getDataFolder() : null;
-        if (dataDir == null) {
-            var RSC2 = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
-            if (RSC2.INSTANCE != null) dataDir = RSC2.INSTANCE.getDataFolder();
-        }
-        if (dataDir != null) {
-            var f = new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/_gltcSharedRoot.js");
-            if (!f.exists()) {
-                f = new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/_gltcSharedRoot.js");
-            }
-            if (f.exists()) {
-                var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString();
-                _sharedRootApi = (0, eval)(code);
-            }
-        }
-    } catch (eF) {}
-    return _sharedRootApi;
+function getPlugin() {
+    return Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 }
 
-function getStaffUseConsumer() {
-    var sr = getSharedRootApi();
-    if (sr != null && sr.getJavaBridge != null) {
-        try {
-            var c = sr.getJavaBridge("gltcHandleStaffUse");
+function metaValue(key) {
+    var plug = getPlugin();
+    if (plug == null) return null;
+    var k = String(key);
+    try {
+        if (plug.getMetadata != null) {
+            var list = plug.getMetadata(k);
+            if (list != null && list.size() > 0) return list.get(0).value();
+        }
+    } catch (e0) {}
+    try {
+        var list2 = plug.getClass().getMethod("getMetadata", JString).invoke(plug, k);
+        if (list2 != null && list2.size() > 0) return list2.get(0).value();
+    } catch (e1) {}
+    return null;
+}
+
+function staffConsumer() {
+    try {
+        var staffRef = metaValue("gltc_staff_bridge_ref");
+        if (staffRef != null && staffRef.get != null) {
+            var fromRef = staffRef.get();
+            if (fromRef != null) return fromRef;
+        }
+    } catch (eRef) {}
+    var c = metaValue("gltc_handle_staff_use");
+    if (c != null) return c;
+    try {
+        var mapRef = metaValue("gltc_bridge_map_ref");
+        if (mapRef != null && mapRef.get != null) {
+            var m = mapRef.get();
+            if (m != null) {
+                c = m.get("gltcHandleStaffUse");
+                if (c != null) return c;
+            }
+        }
+    } catch (eMapRef) {}
+    try {
+        var bridges = metaValue("gltc_java_bridges");
+        if (bridges != null) {
+            c = bridges.get("gltcHandleStaffUse");
             if (c != null) return c;
-            c = sr.getJavaBridge("handleStaffUse");
+        }
+    } catch (e1) {}
+    try {
+        var root = metaValue("gltc_shared_root_maps");
+        if (root != null) {
+            c = root.get("gltcHandleStaffUse");
             if (c != null) return c;
-        } catch (eBr) {}
-    }
+        }
+    } catch (e0) {}
     try {
         var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
         var inst = RSC.INSTANCE;
         if (inst != null) {
-            if (inst.gltcHandleStaffUseConsumer != null) return inst.gltcHandleStaffUseConsumer;
-            if (inst.gltcJavaBridges != null) {
-                var cInst = inst.gltcJavaBridges.get("gltcHandleStaffUse");
-                if (cInst != null) return cInst;
-            }
-            if (inst.gltcSharedMaps != null) {
-                var cMap = inst.gltcSharedMaps.get("gltcHandleStaffUse");
-                if (cMap != null) return cMap;
-                var bm = inst.gltcSharedMaps.get("gltc_spell_core_bridge_map");
+            try {
+                if (inst.gltcHandleStaffUseConsumer != null) return inst.gltcHandleStaffUseConsumer;
+            } catch (e2) {}
+            try {
+                var bm = inst.gltcJavaBridges;
                 if (bm != null) {
-                    cMap = bm.get("handleStaffUse");
-                    if (cMap != null) return cMap;
+                    c = bm.get("gltcHandleStaffUse");
+                    if (c != null) return c;
                 }
-            }
+            } catch (e3) {}
         }
-    } catch (eInst) {}
-    if (sr != null) {
-        try {
-            if (sr.getGltcSharedRoot != null) {
-                var root = sr.getGltcSharedRoot();
-                if (root != null) {
-                    var c2 = root.get("gltcHandleStaffUse");
-                    if (c2 != null) return c2;
-                    var bridge = root.get("gltc_spell_core_bridge_map");
-                    if (bridge != null) {
-                        c2 = bridge.get("handleStaffUse");
-                        if (c2 != null) return c2;
-                    }
-                    c2 = root.get("handleStaffUse");
-                    if (c2 != null) return c2;
-                }
-            }
-        } catch (eRoot) {}
-    }
+    } catch (e4) {}
     return null;
-}
-
-function ensureSpellListeners() {
-    var sr = getSharedRootApi();
-    if (sr != null && sr.getJavaBridge != null) {
-        try {
-            var c = sr.getJavaBridge("gltcEnsureSpellListeners");
-            if (c != null && c.accept != null) {
-                c.accept(java.lang.Boolean.TRUE);
-                return true;
-            }
-        } catch (e0) {}
-    }
-    if (sr != null && sr.getGltcSharedRoot != null) {
-        try {
-            var root = sr.getGltcSharedRoot();
-            if (root != null) {
-                var c2 = root.get("gltcEnsureSpellListeners");
-                if (c2 == null) {
-                    var bridge = root.get("gltc_spell_core_bridge_map");
-                    if (bridge != null) c2 = bridge.get("ensureListeners");
-                    if (c2 == null) c2 = root.get("ensureListeners");
-                }
-                if (c2 != null && c2.accept != null) {
-                    c2.accept(java.lang.Boolean.TRUE);
-                    return true;
-                }
-            }
-        } catch (e1) {}
-    }
-    return false;
-}
-
-function invokeStaffUse(player) {
-    if (!(player instanceof Player)) return false;
-    ensureSpellListeners();
-    var consumer = getStaffUseConsumer();
-    if (consumer != null) {
-        try {
-            consumer.accept(player);
-            return true;
-        } catch (eBr) {
-            try { Bukkit.getLogger().warning("[GLTC通用施术] handleStaffUse 桥接异常: " + eBr); } catch (eLog) {}
-        }
-    }
-    try {
-        if (!_staffUseWarned) {
-            _staffUseWarned = true;
-            Bukkit.getLogger().warning("[GLTC通用施术] 施术核心未桥接（共享根无 Consumer，请重启）");
-            player.sendMessage("§c[GLTC] 施术系统未桥接，请联系管理重载插件。");
-        }
-    } catch (eMsg) {}
-    return false;
 }
 
 function onUse(event) {
     try {
         var p = event.getPlayer();
-        if (p instanceof Player) invokeStaffUse(p);
+        if (!(p instanceof Player)) return;
+        var c = staffConsumer();
+        if (c != null) {
+            c.accept(p);
+            return;
+        }
+        // RSC 物品 onUse 与 PlayerInteractEvent 双触发；异 Graal 上下文常读不到桥。
+        // 施术核心监听器（监听.js 闭包注入）会处理同一次右键，此处静默退出即可。
     } catch (e) {}
 }
 

@@ -13,6 +13,8 @@ var ByteBuffer = Java.type("java.nio.ByteBuffer");
 // 勿用短名 MAGE_API：物品脚本 装备菜单/调控终端 顶层 var 会污染同引擎作用域
 var GLTC_SPELL_RUNTIME = null;
 var GLTC_MAGE_API = null;
+/** setupMageSystem 发布的术士 Java 桥 Map（同次 eval 闭包；避免 spell-core 再 new 空 Map 覆盖） */
+var GLTC_JAVA_BRIDGE_MAP = null;
 
 // 重载时清空脚本缓存与一次性日志标记，避免沿用旧导出 / 刷屏失控
 try {
@@ -48,6 +50,10 @@ try {
     PLUGIN.gltcSpellCoreListenLogged = false;
     PLUGIN.gltcSpellCfg = null;
     PLUGIN.gltcStaffCfg = null;
+    try {
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null) RSC.INSTANCE.gltcMageBridgesLocked = false;
+    } catch (eLockClr) {}
 } catch (eBoot) {}
 GLTC_SPELL_RUNTIME = null;
 GLTC_MAGE_API = null;
@@ -183,7 +189,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
     } catch (eRoot0) {}
     try {
         if (typeof exported.publishMageJavaBridges === "function") {
-            exported.publishMageJavaBridges(exported);
+            exported.publishMageJavaBridges(exported, { force: true, owner: "listener" });
         }
     } catch (eBrPub) {}
     // 同步到 INSTANCE 动态字段 + Java 桥 Map（物品脚本读 PLUGIN 常拿不到 Metadata）
@@ -205,6 +211,21 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
                     rootBr.put("gltcJavaBridges", bridgeStore);
                 }
             }
+            try {
+                if (GLTC_SHARED_ROOT_API && GLTC_SHARED_ROOT_API.publishBridgeMapToMetadata) {
+                    GLTC_SHARED_ROOT_API.publishBridgeMapToMetadata(bridgeStore);
+                }
+            } catch (eMetaPub) {}
+            GLTC_JAVA_BRIDGE_MAP = bridgeStore;
+            try {
+                if (GLTC_SHARED_ROOT_API && GLTC_SHARED_ROOT_API.readBridgeMapFromMetadata) {
+                    var mageMapFromMeta = GLTC_SHARED_ROOT_API.readBridgeMapFromMetadata();
+                    if (mageMapFromMeta != null) GLTC_JAVA_BRIDGE_MAP = mageMapFromMeta;
+                }
+            } catch (eMapSync) {}
+            try {
+                if (inst.gltcJavaBridges != null) GLTC_JAVA_BRIDGE_MAP = inst.gltcJavaBridges;
+            } catch (eMapInst) {}
         }
     } catch (eSync) {}
     var EventPriority = Java.type("org.bukkit.event.EventPriority");
@@ -435,7 +456,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
                 Bukkit.getLogger().warning("[GLTC监听] 施术核心 bindMageApi 返回失败（calcSpellDamage 不可用）");
             }
         } else {
-            Bukkit.getLogger().warning("[GLTC监听] 施术核心未绑定术士API（mage=" + !!mageBind + ")");
+            Bukkit.getLogger().warning("[GLTC监听] 施术核心未绑定术士 API（mage=" + !!mageBind + ")");
         }
     } catch (eMageBind) {
         Bukkit.getLogger().warning("[GLTC监听] bindMageApi 失败: " + eMageBind);
@@ -449,17 +470,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
         }
     } catch (eInst) {}
     try {
-        if (typeof castApi.ensureListeners === "function") castApi.ensureListeners(true);
-    } catch (eEns) {
-        Bukkit.getLogger().warning("[GLTC监听] 施术核心 ensureListeners 失败: " + eEns);
-    }
-    try {
         if (sharedRoot == null) sharedRoot = new CHM();
-        var bridgeMap = sharedRoot.get("gltc_spell_core_bridge_map");
-        if (bridgeMap == null) {
-            bridgeMap = new CHM();
-            sharedRoot.put("gltc_spell_core_bridge_map", bridgeMap);
-        }
         var staffUseConsumer = new (Java.extend(java.util.function.Consumer, {
             accept: function(p) {
                 try {
@@ -478,66 +489,74 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
                 } catch (eEn) {}
             }
         }))();
-        sharedRoot.put("handleStaffUse", staffUseConsumer);
-        sharedRoot.put("ensureListeners", ensureConsumer);
-        bridgeMap.put("handleStaffUse", staffUseConsumer);
-        bridgeMap.put("ensureListeners", ensureConsumer);
-        bridgeMap.put("interactReady", java.lang.Boolean.TRUE);
-        bridgeMap.put("listenerVer", java.lang.Long.parseLong("1", 10));
         if (rscInst != null) {
-            rscInst.gltcSharedMaps = sharedRoot;
             rscInst.gltcHandleStaffUseConsumer = staffUseConsumer;
             rscInst.gltcEnsureSpellCoreListeners = ensureConsumer;
-            rscInst.gltc_spell_core_bridge_map = bridgeMap;
         }
-        PLUGIN.gltcSharedMaps = sharedRoot;
-        PLUGIN.gltcHandleStaffUseConsumer = staffUseConsumer;
-        PLUGIN.gltcEnsureSpellCoreListeners = ensureConsumer;
-        PLUGIN.gltc_spell_core_bridge_map = bridgeMap;
-        // 本服 Graal 对 Plugin.setMetadata 会报 Unknown identifier；权威通道走 ConcurrentHashMap
+        var brMap = GLTC_JAVA_BRIDGE_MAP;
         try {
-            var bridgeStore = PLUGIN.gltcJavaBridges;
-            if (bridgeStore == null && rscInst != null) {
-                try { bridgeStore = rscInst.gltcJavaBridges; } catch (e0) {}
-            }
-            if (bridgeStore == null) {
-                bridgeStore = new java.util.concurrent.ConcurrentHashMap();
-            }
-            bridgeStore.put("gltcHandleStaffUse", staffUseConsumer);
-            bridgeStore.put("gltcEnsureSpellListeners", ensureConsumer);
-            PLUGIN.gltcJavaBridges = bridgeStore;
-            if (rscInst != null) rscInst.gltcJavaBridges = bridgeStore;
-            if (sharedRoot != null) {
-                sharedRoot.put("gltcHandleStaffUse", staffUseConsumer);
-                sharedRoot.put("gltcEnsureSpellListeners", ensureConsumer);
-                sharedRoot.put("gltcJavaBridges", bridgeStore);
-            }
-            // 权威：写入 Metadata 共享根（物品脚本经反射可读）
-            if (GLTC_SHARED_ROOT_API && GLTC_SHARED_ROOT_API.putJavaBridge) {
+            if (brMap == null && PLUGIN != null) brMap = PLUGIN.gltcJavaBridges;
+        } catch (eBrPl) {}
+        if (brMap == null && sharedRoot != null) {
+            try { brMap = sharedRoot.get("gltcJavaBridges"); } catch (eBrRoot) {}
+        }
+        try {
+            if (brMap == null && rscInst != null) brMap = rscInst.gltcJavaBridges;
+        } catch (eBr0) {}
+        if (brMap == null && GLTC_SHARED_ROOT_API && GLTC_SHARED_ROOT_API.readBridgeMapFromMetadata) {
+            try { brMap = GLTC_SHARED_ROOT_API.readBridgeMapFromMetadata(); } catch (eBr1) {}
+        }
+        if (brMap == null) brMap = new CHM();
+        GLTC_JAVA_BRIDGE_MAP = brMap;
+        try {
+            brMap.put("gltcHandleStaffUse", staffUseConsumer);
+            brMap.put("gltcEnsureSpellListeners", ensureConsumer);
+        } catch (eBrPut) {}
+        if (typeof castApi.attachBridges === "function") {
+            castApi.attachBridges(brMap, staffUseConsumer);
+        }
+        var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+        var AtomicReference = Java.type("java.util.concurrent.atomic.AtomicReference");
+        var staffRef = new AtomicReference();
+        staffRef.set(staffUseConsumer);
+        var mapRef = new AtomicReference();
+        mapRef.set(brMap);
+        if (GLTC_SHARED_ROOT_API) {
+            if (GLTC_SHARED_ROOT_API.putJavaBridge) {
                 GLTC_SHARED_ROOT_API.putJavaBridge("gltcHandleStaffUse", staffUseConsumer);
                 GLTC_SHARED_ROOT_API.putJavaBridge("gltcEnsureSpellListeners", ensureConsumer);
             }
-            Bukkit.getLogger().info("[GLTC监听] 施术 Consumer 已写入 gltcJavaBridges");
-        } catch (eMapBr) {
-            Bukkit.getLogger().warning("[GLTC监听] 施术 Consumer Map 写入失败: " + eMapBr);
+            if (plug != null && GLTC_SHARED_ROOT_API.pluginSetMetadata) {
+                GLTC_SHARED_ROOT_API.pluginSetMetadata(plug, "gltc_handle_staff_use", staffUseConsumer);
+                GLTC_SHARED_ROOT_API.pluginSetMetadata(plug, "gltc_staff_bridge_ref", staffRef);
+                GLTC_SHARED_ROOT_API.pluginSetMetadata(plug, "gltc_bridge_map_ref", mapRef);
+                if (GLTC_SHARED_ROOT_API.publishBridgeMapToMetadata) {
+                    GLTC_SHARED_ROOT_API.publishBridgeMapToMetadata(brMap);
+                }
+            }
         }
         try {
-            var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
-            var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-            if (plug != null) {
-                plug.setMetadata("gltc_handle_staff_use", new FixedMetadataValue(plug, staffUseConsumer));
-                plug.setMetadata("gltc_ensure_spell_listeners", new FixedMetadataValue(plug, ensureConsumer));
-            }
-        } catch (eMetaBr) {
-            // 已知：部分 Graal 版本 Plugin.setMetadata 不可用，上面 Map 已足够
-        }
-        if (GLTC_SHARED_ROOT_API && GLTC_SHARED_ROOT_API.publishGltcSharedRoot) {
-            GLTC_SHARED_ROOT_API.publishGltcSharedRoot(sharedRoot);
-        }
+            if (rscInst != null) rscInst.gltcJavaBridges = brMap;
+        } catch (eInstBr) {}
+        try {
+            var verifyStaff = GLTC_SHARED_ROOT_API && plug
+                ? GLTC_SHARED_ROOT_API.pluginGetMetadataValue(plug, "gltc_staff_bridge_ref") : null;
+            var hasMage = false;
+            try { hasMage = brMap.get("gltcMage_calcSpellDamage") != null; } catch (eMg) {}
+            var attached = false;
+            try { attached = typeof castApi.attachBridges === "function"; } catch (eAtt) {}
+            Bukkit.getLogger().info("[GLTC监听] 桥接校验 staffRef=" + (verifyStaff != null)
+                + " mageCalc=" + hasMage + " attach=" + attached);
+        } catch (eVerify) {}
     } catch (eBridge) {
         Bukkit.getLogger().warning("[GLTC监听] 施术桥接失败: " + eBridge);
     }
-    Bukkit.getLogger().info("[GLTC监听] 已单例加载 施术核心 v2");
+    try {
+        if (typeof castApi.ensureListeners === "function") castApi.ensureListeners(true);
+    } catch (eEns) {
+        Bukkit.getLogger().warning("[GLTC监听] 施术核心 ensureListeners 失败: " + eEns);
+    }
+    Bukkit.getLogger().info("[GLTC监听] 施术核心 v2 已以单例方式加载");
 })();
 
 // ---------- 5) 施术道具 hooks + 技能登记（走 loader cache，避免重复裸 eval） ----------
@@ -557,7 +576,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
     } catch (eL) {}
     if (!staffCfg) staffCfg = gltcEvalScript("施术道具/登记.js", true);
     if (!staffCfg || typeof staffCfg.listHookScripts !== "function") {
-        Bukkit.getLogger().warning("[GLTC监听] 施术道具登记未加载，hooks 跳过");
+        Bukkit.getLogger().warning("[GLTC监听] 施术道具登记未加载，已跳过 hooks 预注册");
         return;
     }
     var paths = staffCfg.listHookScripts();
@@ -583,5 +602,5 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
 
 // ---------- 6) 异能武器：由 items.yml script 绑定加载，勿在此预加载 ----------
 (function noteWeaponScripts() {
-    Bukkit.getLogger().info("[GLTC监听] 异能武器改由 items.yml script 加载（避免重复注册监听器）");
+    Bukkit.getLogger().info("[GLTC监听] 异能武器改由 items.yml 的 script 字段加载（避免重复注册监听器）");
 })();

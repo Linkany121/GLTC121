@@ -59,11 +59,6 @@ function loadMageCore() {
             var fromLoader = loader.evalScriptExport("术士系统/核心.js", { isolated: true, cache: false });
             if (probe(fromLoader)) {
                 ADMIN_MAGE_API = fromLoader;
-                try {
-                    if (typeof fromLoader.publishMageJavaBridges === "function") {
-                        fromLoader.publishMageJavaBridges(fromLoader);
-                    }
-                } catch (ePub) {}
                 return true;
             }
         }
@@ -92,11 +87,6 @@ function loadMageCore() {
                 var exported = (0, eval)(code);
                 if (probe(exported)) {
                     ADMIN_MAGE_API = exported;
-                    try {
-                        if (typeof exported.publishMageJavaBridges === "function") {
-                            exported.publishMageJavaBridges(exported);
-                        }
-                    } catch (ePub) {}
                     return true;
                 }
             }

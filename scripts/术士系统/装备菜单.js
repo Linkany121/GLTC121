@@ -124,11 +124,6 @@ function loadMageCore() {
             var fromLoader = loader.evalScriptExport("术士系统/核心.js", { isolated: true, cache: false });
             if (probe(fromLoader)) {
                 MENU_MAGE_API = fromLoader;
-                try {
-                    if (typeof fromLoader.publishMageJavaBridges === "function") {
-                        fromLoader.publishMageJavaBridges(fromLoader);
-                    }
-                } catch (ePub) {}
                 return true;
             }
         }
@@ -157,11 +152,6 @@ function loadMageCore() {
                 var exported = (0, eval)(code);
                 if (probe(exported)) {
                     MENU_MAGE_API = exported;
-                    try {
-                        if (typeof exported.publishMageJavaBridges === "function") {
-                            exported.publishMageJavaBridges(exported);
-                        }
-                    } catch (ePub) {}
                     return true;
                 }
             }
@@ -825,17 +815,14 @@ function commitMageSession(player, session) {
             player.sendMessage(GLTC_PREFIX + "§a潜能改动已写入。");
             // 通知监听上下文清缓存，并重发 Java 桥（闭包钉死最新 API）
             try {
-                var store = PLUGIN.gltcJavaBridges;
+                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+                var store = RSC.INSTANCE != null ? RSC.INSTANCE.gltcJavaBridges : null;
+                if (store == null) store = PLUGIN.gltcJavaBridges;
                 if (store != null) {
                     var invBr = store.get("gltcMage_invalidateCache");
                     if (invBr != null && invBr.accept != null) invBr.accept(String(uuid));
                 }
             } catch (eInvBr) {}
-            try {
-                if (typeof MENU_MAGE_API.publishMageJavaBridges === "function") {
-                    MENU_MAGE_API.publishMageJavaBridges(MENU_MAGE_API);
-                }
-            } catch (ePub) {}
         } else {
             player.sendMessage(GLTC_PREFIX + "§c潜能写入失败。");
         }

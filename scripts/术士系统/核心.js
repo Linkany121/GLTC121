@@ -100,26 +100,26 @@ var HARD_CAPS = {
     cardiovascular: 0.99,
     particleRefraction: 0.95,
     finalDamageReduction: 0.90,
-    armor: 100,
-    toughness: 50
+    armor: 160,
+    toughness: 60
 };
 
 /** 术士潜能：statKey → 配置 */
 var MAGE_POINT_OPTIONS = {
     particlePower: { label: "粒子强度", per: 0.1 },
-    cardiovascular: { label: "心血管强度", per: 0.02, maxPoints: 20 },
-    particleRefraction: { label: "粒子折射", per: 0.03, maxPoints: 20 },
+    cardiovascular: { label: "心血管强度", per: 0.01, maxPoints: 32 },
+    particleRefraction: { label: "粒子折射", per: 0.02, maxPoints: 24 },
     finalDamageReduction: { label: "最终减伤", per: 0.02, maxPoints: 24 }
 };
 
 /** 体能潜能 */
 var BODY_POINT_OPTIONS = {
-    meleeDamage: { label: "筋力解放", per: 1 },
+    meleeDamage: { label: "筋力解放", per: 0.6 },
     maxHealth: { label: "肌脂提升", per: 8 },
-    armor: { label: "骨骼结构", per: 2, maxPoints: 15 },
-    toughness: { label: "体态掌控", per: 0.5, maxPoints: 20 },
-    speed: { label: "心肺强化", per: 0.01, maxPoints: 32 },
-    reach: { label: "体态协调", per: 0.1, maxPoints: 16 }
+    armor: { label: "骨骼结构", per: 2, maxPoints: 16 },
+    toughness: { label: "体态掌控", per: 0.4, maxPoints: 25 },
+    speed: { label: "心肺强化", per: 0.005, maxPoints: 48 },
+    reach: { label: "体态协调", per: 0.1 }
 };
 
 var ALL_STAT_KEYS = (function() {
@@ -591,24 +591,44 @@ function getSlimefunId(stack) {
         if (meta) {
             var pdc = meta.getPersistentDataContainer();
             if (pdc.has(SF_ITEM_KEY, PersistentDataType.STRING)) {
-                return pdc.get(SF_ITEM_KEY, PersistentDataType.STRING);
+                var fromPdc = pdc.get(SF_ITEM_KEY, PersistentDataType.STRING);
+                return fromPdc != null ? String(fromPdc) : null;
             }
         }
     } catch (e) {}
     try {
         var sf = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem").getByItem(stack);
-        return sf ? sf.getId() : null;
+        return sf ? String(sf.getId()) : null;
     } catch (e2) {}
     return null;
 }
 
+function isRegularUgwConfig(cfg) {
+    return !!(cfg && (cfg.kind === "normal" || cfg.kind === "regular"));
+}
+
+function getGearEntryForStack(stack) {
+    loadGearConfig();
+    var id = getSlimefunId(stack);
+    if (!id || !GEAR_CFG) return null;
+    return GEAR_CFG.GEAR_REGISTRY[String(id)] || null;
+}
+
+/** @returns {"regular"|"simple"|null} */
+function getUgwKind(stack) {
+    if (!stack || stack.getType() === Material.AIR) return null;
+    if (getGearEntryForStack(stack)) return "simple";
+    var ugwId = getUgwIdFromItem(stack);
+    if (!ugwId) return null;
+    var cfg = loadUgwConfig(ugwId);
+    if (isRegularUgwConfig(cfg)) return "regular";
+    if (cfg) return "simple";
+    return "regular";
+}
+
 function isMageAccessory(stack) {
     if (!stack || stack.getType() === Material.AIR) return false;
-    loadGearConfig();
-    var ugwId = getUgwIdFromItem(stack);
-    if (ugwId && loadUgwConfig(ugwId)) return true;
-    var id = getSlimefunId(stack);
-    return !!(id && GEAR_CFG && GEAR_CFG.GEAR_REGISTRY[id]);
+    return getUgwKind(stack) != null;
 }
 
 function isMageStaff(stack) {
@@ -628,7 +648,7 @@ function mergeBonus(target, src) {
 function getBonusesFromGearId(itemId) {
     var b = emptyBonuses();
     if (!itemId || !GEAR_CFG) return b;
-    var entry = GEAR_CFG.GEAR_REGISTRY[itemId];
+    var entry = GEAR_CFG.GEAR_REGISTRY[String(itemId)];
     if (entry && entry.bonuses) mergeBonus(b, entry.bonuses);
     return b;
 }
@@ -676,24 +696,53 @@ function canEquipInSlot(stack, slotIndex, playerUuid) {
     var def = GEAR_CFG.getSlotDef(slotIndex);
     if (!def) return false;
 
-    var ugwId = getUgwIdFromItem(stack);
-    if (ugwId) {
-        var cfg = loadUgwConfig(ugwId);
-        if (!cfg) return false;
-        var typeLetter = String(ugwId).charAt(0);
-        var expectCat = def.category;
-        var typeMap = { A: "potential", B: "core_heart", C: "bio_hub", D: "particle_hub", E: "assist" };
-        if (typeMap[typeLetter] !== expectCat) return false;
-        if (cfg.kind === "normal" || cfg.kind === "regular") {
-            var creator = cfg.creator || getUgwCreatorFromItem(stack);
-            if (creator && playerUuid && String(creator) !== String(playerUuid)) return false;
-        }
-        return true;
-    }
+    var entry = getGearEntryForStack(stack);
+    if (entry) return entry.category === def.category;
 
-    var id = getSlimefunId(stack);
-    var entry = id ? GEAR_CFG.GEAR_REGISTRY[id] : null;
-    return !!(entry && entry.category === def.category);
+    var ugwId = getUgwIdFromItem(stack);
+    if (!ugwId) return false;
+    var cfg = loadUgwConfig(ugwId);
+    if (!cfg) return false;
+    var typeLetter = String(ugwId).charAt(0);
+    var typeMap = { A: "potential", B: "core_heart", C: "bio_hub", D: "particle_hub", E: "assist" };
+    if (typeMap[typeLetter] !== def.category) return false;
+    if (cfg.kind === "normal" || cfg.kind === "regular") {
+        var creator = cfg.creator || getUgwCreatorFromItem(stack);
+        if (creator && playerUuid && String(creator) !== String(playerUuid)) return false;
+    }
+    return true;
+}
+
+/** 常规 UGW：校验制作者必须为当前玩家 */
+function validateRegularUgwOwner(player, stack) {
+    if (!player || !stack) return { ok: false, msg: "无效物品。" };
+    var ugwId = getUgwIdFromItem(stack);
+    if (!ugwId) return { ok: false, msg: "非法常规 UGW。" };
+    var cfg = loadUgwConfig(ugwId);
+    var creator = (cfg && cfg.creator) ? cfg.creator : getUgwCreatorFromItem(stack);
+    var uuid = player.getUniqueId().toString();
+    if (creator && String(creator) !== String(uuid)) {
+        return { ok: false, msg: "该组件的制作者不是你，无法装备。" };
+    }
+    return { ok: true };
+}
+
+/** 背包内同 uid 常规 UGW 去重：保留 preferSlot，删除其余 */
+function dedupeRegularUgwInBag(player, ugwId, preferSlot) {
+    if (!player || !ugwId) return 0;
+    var removed = 0;
+    try {
+        var inv = player.getInventory();
+        for (var s = 0; s < inv.getSize(); s++) {
+            if (s === preferSlot) continue;
+            var item = inv.getItem(s);
+            if (!item || item.getType() === Material.AIR) continue;
+            if (String(getUgwIdFromItem(item)) !== String(ugwId)) continue;
+            inv.setItem(s, null);
+            removed++;
+        }
+    } catch (eInv) {}
+    return removed;
 }
 
 /** 装备时去重：同 uid 的常规 UGW 只保留一件（含已装备槽与背包） */
@@ -876,11 +925,9 @@ function tryLevelUp(player) {
     var data = getPlayerStats(uuid);
     var next = (data.mageLevel || 0) + 1;
     if (next > 8) return false;
-    var grant = LEVEL_POTENTIAL[next] || 0;
+    // 升级只改等级，不自动发放潜能（由后续机器负责）
     data.mageLevel = next;
     data.proficiency = 0;
-    data.magePotential = (data.magePotential || 0) + grant;
-    data.bodyPotential = (data.bodyPotential || 0) + grant;
     savePlayerStats(uuid, data);
     applyMageAttributes(player);
     return true;
@@ -1201,8 +1248,11 @@ var MAGE_API_EXPORT = {
     dealPulseDamage: dealPulseDamage,
     isPulseDamage: isPulseDamage,
     isMageAccessory: isMageAccessory,
+    getUgwKind: getUgwKind,
     isMageStaff: isMageStaff,
     canEquipInSlot: canEquipInSlot,
+    validateRegularUgwOwner: validateRegularUgwOwner,
+    dedupeRegularUgwInBag: dedupeRegularUgwInBag,
     dedupeUgwOnEquip: dedupeUgwOnEquip,
     syncUgwLore: syncUgwLore,
     getGearSlotItem: getGearSlotItem,

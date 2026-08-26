@@ -100,11 +100,17 @@ function loadAllSkills() {
     }
 }
 
-function asConsumer(fn) {
+/**
+ * 与术式 cast(player, castApi) 对齐：BiConsumer(player, castApi)
+ * 旧单参 hook 仍兼容（JS 忽略多余参数即可）
+ */
+function asSkillHook(fn) {
     if (fn == null) return null;
-    return new (Java.extend(java.util.function.Consumer, {
-        accept: function(p) {
-            try { fn(p); } catch (e) {}
+    return new (Java.extend(java.util.function.BiConsumer, {
+        accept: function(p, api) {
+            try { fn(p, api); } catch (e0) {
+                try { Bukkit.getLogger().warning("[GLTC核心技能] hook: " + e0); } catch (eLog) {}
+            }
         }
     }))();
 }
@@ -117,9 +123,9 @@ function getHooksForSkillId(skillId) {
     var def = getSkillDef(skillId);
     if (!def) return null;
     return {
-        onSelectSpell: def.onSelectSpell ? asConsumer(def.onSelectSpell) : null,
-        onSneakUse: def.onSneakUse ? asConsumer(def.onSneakUse) : null,
-        onAfterCast: def.onAfterCast ? asConsumer(def.onAfterCast) : null,
+        onSelectSpell: def.onSelectSpell ? asSkillHook(def.onSelectSpell) : null,
+        onSneakUse: def.onSneakUse ? asSkillHook(def.onSneakUse) : null,
+        onAfterCast: def.onAfterCast ? asSkillHook(def.onAfterCast) : null,
         skillHint: def.skillHint || ("§7技能：" + (def.name || skillId))
     };
 }

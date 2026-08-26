@@ -536,6 +536,15 @@ function prepareHitInfo(info, damageType, attacker) {
     if (who) {
         info.attacker = who;
         try { info.attackerUuid = String(who.getUniqueId().toString()); } catch (eU) {}
+    } else if (attacker != null && !info.attackerUuid) {
+        // 隔离脚本传入的 Player 代理常过不了 asPlayer，仍写 UUID 供播报回查
+        try {
+            info.attackerUuid = String(attacker.getUniqueId().toString());
+        } catch (e1) {
+            try {
+                info.attackerUuid = String(attacker.getClass().getMethod("getUniqueId").invoke(attacker).toString());
+            } catch (e2) {}
+        }
     }
     return info;
 }
@@ -875,6 +884,28 @@ try {
         }
     } catch (eSrPut) {}
 } catch (eBrPulse) {}
+
+// 隔离核心技能补播桥：pack = [attacker, info, finalDmg]
+try {
+    var ConsumerAnnounce = Java.type("java.util.function.Consumer");
+    var announceBridge = new (Java.extend(ConsumerAnnounce, {
+        accept: function(pack) {
+            try {
+                if (pack == null) return;
+                var attacker = pack.length != null ? pack[0] : pack.get(0);
+                var info = pack.length != null ? pack[1] : pack.get(1);
+                var dmg = pack.length != null ? pack[2] : pack.get(2);
+                API.announceSpellHit(attacker, info || {}, Number(dmg) || 0);
+            } catch (e) {}
+        }
+    }))();
+    sharedRoot().put("gltcRuntime_announceSpellHit", announceBridge);
+    try {
+        if (SHARED_ROOT_API && SHARED_ROOT_API.putJavaBridge) {
+            SHARED_ROOT_API.putJavaBridge("gltcRuntime_announceSpellHit", announceBridge);
+        }
+    } catch (eSrAnn) {}
+} catch (eBrAnn) {}
 
 try {
     var logged = false;

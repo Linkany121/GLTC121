@@ -7497,27 +7497,9 @@ VASA_彼岸钢调控终端:
   recipe_type: NULL
   amount: 1
 
-VASA_测试戒指:
-  lateInit: false
-  item_group: B_C0
-  item:
-    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#cc5eff测&#b372ff试&#9986ff强&#809aff化"
-    material: gold_nugget
-    modelId: 1210395
-    glow: true
-    lore:
-    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
-    - '&#fff5b3测试用强化组件；只能装入粒术中转组件槽。'
-    - '&f[&#96d6a7类型&f]&#fff5b3粒术中转组件'
-    - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1'
-
-####################
-##施术道具
-####################
-
 VASA_通用施术道具:
   lateInit: false
-  item_group: B_C01
+  item_group: B_C0
   item:
     name: "&#74c5ffN&#7ab1ffT&#809cffC&#8788ff外&#8d73ff置&#9769ff粒&#a56aff子&#b46bff控&#c26cff制&#d06dff仪"
     material: 工具武器/法杖
@@ -7537,7 +7519,7 @@ VASA_通用施术道具:
 
 VASA_施术技能核心_入门:
   lateInit: false
-  item_group: B_C01
+  item_group: B_C0
   item:
     name: "&#d4b5ff施&#c9a8ff术&#bea0ff技&#b398ff能&#a890ff核&#9d88ff心 &f入门"
     material: brown_glazed_terracotta
@@ -7554,7 +7536,7 @@ VASA_施术技能核心_入门:
 
 VASA_施术技能核心_辉墨摇篮:
   lateInit: false
-  item_group: B_C01
+  item_group: B_C0
   item:
     name: "&#d4b5ff施&#c9a8ff术&#bea0ff技&#b398ff能&#a890ff核&#9d88ff心 &#acacac辉&#c8c8c8墨&#e3e3e3摇&#ffffff篮"
     material: gray_glazed_terracotta
@@ -7567,6 +7549,221 @@ VASA_施术技能核心_辉墨摇篮:
     - '&f[&#96d6a7特效&f]&#fff5b3 选择术式时，触发&7[光影废墟]&#fff5b3，冷却30秒。'
     - '&f[&7光影废墟&f]&#fff5b3 以自身为中心施展超大型水墨粒子波纹，快速扩散至半径&f10&fff5b3格，对范围内敌人造成&#d894bd 1&#d78ab10倍&#d681a6系&#d5779a数&#d46d8e的&#d46382脉&#d35a77冲&#d2506b伤&#d1465f害&#fff5b3并强力击退。'
     - '&f[&#96d6a7容量&f]&#fff5b3 提供 6 枚刻录上限'
+  recipe_type: NULL
+  amount: 1
+
+
+####################
+## UGW 术士组件（简易）
+####################
+
+VASA_uA01:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#fff3f3学&#fff0e4徒&#ffecd5H&#ffe9c51&#ffe5b6制&#ffe2a7式&#ffdf98脑&#ffdb89丘&#ffd879激&#ffd46a活&#ffd15b器"
+    material_type: skull_hash
+    material: c3da35defe262118278f73e51e70b977adacf6214dc045fe2f74773d59c966d0
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3环夜谷为学徒派发的制式组件之一。'
+    - '&f[&#96bed6术士序列&f] &f第一'
+    - '&f[&#96d6a7类型&f]&#fff5b3A · 潜能模组'
+    - '&f[&#96d6a7加成&f]&#fff5b3术士潜能 +1 · 体能潜能 +1'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uB01:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#fff3f3学&#fff0e4徒&#ffecd5H&#ffe9c51&#ffe5b6制&#ffe2a7式&#ffdf98心&#ffdb89脉&#ffd879稳&#ffd46a定&#ffd15b器"
+    material_type: skull_hash
+    material: c9e5e2f780e5db821cfef7942462ed42d82f0572c4f8919273c09ecf159d905d
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3环夜谷为学徒派发的制式组件之一。'
+    - '&f[&#96bed6术士序列&f] &f第一'
+    - '&f[&#96d6a7类型&f]&#fff5b3B · 核心心区组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3心血管强度 +5% · 心肺强化 +0.01'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uC01:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#fff3f3学&#fff0e4徒&#ffecd5H&#ffe9c51&#ffe5b6制&#ffe2a7式&#ffdf98脖&#ffdb89脊&#ffd879辅&#ffd46a助&#ffd15b器"
+    material_type: skull_hash
+    material: 816dd75caa1ce473b62f30d3d996c91b9a0d51061c5ff2eabe0b744e89fecd2b
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3环夜谷为学徒派发的制式组件之一。'
+    - '&f[&#96bed6术士序列&f] &f第一'
+    - '&f[&#96d6a7类型&f]&#fff5b3C · 生控中枢组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3最终减伤 +5% · 骨骼结构 +5'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uD01:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#fff3f3学&#fff0e5徒&#ffedd7H&#ffeaca1&#ffe7bc制&#ffe4ae式&#ffe0a0腕&#ffdd92部&#ffda84血&#ffd777管&#ffd469镀&#ffd15b层"
+    material_type: skull_hash
+    material: 7fea298a6cd6c47ecbd456bad767f80680eeb6e7b4eaecd3d5831ac483097f53
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3环夜谷为学徒派发的制式组件之一。'
+    - '&f[&#96bed6术士序列&f] &f第一'
+    - '&f[&#96d6a7类型&f]&#fff5b3D · 粒术中转组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1 · 粒子折射 +5%'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uE011:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#fff3f3学&#ffefe0徒&#ffebcdH&#ffe6ba1&#ffe2a7制&#ffde94式&#ffda81防&#ffd56e护&#ffd15b片"
+    material_type: skull_hash
+    material: ebd89b58cbd173258de7f25c936e8b1c3a3d201b1eb8781eacc8dfc42cb39bfe
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3环夜谷为学徒派发的制式组件之一。'
+    - '&f[&#96bed6术士序列&f] &f第一'
+    - '&f[&#96d6a7类型&f]&#fff5b3E · 术式辅助组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3骨骼结构 +3 · 体态掌控 +3'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uE012:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#fff3f3学&#fff0e4徒&#ffecd5H&#ffe9c51&#ffe5b6制&#ffe2a7式&#ffdf98肋&#ffdb89间&#ffd879刺&#ffd46a激&#ffd15b器"
+    material_type: skull_hash
+    material: fc13ba042f0533fe19fb47971136fc5fb1932173423a6ff930992f284fc31a0
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3环夜谷为学徒派发的制式组件之一。'
+    - '&f[&#96bed6术士序列&f] &f第一'
+    - '&f[&#96d6a7类型&f]&#fff5b3E · 术式辅助组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.1 · 筋力解放 +3'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uA02:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#f6ff89微&#e8ff9e光&#daffb3集&#ccffc7训&#beffdc制&#b0fff1式&#b0f2f4脑&#afe6f7丘&#afd9f9激&#aecdfc活&#aec0ff器"
+    material_type: skull_hash
+    material: 4f01ec6331a3bc30a8204ec56398d08ca38788556bca9b81d776f6238d567367
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3微光集训期间派发的制式组件之一；'
+    - '&#fff5b3微光计划是面向非粒物理星的新晋术士的培训教育事业。'
+    - '&f[&#96bed6术士序列&f] &f第二'
+    - '&f[&#96d6a7类型&f]&#fff5b3A · 潜能模组'
+    - '&f[&#96d6a7加成&f]&#fff5b3术士潜能 +3 · 体能潜能 +2'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uB02:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#f6ff89微&#e4ffa3光&#d3ffbd集&#c2ffd7训&#b0fff1制&#b0eff4式&#afe0f8心&#aed0fc肺&#aec0ff泵"
+    material_type: skull_hash
+    material: 35f4861aa5b22ee28a90e75dab45d221efd14c0b1ecc8ee998fb67e43bb8f3de
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3微光集训期间派发的制式组件之一；'
+    - '&#fff5b3微光计划是面向非粒物理星的新晋术士的培训教育事业。'
+    - '&f[&#96bed6术士序列&f] &f第二'
+    - '&f[&#96d6a7类型&f]&#fff5b3B · 核心心区组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3心血管强度 +10% · 心肺强化 +0.01 · 肌脂提升 +10'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uC02:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#f6ff89微&#e6ffa0光&#d7ffb7集&#c7ffce训&#b8ffe5制&#b0f8f3式&#afeaf6脊&#afdcf9椎&#aecefc软&#aec0ff体"
+    material_type: skull_hash
+    material: 2273740d454de962484712f9835e35119b37ab867fa6982d5cc1f333c2334e59
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3微光集训期间派发的制式组件之一；'
+    - '&#fff5b3微光计划是面向非粒物理星的新晋术士的培训教育事业。'
+    - '&f[&#96bed6术士序列&f] &f第二'
+    - '&f[&#96d6a7类型&f]&#fff5b3C · 生控中枢组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3骨骼结构 +8 · 体态掌控 +8'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uD02:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#f6ff89微&#e6ffa0光&#d7ffb7集&#c7ffce训&#b8ffe5制&#b0f8f3式&#afeaf6附&#afdcf9腕&#aecefc回&#aec0ff路"
+    material_type: skull_hash
+    material: 3b11fb90db7f57beb435954013b1c7ef776c6bd96cbf3308aa8ebac29591ebbd
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3微光集训期间派发的制式组件之一；'
+    - '&#fff5b3微光计划是面向非粒物理星的新晋术士的培训教育事业。'
+    - '&f[&#96bed6术士序列&f] &f第二'
+    - '&f[&#96d6a7类型&f]&#fff5b3D · 粒术中转组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.4 · 粒子折射 +10%'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uE021:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#f6ff89微&#e6ffa0光&#d7ffb7集&#c7ffce训&#b8ffe5制&#b0f8f3式&#afeaf6场&#afdcf9维&#aecefc持&#aec0ff器"
+    material_type: skull_hash
+    material: a8c4811395fbf7f620f05cc3175cef1515aaf775ba04a01045027f0693a90147
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3微光集训期间派发的制式组件之一；'
+    - '&#fff5b3微光计划是面向非粒物理星的新晋术士的培训教育事业。'
+    - '&f[&#96bed6术士序列&f] &f第二'
+    - '&f[&#96d6a7类型&f]&#fff5b3E · 术式辅助组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3最终减伤 +4% · 粒子折射 +3%'
+  recipe_type: NULL
+  amount: 1
+
+VASA_uE022:
+  lateInit: false
+  item_group: B_C01
+  item:
+    name: "&#f6ff89微&#e8ff9e光&#daffb3集&#ccffc7训&#beffdc制&#b0fff1式&#b0f2f4肋&#afe6f7间&#afd9f9刺&#aecdfc激&#aec0ff器"
+    material_type: skull_hash
+    material: e4d8a8d527f65a4f434f894f7ee42eb843015bda7927c63c6ea8a754afe9bb1b
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3微光集训期间派发的制式组件之一；'
+    - '&#fff5b3微光计划是面向非粒物理星的新晋术士的培训教育事业。'
+    - '&f[&#96bed6术士序列&f] &f第二'
+    - '&f[&#96d6a7类型&f]&#fff5b3E · 术式辅助组件'
+    - '&f[&#96d6a7加成&f]&#fff5b3粒子强度 +0.2 · 心肺强化 +0.004'
   recipe_type: NULL
   amount: 1
 

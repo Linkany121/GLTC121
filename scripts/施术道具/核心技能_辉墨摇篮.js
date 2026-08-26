@@ -481,19 +481,74 @@ function spawnFinale(world, center) {
     }
 }
 
+function runtimeFromCastApi(castApi) {
+    if (castApi == null) return null;
+    try {
+        if (hasApiFn(castApi, "getSpellRuntime")) {
+            var fromFn = castApi.getSpellRuntime();
+            if (hasPulseApi(fromFn)) return fromFn;
+        }
+    } catch (e0) {}
+    try {
+        if (hasPulseApi(castApi.spellRuntime)) return castApi.spellRuntime;
+    } catch (e1) {}
+    try {
+        if (hasPulseApi(castApi.runtime)) return castApi.runtime;
+    } catch (e2) {}
+    return null;
+}
+
+function mageFromCastApi(castApi) {
+    if (castApi == null) return null;
+    try {
+        if (hasApiFn(castApi, "calcSpellDamage")) return castApi;
+    } catch (e0) {}
+    return null;
+}
+
+function buildLightRuinHitInfo(caster) {
+    var info = { name: SKILL_NAME, ring: LIGHT_RUIN_RING, damageType: "pulse" };
+    try {
+        info.attackerUuid = String(caster.getUniqueId().toString());
+    } catch (e0) {
+        try {
+            info.attackerUuid = String(caster.getClass().getMethod("getUniqueId").invoke(caster).toString());
+        } catch (e1) {}
+    }
+    return info;
+}
+
 function dealLightRuinPulse(ent, caster, dmg, rt, mage) {
     var runtime = rt;
     if (!hasPulseApi(runtime)) runtime = resolveSpellRuntime();
+    var hitInfo = buildLightRuinHitInfo(caster);
     if (hasPulseApi(runtime)) {
         try {
-            runtime.dealPulseSpellDamage(ent, dmg, caster, { name: SKILL_NAME, ring: LIGHT_RUIN_RING });
+            runtime.dealPulseSpellDamage(ent, dmg, caster, hitInfo);
             return true;
         } catch (ePulse) {}
     }
+    // 桥接兜底（仍带播报 meta）
+    try {
+        var pulseBr = bridgeGet("gltcRuntime_dealPulseSpellDamage");
+        if (pulseBr != null) {
+            var list = new java.util.ArrayList();
+            list.add(ent);
+            list.add(java.lang.Double.valueOf(Number(dmg) || 0));
+            list.add(caster);
+            list.add(hitInfo);
+            pulseBr.accept(list);
+            return true;
+        }
+    } catch (eBr) {}
     // 无运行时播报时仍走术士脉冲（虚空模型），禁止退回普通 ent.damage
+    // 注意：此路径不写 hit meta，不会有命中播报
     try {
         if (mage != null && hasApiFn(mage, "dealPulseDamage")) {
             mage.dealPulseDamage(ent, dmg, caster);
+            try {
+                Bukkit.getLogger().warning("[GLTC光影废墟] 已回退术士脉冲（无播报），请检查运行时注入");
+            } catch (eW) {}
             return true;
         }
     } catch (eMage) {}
@@ -538,7 +593,7 @@ function applyLightRuinHit(ent, caster, origin, dmg, rt, mage) {
     } catch (eP) {}
 }
 
-function lightRuin(player) {
+function lightRuin(player, castApi) {
     if (!player || !(player instanceof Player)) return;
     var key = jUuid(String(player.getUniqueId().toString()));
     var now = Date.now();
@@ -558,7 +613,8 @@ function lightRuin(player) {
     try { world.playSound(center, Sound.BLOCK_RESPAWN_ANCHOR_DEPLETE, SND_OPEN_ANCHOR_VOL, SND_OPEN_ANCHOR_PITCH); } catch (eS1) {}
     spawnBurstCore(world, center);
 
-    var mage = resolveMageApi();
+    // 方案 C：优先用施术核心注入的 castApi（与火球术同源 runtime）
+    var mage = mageFromCastApi(castApi) || resolveMageApi();
     var dmg = LIGHT_RUIN_DMG_FALLBACK;
     try {
         if (mage && hasApiFn(mage, "calcSpellDamage")) {
@@ -566,7 +622,8 @@ function lightRuin(player) {
             if (!(dmg > 0)) dmg = LIGHT_RUIN_DMG_FALLBACK;
         }
     } catch (eD) {}
-    var rt = resolveSpellRuntime();
+    var rt = runtimeFromCastApi(castApi);
+    if (!hasPulseApi(rt)) rt = resolveSpellRuntime();
     if (!hasPulseApi(rt) && mage == null) {
         try {
             Bukkit.getLogger().warning("[GLTC光影废墟] 运行时/术士 API 均未解析到，伤害可能被跳过");

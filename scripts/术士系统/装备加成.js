@@ -87,26 +87,69 @@ var CATEGORY_LETTER = {
 
 // -------------------- 组件登记（粘液 ID → 配置）--------------------
 var GEAR_REGISTRY = {
-    // "VASA_示例潜能": {
-    //     category: "potential",
-    //     name: "示例潜能激发模组",
-    //     bonuses: { particlePower: 0.3 }
-    // },
-
-    "VASA_测试戒指": {
+    // —— 学徒 H1 制式 ——
+    "VASA_uA01": {
+        category: "potential",
+        name: "学徒H1制式脑丘激活器",
+        bonuses: { magePotential: 1, bodyPotential: 1 }
+    },
+    "VASA_uB01": {
+        category: "core_heart",
+        name: "学徒H1制式心脉稳定器",
+        bonuses: { cardiovascular: 0.05, speed: 0.01 }
+    },
+    "VASA_uC01": {
+        category: "bio_hub",
+        name: "学徒H1制式脖脊辅助器",
+        bonuses: { finalDamageReduction: 0.05, armor: 5 }
+    },
+    "VASA_uD01": {
         category: "particle_hub",
-        name: "测试强化",
-        bonuses: {
-            particlePower: 0.1,
-            cardiovascular: 0.02
-        }
-    }
+        name: "学徒H1制式腕部血管镀层",
+        bonuses: { particlePower: 0.1, particleRefraction: 0.05 }
+    },
+    "VASA_uE011": {
+        category: "assist",
+        name: "学徒H1制式防护片",
+        bonuses: { armor: 3, toughness: 3 }
+    },
+    "VASA_uE012": {
+        category: "assist",
+        name: "学徒H1制式肋间刺激器",
+        bonuses: { particlePower: 0.1, meleeDamage: 3 }
+    },
 
-    // "VASA_示例辅助": {
-    //     category: "assist",
-    //     name: "示例辅助",
-    //     bonuses: { cardiovascular: 0.05 }
-    // }
+    // —— 微光集训制式 ——
+    "VASA_uA02": {
+        category: "potential",
+        name: "微光集训制式脑丘激活器",
+        bonuses: { magePotential: 3, bodyPotential: 2 }
+    },
+    "VASA_uB02": {
+        category: "core_heart",
+        name: "微光集训制式心肺泵",
+        bonuses: { cardiovascular: 0.10, speed: 0.01, maxHealth: 10 }
+    },
+    "VASA_uC02": {
+        category: "bio_hub",
+        name: "微光集训制式脊椎软体",
+        bonuses: { armor: 8, toughness: 8 }
+    },
+    "VASA_uD02": {
+        category: "particle_hub",
+        name: "微光集训制式附腕回路",
+        bonuses: { particlePower: 0.4, particleRefraction: 0.10 }
+    },
+    "VASA_uE021": {
+        category: "assist",
+        name: "微光集训制式场维持器",
+        bonuses: { finalDamageReduction: 0.04, particleRefraction: 0.03 }
+    },
+    "VASA_uE022": {
+        category: "assist",
+        name: "微光集训制式肋间刺激器",
+        bonuses: { particlePower: 0.2, speed: 0.004 }
+    }
 };
 
 /** 新增/覆盖 */

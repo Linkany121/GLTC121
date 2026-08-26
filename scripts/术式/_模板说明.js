@@ -20,9 +20,10 @@
  *  2. 业务逻辑里禁止散落魔法数字；音量、粒子数、半径、击退等一律用顶部常量。
  *  3. 运行时：施术核心会把 runtime 注入 mageApi.spellRuntime / getSpellRuntime()；
  *     术式内优先用 mageApi，其次 Metadata 键 gltc_spell_runtime。
+ *     核心技能 hook 签名为 fn(player, castApi)，与术式 cast 同源注入。
  *  4. 术式由 术式/登记.js 扫描加载；勿在 items.yml 对术式脚本再绑 script。
  *  5. 施术入口由 监听.js 单次加载施术核心；道具 onUse 只桥接到 gltcCastApi。
- *  6. 核心技能单独文件，勿把实现堆进 技能登记.js。
+ *  6. 核心技能单独文件，勿把实现堆进 技能登记.js；伤害走 deal*SpellDamage 才有播报。
  *
  *  单个术式导出约定：见 术式/_模板_瞬时.js
  *  核心技能导出约定：见 施术道具/_模板_核心技能.js

@@ -10,10 +10,15 @@
  *      id: "skill_id",           // 与技能核心登记 skillId 一致
  *      name: "显示名",
  *      skillHint: "§7GUI 提示",
- *      onSelectSpell: fn,        // 选择术式时（可选）
- *      onSneakUse: fn,           // 蹲下开 GUI 时（可选）
- *      onAfterCast: fn           // 施术后（可选）
+ *      onSelectSpell: fn,        // 选择术式时（可选）fn(player, castApi)
+ *      onSneakUse: fn,           // 蹲下开 GUI 时（可选）fn(player, castApi)
+ *      onAfterCast: fn           // 施术后（可选）fn(player, castApi)
  *  });
+ *
+ *  castApi 与术式 cast 同源（施术核心 prepareCastApi）：
+ *  - castApi.getSpellRuntime() / .spellRuntime  → 术式运行时（dealPulseSpellDamage 等）
+ *  - castApi.calcSpellDamage(player, coeff)
+ *  伤害务必走 runtime.deal*SpellDamage，勿单独调 mage.dealPulseDamage（无命中播报）
  */
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var Player = Java.type("org.bukkit.entity.Player");
@@ -27,9 +32,10 @@ var SKILL_HINT = "§7示例 · 选择术式时触发";
 // === 冷却等（按需）===
 var SKILL_CD_MS = 30000;
 
-function onSelect(player) {
+function onSelect(player, castApi) {
     if (!player || !(player instanceof Player)) return;
     try { player.sendActionBar("§d" + SKILL_NAME); } catch (e) {}
+    // 示例：var rt = castApi && castApi.getSpellRuntime ? castApi.getSpellRuntime() : null;
 }
 
 ({

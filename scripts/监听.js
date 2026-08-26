@@ -542,11 +542,13 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
             var verifyStaff = GLTC_SHARED_ROOT_API && plug
                 ? GLTC_SHARED_ROOT_API.pluginGetMetadataValue(plug, "gltc_staff_bridge_ref") : null;
             var hasMage = false;
+            var hasCd = false;
             try { hasMage = brMap.get("gltcMage_calcSpellDamage") != null; } catch (eMg) {}
+            try { hasCd = brMap.get("gltcMage_calcSpellCooldownMs") != null; } catch (eCd) {}
             var attached = false;
             try { attached = typeof castApi.attachBridges === "function"; } catch (eAtt) {}
             Bukkit.getLogger().info("[GLTC监听] 桥接校验 staffRef=" + (verifyStaff != null)
-                + " mageCalc=" + hasMage + " attach=" + attached);
+                + " mageCalc=" + hasMage + " mageCd=" + hasCd + " attach=" + attached);
         } catch (eVerify) {}
     } catch (eBridge) {
         Bukkit.getLogger().warning("[GLTC监听] 施术桥接失败: " + eBridge);

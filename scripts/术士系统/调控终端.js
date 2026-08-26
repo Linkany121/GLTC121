@@ -236,7 +236,6 @@ function commitSession(player, session) {
     if (session.resetAll) {
         var rr = ADMIN_MAGE_API.adminResetAllData(player);
         if (rr.ok) {
-            try { ADMIN_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
             try { ADMIN_MAGE_API.applyMageAttributes(player); } catch (e1) {}
             player.sendMessage(GLTC_PREFIX + "§c已重置并写入全部术士数据"
                 + (rr.returned > 0 ? (" §7(归还装备 §e" + rr.returned + " §7件)") : ""));
@@ -245,7 +244,6 @@ function commitSession(player, session) {
         }
         return;
     }
-    try { ADMIN_MAGE_API.invalidatePlayerCache(uuid); } catch (e3) {}
     var ok = ADMIN_MAGE_API.savePlayerStats(uuid, session.stats);
     try { ADMIN_MAGE_API.applyMageAttributes(player); } catch (e4) {}
     if (ok) player.sendMessage(GLTC_PREFIX + "§a调控数据已写入并存档生效。");

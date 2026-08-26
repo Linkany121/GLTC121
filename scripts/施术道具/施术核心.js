@@ -284,7 +284,8 @@ function mageApiFromJavaBridges() {
     var calc = bridgeGet("gltcMage_calcSpellDamage");
     var stats = bridgeGet("gltcMage_getTotalStats");
     var pulse = bridgeGet("gltcMage_dealPulseDamage");
-    if (calc == null && stats == null) return null;
+    var cdBr = bridgeGet("gltcMage_calcSpellCooldownMs");
+    if (calc == null && stats == null && cdBr == null) return null;
     return {
         calcSpellDamage: function(player, spellCoefficient) {
             if (calc == null) return NaN;
@@ -300,6 +301,16 @@ function mageApiFromJavaBridges() {
             } catch (e) { return null; }
         },
         calcSpellCooldownMs: function(player, baseMs, erosion) {
+            if (cdBr != null) {
+                try {
+                    var list = new java.util.ArrayList();
+                    list.add(player);
+                    list.add(java.lang.Long.valueOf(Math.floor(Number(baseMs) || 0)));
+                    list.add(java.lang.Integer.valueOf(Math.floor(Number(erosion) || 0)));
+                    var v = Number(cdBr.apply(list));
+                    if (v > 0 && isFinite(v)) return v;
+                } catch (eCdBr) {}
+            }
             var base = Math.max(50, Math.floor(Number(baseMs) || 1000));
             var er = Math.floor(Number(erosion) || 0);
             var cd = base;
@@ -432,6 +443,36 @@ function readParticlePowerFromDisk(player) {
     } catch (e) { return 1; }
 }
 
+function readCardiovascularFromDisk(player) {
+    try {
+        var uuid = playerUuidFromPlayer(player);
+        if (!uuid) return 0;
+        var plug = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
+        var File = java.io.File;
+        var Files = java.nio.file.Files;
+        var StandardCharsets = java.nio.charset.StandardCharsets;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var f = new File(plug.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/术士数值/" + uuid + ".json");
+        if (!f.exists()) return 0;
+        var data = JSON.parse(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString());
+        var total = Number(data.cardiovascularTotal);
+        if (isFinite(total) && total > 0) return Math.min(0.99, total);
+        var base = Number(data.cardiovascular);
+        return (isFinite(base) && base > 0) ? Math.min(0.99, base) : 0;
+    } catch (e) { return 0; }
+}
+
+function calcCooldownFromCardio(baseMs, erosion, cardio) {
+    var base = Math.max(0, Number(baseMs) || 0);
+    var c = Number(cardio) || 0;
+    if (c > 0.99) c = 0.99;
+    if (c < 0) c = 0;
+    var cd = Math.max(50, Math.floor(base * Math.max(0.01, 1 - c)));
+    var er = Math.floor(Number(erosion) || 0);
+    if (er > 0) cd = Math.max(50, Math.floor(cd * er));
+    return cd;
+}
+
 function playerUuidFromPlayer(player) {
     if (player == null) return "";
     try { return String(player.getUniqueId().toString()); } catch (e0) {}
@@ -453,6 +494,31 @@ function mageCall(method, args, fallback) {
         var pp = readParticlePowerFromDisk(args[0]);
         var c = Number(args[1]) || 0;
         if (pp > 0 && c > 0) return pp * c;
+    }
+    if (method === "calcSpellCooldownMs") {
+        var cdBridge = bridgeGet("gltcMage_calcSpellCooldownMs");
+        if (cdBridge != null) {
+            try {
+                var cdList = new java.util.ArrayList();
+                cdList.add(args[0]);
+                cdList.add(java.lang.Long.valueOf(Math.floor(Number(args[1]) || 0)));
+                cdList.add(java.lang.Integer.valueOf(Math.floor(Number(args[2]) || 0)));
+                var cdv = Number(cdBridge.apply(cdList));
+                if (cdv > 0 && isFinite(cdv)) return cdv;
+            } catch (eCdBr) {}
+        }
+        var statsCd = bridgeGet("gltcMage_getTotalStats");
+        if (statsCd != null) {
+            try {
+                var rawCd = statsCd.apply(args[0], java.lang.Boolean.TRUE);
+                if (rawCd != null) {
+                    var cardio = Number(rawCd.get("cardiovascular")) || 0;
+                    return calcCooldownFromCardio(args[1], args[2], cardio);
+                }
+            } catch (eStCd) {}
+        }
+        var cardioDisk = readCardiovascularFromDisk(args[0]);
+        if (cardioDisk > 0) return calcCooldownFromCardio(args[1], args[2], cardioDisk);
     }
     if (method === "getTotalStats") {
         var stats = bridgeGet("gltcMage_getTotalStats");
@@ -798,15 +864,35 @@ function registerStaffHooks(staffId, hooks) {
     return true;
 }
 
+/** 核心技能 hook：与术式 cast 一致，注入 castApi（含 spellRuntime） */
 function invokeHook(hooks, key, player) {
     if (!hooks) return;
     var fn = hookGet(hooks, key);
     if (fn == null) return;
+    var castApi = null;
+    try { castApi = prepareCastApi(getRuntime()); } catch (eApi) {}
     try {
-        if (fn.accept != null) { fn.accept(player); return; }
-    } catch (e0) {}
-    try { fn(player); } catch (e1) {
-        try { Bukkit.getLogger().warning("[GLTC施术] hook " + key + ": " + e1); } catch (e2) {}
+        if (fn.accept != null) {
+            var isBi = false;
+            try {
+                isBi = Java.type("java.util.function.BiConsumer").class.isInstance(fn);
+            } catch (eBi) {}
+            if (isBi) fn.accept(player, castApi);
+            else fn.accept(player);
+            return;
+        }
+    } catch (e0) {
+        try { Bukkit.getLogger().warning("[GLTC施术] hook " + key + ": " + e0); } catch (eLog0) {}
+        return;
+    }
+    try {
+        fn(player, castApi);
+    } catch (e1) {
+        try {
+            fn(player);
+        } catch (e2) {
+            try { Bukkit.getLogger().warning("[GLTC施术] hook " + key + ": " + e1); } catch (eLog1) {}
+        }
     }
 }
 
@@ -934,15 +1020,9 @@ function clearCastCd(player, spellId) {
 
 function checkCastCooldown(player, spellId, baseMs, write, erosion) {
     var now = Date.now();
-    var cd = baseMs;
-    try {
-        var api = resolveMageApi();
-        if (api != null && api.calcSpellCooldownMs != null) {
-            cd = api.calcSpellCooldownMs(player, baseMs, erosion);
-        }
-    } catch (eCd) {
-        cd = Math.max(50, Math.floor(Number(baseMs) || 1000));
-    }
+    var cd = mageCall("calcSpellCooldownMs", [player, baseMs, erosion], function() {
+        return Math.max(50, Math.floor(Number(baseMs) || 1000));
+    });
     cd = Math.max(50, Math.floor(Number(cd) || 1000));
     var endMs = readCastCdEndMs(player, spellId);
     var left = endMs - now;

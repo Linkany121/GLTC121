@@ -17,7 +17,7 @@ var META_RUNTIME = "gltc_spell_runtime";
 
 // === 术式身份 / 登记导出 ===
 var SPELL_ID          = "VASA_示例术式"; // 与 items.yml 术式载体 ID 一致
-var SPELL_NAME        = "示例术式";       // 纯文本短名（播报回退）
+var SPELL_NAME        = "示例术式";       // 纯文本短名（播报回退；优先 items.yml 彩名）
 var SPELL_RING        = 1;                // 环数
 var SPELL_SCHOOL      = "环夜谷";         // 流派键
 var SPELL_BOOK        = true;             // 是否有同 ID 术式载体

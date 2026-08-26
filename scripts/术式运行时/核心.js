@@ -343,7 +343,8 @@ function clearLeftClick(playerOrUuid) {
 }
 
 function dispatchLeftClick(player) {
-    if (!player || !(player instanceof Player)) return false;
+    player = asPlayer(player);
+    if (!player) return false;
     var uuid = jUuid(playerUuid(player));
     var ent = leftClickMap().get(uuid);
     if (ent == null) return false;
@@ -435,6 +436,86 @@ function damageTypeLabel(type) {
     return C_MSG + "伤害";
 }
 
+var _SlimefunItemClass = null;
+
+function slimefunItemById(id) {
+    if (!id) return null;
+    try {
+        if (_SlimefunItemClass == null) {
+            _SlimefunItemClass = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
+        }
+        return _SlimefunItemClass.getById(String(id));
+    } catch (e) { return null; }
+}
+
+function stripColor(str) {
+    return String(str || "").replace(/§x(§[0-9a-fA-F]){6}/g, "").replace(/§./g, "");
+}
+
+function skipColorIndex(s, i) {
+    if (i >= s.length || s.charAt(i) !== "§") return i;
+    if (i + 1 < s.length && (s.charAt(i + 1) === "x" || s.charAt(i + 1) === "X")) {
+        return Math.min(s.length, i + 14);
+    }
+    return Math.min(s.length, i + 2);
+}
+
+/** items.yml 显示名去「术式载体 / 施术技能核心」前缀，保留颜色 */
+function shortItemDisplayName(coloredDn) {
+    var dn = String(coloredDn || "");
+    if (!dn) return "";
+    var sepIdx = dn.indexOf("丨");
+    if (sepIdx < 0) sepIdx = dn.indexOf("|");
+    if (sepIdx >= 0) return dn.substring(sepIdx + 1).replace(/^\s+/, "");
+    var plain = stripColor(dn);
+    var prefixes = ["施术技能核心", "术式载体"];
+    for (var p = 0; p < prefixes.length; p++) {
+        var pref = prefixes[p];
+        var at = plain.indexOf(pref);
+        if (at < 0) continue;
+        var need = at + pref.length;
+        var ci = 0;
+        var pc = 0;
+        while (ci < dn.length && pc < need) {
+            if (dn.charAt(ci) === "§") {
+                ci = skipColorIndex(dn, ci);
+                continue;
+            }
+            pc++;
+            ci++;
+        }
+        return dn.substring(ci).replace(/^\s+/, "");
+    }
+    return dn;
+}
+
+/** 播报用：优先 items.yml 彩名；无则回退纯文本 */
+function resolveSpellDisplayName(spellId, fallback) {
+    try {
+        var sf = slimefunItemById(spellId);
+        if (sf) {
+            var meta = sf.getItem().getItemMeta();
+            if (meta && meta.hasDisplayName()) {
+                var short = shortItemDisplayName(String(meta.getDisplayName()));
+                if (short && stripColor(short).length > 0) return short;
+            }
+        }
+    } catch (e) {}
+    if (fallback != null && String(fallback).length) return String(fallback);
+    return spellId ? String(spellId) : "";
+}
+
+/** 已有 § 则直接用；否则套 C_SPELL */
+function formatAnnounceSpellName(info) {
+    info = info || {};
+    var sid = info.spellId != null ? String(info.spellId) : (info.id != null ? String(info.id) : "");
+    var fallback = info.name != null ? String(info.name) : "";
+    var name = sid ? resolveSpellDisplayName(sid, fallback) : fallback;
+    if (!name) name = "未知术式";
+    if (String(name).indexOf("§") >= 0) return name;
+    return C_SPELL + name;
+}
+
 function entityDisplayName(ent) {
     if (!ent) return "目标";
     try { if (ent.getCustomName && ent.getCustomName()) return String(ent.getCustomName()); } catch (e0) {}
@@ -455,21 +536,21 @@ function announceSpellHit(attacker, info, finalDmg) {
     } catch (eOnline) {}
     var typeLabel = damageTypeLabel(info.damageType || info.type);
     var amt = C_DMG + formatDamage(finalDmg);
-    var name = info.name ? String(info.name) : "未知术式";
+    var name = formatAnnounceSpellName(info);
     if (info.aggregate && info.aggregate.count > 1) {
-        who.sendMessage(GLTC_PREFIX + C_MSG + "成功施展 " + C_SPELL + name
+        who.sendMessage(GLTC_PREFIX + C_MSG + "成功施展 " + name
             + C_MSG + " 对 " + C_SPELL + info.aggregate.count + C_MSG + "个目标 造成了总共 "
             + C_DMG + formatDamage(info.aggregate.total) + C_MSG + " " + typeLabel);
         return;
     }
     var target = info.targetName ? String(info.targetName) : "目标";
     if (info.kind === "erosion") {
-        who.sendMessage(GLTC_PREFIX + C_MSG + "侵蚀反噬对 " + C_SPELL + target
+        who.sendMessage(GLTC_PREFIX + C_MSG + "侵蚀反噬对 " + C_DMG + target
             + C_MSG + " 造成了 " + amt + " " + typeLabel);
         return;
     }
-    who.sendMessage(GLTC_PREFIX + C_MSG + "成功施展 " + C_SPELL + name
-        + C_MSG + " 对 " + C_SPELL + target + C_MSG + " 造成了 " + amt + " " + typeLabel);
+    who.sendMessage(GLTC_PREFIX + C_MSG + "成功施展 " + name
+        + C_MSG + " 对 " + C_DMG + target + C_MSG + " 造成了 " + amt + " " + typeLabel);
 }
 
 function ensureDamageSourceApi() {
@@ -532,6 +613,8 @@ function asPlayer(ent) {
 function prepareHitInfo(info, damageType, attacker) {
     info = info || {};
     info.damageType = damageType;
+    // 统一 spellId：缺省时回退 info.id（术式登记导出字段）
+    if (!info.spellId && info.id) info.spellId = String(info.id);
     var who = asPlayer(attacker);
     if (who) {
         info.attacker = who;
@@ -661,18 +744,19 @@ function dealPhysicalSpellDamage(target, amount, attacker, info) {
 
 function dealParticleSpellDamage(target, amount, attacker, info) {
     if (!isLivingEntity(target) || !(amount > 0)) return;
+    try { if (target.isDead()) return; } catch (eDead) {}
     info = prepareHitInfo(info, DMG_PARTICLE, attacker);
     tagHitInfo(target, info);
     try {
         target.setMetadata(META_SPELL_PARTICLE, new FixedMetadataValue(PLUGIN, java.lang.Boolean.TRUE));
     } catch (eM) {}
-    if (!applyDamageWithSource(target, amount, attacker, "sonic")) {
-        try {
-            target.setNoDamageTicks(0);
-            if (attacker) target.damage(Number(amount), attacker);
-            else target.damage(Number(amount));
-        } catch (e) {}
-    }
+    // 勿用 SONIC_BOOM DamageSource：Paper 会播「被一道音波尖啸抹除了」且 getKiller 不稳定。
+    // 粒子/物理区分靠 META_SPELL_PARTICLE + damageType；玩家侧折射在 监听.js 读 meta。
+    try {
+        target.setNoDamageTicks(0);
+        if (attacker) target.damage(Number(amount), attacker);
+        else target.damage(Number(amount));
+    } catch (e) {}
     flushPendingHitAnnounce(target, attacker, amount);
 }
 

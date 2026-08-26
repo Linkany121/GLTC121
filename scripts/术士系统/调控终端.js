@@ -34,65 +34,60 @@ var resetConfirmUntil = {};
 var _listenerRegistered = false;
 var ADMIN_MAGE_API = null;
 
+/**
+ * 优先复用监听已加载的 GLTC_MAGE_API；勿直接 eval 污染共享作用域。
+ */
 function loadMageCore() {
     function probe(api) {
         if (api == null) return false;
         try {
-            if (api.getPlayerStats != null && api.savePlayerStats != null && api.adminResetAllData != null) {
-                return true;
-            }
-        } catch (e0) {}
-        try {
-            if (typeof api.getPlayerStats === "function"
-                && typeof api.savePlayerStats === "function"
-                && typeof api.adminResetAllData === "function") {
-                return true;
-            }
-        } catch (e1) {}
-        return false;
+            return api.getPlayerStats != null && api.savePlayerStats != null && api.adminResetAllData != null;
+        } catch (e0) {
+            return false;
+        }
     }
     if (probe(ADMIN_MAGE_API)) return true;
-    ADMIN_MAGE_API = null;
     try {
-        var loader = PLUGIN.gltcScriptLoader;
-        if (loader && loader.evalScriptExport) {
-            var fromLoader = loader.evalScriptExport("术士系统/核心.js", { isolated: true, cache: false });
-            if (probe(fromLoader)) {
-                ADMIN_MAGE_API = fromLoader;
-                return true;
-            }
+        if (typeof GLTC_MAGE_API !== "undefined" && probe(GLTC_MAGE_API)) {
+            ADMIN_MAGE_API = GLTC_MAGE_API;
+            return true;
         }
-    } catch (eLoader) {}
+    } catch (eG) {}
+    try {
+        if (probe(PLUGIN.gltcMageApi)) {
+            ADMIN_MAGE_API = PLUGIN.gltcMageApi;
+            return true;
+        }
+    } catch (eP) {}
+    try {
+        var RSC0 = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC0.INSTANCE != null && probe(RSC0.INSTANCE.gltcMageApi)) {
+            ADMIN_MAGE_API = RSC0.INSTANCE.gltcMageApi;
+            return true;
+        }
+    } catch (eR) {}
     try {
         var File = java.io.File;
         var Files = java.nio.file.Files;
         var StandardCharsets = java.nio.charset.StandardCharsets;
         var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var dataDir = null;
-        try { dataDir = PLUGIN.getDataFolder(); } catch (eDf) {}
-        if (dataDir == null) {
-            try {
-                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
-                if (RSC.INSTANCE != null) dataDir = RSC.INSTANCE.getDataFolder();
-            } catch (eR) {}
-        }
-        if (dataDir != null) {
-            var candidates = [
-                new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js"),
-                new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js")
-            ];
-            for (var i = 0; i < candidates.length; i++) {
-                if (!candidates[i].exists()) continue;
-                var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(candidates[i].toPath()))).toString();
-                var exported = (0, eval)(code);
-                if (probe(exported)) {
-                    ADMIN_MAGE_API = exported;
-                    return true;
-                }
+        var dataDir = PLUGIN.getDataFolder();
+        var file = new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js");
+        if (!file.exists()) file = new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js");
+        if (file.exists()) {
+            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
+            var body = String(code).replace(/\s+$/, "");
+            if (!/\breturn\s+/.test(body.slice(-80))) {
+                body = body.replace(/([A-Za-z_$][\w$]*)\s*;\s*$/, "return $1;");
+            }
+            var exported = (0, eval)("(function(){\n" + body + "\n})();");
+            if (probe(exported)) {
+                ADMIN_MAGE_API = exported;
+                return true;
             }
         }
     } catch (eEval) {
-        try { Bukkit.getLogger().warning("[GLTC调控终端] 本地加载术士核心失败: " + eEval); } catch (eL) {}
+        try { Bukkit.getLogger().warning("[GLTC调控终端] 隔离加载核心失败: " + eEval); } catch (eL) {}
     }
     return false;
 }

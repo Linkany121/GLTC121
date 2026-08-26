@@ -7659,6 +7659,36 @@ VASA_uE012:
   recipe_type: NULL
   amount: 1
 
+vasa_u占位1:
+  lateInit: false
+  item_group: B_C01
+  item:
+    material: black_stained_glass_pane
+    modelId: 1210206
+    name: "&8 "
+    lore:
+    - '&7'
+
+vasa_u占位2:
+  lateInit: false
+  item_group: B_C01
+  item:
+    material: black_stained_glass_pane
+    modelId: 1210206
+    name: "&8 "
+    lore:
+    - '&7'
+
+vasa_u占位3:
+  lateInit: false
+  item_group: B_C01
+  item:
+    material: black_stained_glass_pane
+    modelId: 1210206
+    name: "&8 "
+    lore:
+    - '&7'
+
 VASA_uA02:
   lateInit: false
   item_group: B_C01
@@ -7767,6 +7797,36 @@ VASA_uE022:
   recipe_type: NULL
   amount: 1
 
+vasa_u占位4:
+  lateInit: false
+  item_group: B_C01
+  item:
+    material: black_stained_glass_pane
+    modelId: 1210206
+    name: "&8 "
+    lore:
+    - '&7'
+
+vasa_u占位5:
+  lateInit: false
+  item_group: B_C01
+  item:
+    material: black_stained_glass_pane
+    modelId: 1210206
+    name: "&8 "
+    lore:
+    - '&7'
+
+vasa_u占位6:
+  lateInit: false
+  item_group: B_C01
+  item:
+    material: black_stained_glass_pane
+    modelId: 1210206
+    name: "&8 "
+    lore:
+    - '&7'
+
 ####################
 ##术式
 ####################
@@ -7791,8 +7851,8 @@ VASA_送花:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 1环'
     - '&f[&#96d6a7效果&f]&#fff5b3 构造并发射一朵向前快速飞行的花朵。'
-    - '&f[&#96d6a7伤害&f]&#fff5b3 1.2 倍粒子伤害'
-    - '&f[&#96d6a7冷却&f]&#fff5b3 1 秒'
+    - '&f[&#96d6a7伤害&f]&#fff5b3 1 倍粒子伤害'
+    - '&f[&#96d6a7冷却&f]&#fff5b3 2 秒'
     - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
   recipe_type: NULL
   amount: 1
@@ -7807,8 +7867,8 @@ VASA_微风花流:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 2环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 快速构造颜色随机的郁金香并向前发射，使目标受伤并失明'
-    - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
+    - '&f[&#96d6a7效果&f]&#fff5b3 快速构造3朵颜色随机的郁金香并向前发射，使目标受伤并失明'
+    - '&f[&#96d6a7伤害&f]&#fff5b3 1.2 倍粒子伤害'
     - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'
     - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
   recipe_type: NULL
@@ -7824,8 +7884,8 @@ VASA_庇护脉络:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 3环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 构造持续五秒的活性涵粒子环绕周身，每秒随机增益自己并推伤敌人'
-    - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
+    - '&f[&#96d6a7效果&f]&#fff5b3 构造持续八秒的活性涵粒子环绕周身，每秒随机增益自己并推伤敌人'
+    - '&f[&#96d6a7伤害&f]&#fff5b3 2 倍粒子伤害'
     - '&f[&#96d6a7冷却&f]&#fff5b3 16 秒'
     - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
   recipe_type: NULL
@@ -7841,7 +7901,7 @@ VASA_花如画卷:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 沃土奥法流派'
     - '&f[&#96bed6环数&f]&#fff5b3 4环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 持续构造花朵使其环绕自身，左键时向前投出全部未发射花朵，花朵将自动跟随视线'
+    - '&f[&#96d6a7效果&f]&#fff5b3 持续构造花朵使其环绕自身，左键时向前投出全部未发射花朵，投出的花朵将自动跟随视线'
     - '&f[&#96d6a7伤害&f]&#fff5b3 1.5 倍粒子伤害'
     - '&f[&#96d6a7冷却&f]&#fff5b3 12 秒'
     - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'
@@ -7860,7 +7920,7 @@ VASA_火球术:
     lore:
     - '&f[&#d696d0流派&f]&#fff5b3 环夜谷标准流派'
     - '&f[&#96bed6环数&f]&#fff5b3 1环'
-    - '&f[&#96d6a7效果&f]&#fff5b3 通过粒子碰撞出火焰，并使其向前飞行造成伤害。'
+    - '&f[&#96d6a7效果&f]&#fff5b3 碰撞粒子产生火焰，聚拢后驱使其向前快速飞行造成伤害。'
     - '&f[&#96d6a7伤害&f]&#fff5b3&#d8b0a7 1&#d4a69c倍&#d09d91系&#cb9386数&#c7897c的&#c37f71物&#bf7666理&#ba6c5b伤&#b66250害 &f'
     - '&f[&#96d6a7冷却&f]&#fff5b3 3 秒'
     - '&f[&e!&f]&#e1ccbd需在术式承载转换仪中刻录进施术道具。'

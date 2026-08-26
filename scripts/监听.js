@@ -22,6 +22,44 @@ try {
     PLUGIN.gltcSpellDmgListenerReady = false;
     PLUGIN.gltcSpellDmgLogOnce = false;
     PLUGIN.gltcSpellDmgLogVer = 0;
+    try {
+        var oldDeathL = PLUGIN.gltcSpellDeathListener;
+        if (oldDeathL != null) {
+            try {
+                Java.type("org.bukkit.event.entity.EntityDamageEvent")
+                    .getHandlerList().unregister(oldDeathL);
+            } catch (eD0) {}
+            try {
+                Java.type("org.bukkit.event.entity.PlayerDeathEvent")
+                    .getHandlerList().unregister(oldDeathL);
+            } catch (eD1) {}
+            try {
+                Java.type("org.bukkit.event.entity.EntityDeathEvent")
+                    .getHandlerList().unregister(oldDeathL);
+            } catch (eD2) {}
+            try {
+                Java.type("org.bukkit.event.player.PlayerQuitEvent")
+                    .getHandlerList().unregister(oldDeathL);
+            } catch (eD3) {}
+        }
+        PLUGIN.gltcSpellDeathListener = null;
+        var oldDeathDeathL = PLUGIN.gltcSpellDeathDeathListener;
+        if (oldDeathDeathL != null) {
+            try {
+                Java.type("org.bukkit.event.entity.PlayerDeathEvent")
+                    .getHandlerList().unregister(oldDeathDeathL);
+            } catch (eD4) {}
+        }
+        PLUGIN.gltcSpellDeathDeathListener = null;
+        var oldEntityDeathL = PLUGIN.gltcSpellEntityDeathListener;
+        if (oldEntityDeathL != null) {
+            try {
+                Java.type("org.bukkit.event.entity.EntityDeathEvent")
+                    .getHandlerList().unregister(oldEntityDeathL);
+            } catch (eD5) {}
+        }
+        PLUGIN.gltcSpellEntityDeathListener = null;
+    } catch (eDeathUnreg) {}
     PLUGIN.gltcRuntimeLoadedLogged = false;
     try { PLUGIN.removeMetadata("gltc_mage_bridge_logged", PLUGIN); } catch (eBrRm) {}
     // 必须清版本号，否则 ensureSpellDamageListener 会因旧 ver 跳过重挂
@@ -290,6 +328,15 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
         }, PLUGIN
     );
     Bukkit.getLogger().info("[GLTC监听] 已加载 术士系统");
+})();
+
+// ---------- 3a) 术式死亡播报（须在术式运行时之前注册 MONITOR，以在运行时清 meta 前抓取归因） ----------
+(function preloadSpellDeathBroadcast() {
+    if (gltcEvalScript("术士系统/术式死亡播报.js", true)) {
+        Bukkit.getLogger().info("[GLTC监听] 已加载 术士系统/术式死亡播报");
+    } else {
+        Bukkit.getLogger().warning("[GLTC监听] 术式死亡播报加载失败");
+    }
 })();
 
 // ---------- 3b) 术式运行时 v2（写入 Metadata 共享根，勿依赖 PLUGIN 动态字段） ----------

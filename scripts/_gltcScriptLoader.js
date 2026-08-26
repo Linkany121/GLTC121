@@ -45,14 +45,28 @@ function evalScriptExport(rel, opts) {
         if (opts.isolated) {
             // 隔离作用域；把末尾导出变成 return，否则 IIFE 得到 undefined
             var body = String(code).replace(/\s+$/, "");
-            if (!/\breturn\s+/.test(body.slice(-80))) {
-                if (/\(\s*\{[\s\S]*\}\s*\)\s*;?\s*$/.test(body)) {
+            if (!/\breturn\s+/.test(body.slice(-120))) {
+                // 术式登记导出：匹配末尾含 id:/cast: 的对象，避免误吞 orbiters.push({ 等
+                var spellExportRe = /\(\s*(\{\s*\n\s*id\s*:[\s\S]*?cast\s*:[\s\S]*?\})\s*\)\s*;?\s*$/;
+                var spellReturnRe = /return\s+(\{\s*\n\s*id\s*:[\s\S]*?cast\s*:[\s\S]*?\})\s*;?\s*$/;
+                if (spellExportRe.test(body)) {
+                    body = body.replace(spellExportRe, "return $1;");
+                } else if (spellReturnRe.test(body)) {
+                    body = body.replace(spellReturnRe, "return $1;");
+                } else if (/\(\s*\{[\s\S]*\}\s*\)\s*;?\s*$/.test(body)) {
                     body = body.replace(/\(\s*\{([\s\S]*)\}\s*\)\s*;?\s*$/, "return ({\n$1\n});");
                 } else if (/(?:^|[\n;])\s*([A-Za-z_$][\w$]*)\s*;\s*$/.test(body)) {
                     body = body.replace(/([A-Za-z_$][\w$]*)\s*;\s*$/, "return $1;");
                 }
             }
             code = "(function(){\n" + body + "\n})();";
+        } else {
+            // 非隔离 eval 不允许顶层 return；末尾 return { id, cast } 改为表达式
+            var bodyDirect = String(code).replace(/\s+$/, "");
+            var spellReturnDirect = /return\s+(\{\s*\n\s*id\s*:[\s\S]*?cast\s*:[\s\S]*?\})\s*;?\s*$/;
+            if (spellReturnDirect.test(bodyDirect)) {
+                code = bodyDirect.replace(spellReturnDirect, "($1);");
+            }
         }
         var result = (0, eval)(code);
         if (result != null && opts.cache !== false) {

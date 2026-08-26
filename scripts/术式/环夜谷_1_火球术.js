@@ -23,7 +23,7 @@ var META_MAGE    = "gltc_mage_api";       // 术士 API（粒子强度结算）
 
 // === 术式身份 / 登记导出 ===
 var SPELL_ID          = "VASA_火球术"; // 术式 ID（= 术式载体物品 ID）
-var SPELL_NAME        = "火球术";       // 纯文本短名（伤害播报回退；GUI 优先物品彩名）
+var SPELL_NAME        = "火球术";       // 纯文本短名（播报回退；优先 items.yml 彩名）
 var SPELL_RING        = 1;              // 环数（写入 hit info）
 var SPELL_SCHOOL      = "环夜谷";       // 流派键（登记 / GUI 潜影盒色）
 var SPELL_BOOK        = true;           // true = 存在同 ID 术式载体
@@ -205,7 +205,8 @@ function calcFireballDamage(player, mageApi) {
             var f = new File(plug.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/术士数值/" + uuid + ".json");
             if (!f.exists()) return SPELL_COEFFICIENT;
             var data = JSON.parse(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString());
-            var pp = Number(data.particlePower);
+            var total = Number(data.particlePowerTotal);
+            var pp = (isFinite(total) && total > 0) ? total : Number(data.particlePower);
             if (pp > 0 && isFinite(pp)) return pp * SPELL_COEFFICIENT;
         } catch (e) {}
         return SPELL_COEFFICIENT;
@@ -245,7 +246,7 @@ function castFireball(player, mageApi) {
     var maxTicks = Math.ceil(MAX_DISTANCE / speed);
     var ticks = 0;
     var alive = true;
-    var spellInfo = { ring: SPELL_RING, name: SPELL_NAME };
+    var spellInfo = { ring: SPELL_RING, name: SPELL_NAME, spellId: SPELL_ID };
     var task = null;
     var token = null;
 

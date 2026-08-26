@@ -24,6 +24,7 @@
  *  4. 术式由 术式/登记.js 扫描加载；勿在 items.yml 对术式脚本再绑 script。
  *  5. 施术入口由 监听.js 单次加载施术核心；道具 onUse 只桥接到 gltcCastApi。
  *  6. 核心技能单独文件，勿把实现堆进 技能登记.js；伤害走 deal*SpellDamage 才有播报。
+ *     hitInfo 请带 spellId（= 术式载体 ID）；播报优先用 items.yml 去前缀彩名。
  *
  *  单个术式导出约定：见 术式/_模板_瞬时.js
  *  核心技能导出约定：见 施术道具/_模板_核心技能.js

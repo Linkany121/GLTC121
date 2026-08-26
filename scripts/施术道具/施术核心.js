@@ -438,6 +438,8 @@ function readParticlePowerFromDisk(player) {
         var f = new File(plug.getDataFolder().getAbsolutePath() + "/addon_configs/GLTC/玩家属性/术士数值/" + uuid + ".json");
         if (!f.exists()) return 1;
         var data = JSON.parse(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString());
+        var total = Number(data.particlePowerTotal);
+        if (isFinite(total) && total > 0) return total;
         var pp = Number(data.particlePower);
         return (pp > 0 && isFinite(pp)) ? pp : 1;
     } catch (e) { return 1; }

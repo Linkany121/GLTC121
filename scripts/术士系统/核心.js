@@ -165,8 +165,30 @@ function evalScriptExport(relativeUnderScripts) {
     }
 }
 
+/** 与装备菜单相同：IIFE + return，确保 Graal 下拿到导出表 */
+function evalGearConfigExport() {
+    var file = findScriptFile("术士系统/装备加成.js");
+    if (!file) return null;
+    try {
+        var bytes = Files.readAllBytes(file.toPath());
+        var body = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(bytes)).toString().replace(/\s+$/, "");
+        if (!/\breturn\s+/.test(body.slice(-80))) {
+            if (/\(\s*\{[\s\S]*\}\s*\)\s*;?\s*$/.test(body)) {
+                body = body.replace(/\(\s*\{([\s\S]*)\}\s*\)\s*;?\s*$/, "return ({\n$1\n});");
+            } else if (/(?:^|[\n;])\s*([A-Za-z_$][\w$]*)\s*;\s*$/.test(body)) {
+                body = body.replace(/([A-Za-z_$][\w$]*)\s*;\s*$/, "return $1;");
+            }
+        }
+        return (0, eval)("(function(){\n" + body + "\n})();");
+    } catch (e) {
+        Bukkit.getLogger().warning("[GLTC术士] 加载装备加成表失败: " + e);
+        return null;
+    }
+}
+
 function loadGearConfig() {
-    var exported = evalScriptExport("术士系统/装备加成.js");
+    var exported = evalGearConfigExport();
+    if (!exported) exported = evalScriptExport("术士系统/装备加成.js");
     if (exported && exported.GEAR_REGISTRY) { GEAR_CFG = exported; return true; }
     return !!(GEAR_CFG && GEAR_CFG.GEAR_REGISTRY);
 }
@@ -219,7 +241,8 @@ function emptyBonuses() {
     return {
         particlePower: 0, cardiovascular: 0, particleRefraction: 0,
         meleeDamage: 0, maxHealth: 0, armor: 0, toughness: 0, speed: 0, reach: 0,
-        finalDamageReduction: 0
+        finalDamageReduction: 0,
+        magePotential: 0, bodyPotential: 0
     };
 }
 
@@ -339,27 +362,38 @@ function migrateStatsData(data, uuid) {
     for (var i = 0; i < ALL_STAT_KEYS.length; i++) {
         var sk = ALL_STAT_KEYS[i];
         var sf3 = spentField(sk);
+        var baseDefault = Number(defs[sk]) || 0;
+        var opt = MAGE_POINT_OPTIONS[sk] || BODY_POINT_OPTIONS[sk];
         if (data[sf3] === undefined || data[sf3] === null) {
-            var opt = MAGE_POINT_OPTIONS[sk] || BODY_POINT_OPTIONS[sk];
-            if (opt && data[sk] != null && defs[sk] != null) {
-                var delta = Number(data[sk]) - Number(defs[sk]) - Number((equip && equip[sk]) || 0);
-                data[sf3] = Math.max(0, Math.round(delta / opt.per));
+            if (opt && data[sk] != null) {
+                var above = Number(data[sk]) - baseDefault;
+                var equipVal0 = Number((equip && equip[sk]) || 0);
+                if (equipVal0 > 0 && above >= equipVal0 - 0.001) above -= equipVal0;
+                data[sf3] = Math.max(0, Math.round(above / opt.per));
             } else {
                 data[sf3] = 0;
             }
             changed = true;
         }
-        if (data[sk] === undefined || data[sk] === null) data[sk] = defs[sk];
+        if (data[sk] === undefined || data[sk] === null) {
+            data[sk] = baseDefault;
+            changed = true;
+        }
         var equipVal = Number((equip && equip[sk]) || 0);
         var spentPts = Number(data[sf3]) || 0;
-        var opt2 = MAGE_POINT_OPTIONS[sk] || BODY_POINT_OPTIONS[sk];
-        var expected = (opt2 ? spentPts * opt2.per : 0);
+        var expectedBase = baseDefault + (opt ? spentPts * opt.per : 0);
         var cur = Number(data[sk]) || 0;
-        if (equipVal > 0 && Math.abs(cur - equipVal - expected) < 0.001) {
-            data[sk] = expected;
-            changed = true;
-        } else if (equipVal > 0 && cur > expected + 0.001) {
-            data[sk] = Math.max(0, cur - equipVal);
+        if (equipVal > 0) {
+            if (Math.abs(cur - expectedBase - equipVal) < 0.001) {
+                data[sk] = expectedBase;
+                changed = true;
+            } else if (cur > expectedBase + equipVal + 0.001) {
+                data[sk] = Math.max(expectedBase, cur - equipVal);
+                changed = true;
+            }
+        }
+        if (spentPts <= 0 && (Number(data[sk]) || 0) < baseDefault) {
+            data[sk] = baseDefault;
             changed = true;
         }
     }
@@ -398,7 +432,7 @@ function getPlayerStats(uuid) {
 
 function enrichStatsSnapshot(uuid, copy) {
     var equip = emptyBonuses();
-    try { equip = getEquipmentBonuses(uuid); } catch (e) { equip = emptyBonuses(); }
+    try { equip = equipStatBonusesOnly(getEquipmentBonuses(uuid)); } catch (e) { equip = emptyBonuses(); }
     for (var i = 0; i < ALL_STAT_KEYS.length; i++) {
         var sk = ALL_STAT_KEYS[i];
         var baseVal = Number(copy[sk]) || 0;
@@ -430,6 +464,7 @@ function normalizeGearSlot(entry) {
     if (typeof entry === "object") {
         return {
             ugwId: entry.ugwId ? String(entry.ugwId) : null,
+            sfId: entry.sfId ? String(entry.sfId) : null,
             item: entry.item ? String(entry.item) : null
         };
     }
@@ -454,7 +489,27 @@ function savePlayerGear(uuid, data) {
     uuid = String(uuid);
     var ok = writeJsonFile(gearFile(uuid), data);
     try { equipBonusCache.remove(cacheKey(uuid)); } catch (e) {}
+    if (ok) {
+        try { syncStatsTotalsAfterGearChange(uuid); } catch (eSync) {}
+    }
     return ok;
+}
+
+/** 装配变更后刷新存档中的 xxxTotal 字段，供术式读盘 fallback 使用 */
+function syncStatsTotalsAfterGearChange(uuid) {
+    uuid = String(uuid);
+    try { equipBonusCache.remove(cacheKey(uuid)); } catch (e0) {}
+    var stats = readJsonFile(statsFile(uuid));
+    if (!stats) return;
+    var copy = {};
+    for (var k in stats) {
+        if (k === "currentParticles") continue;
+        if (k.indexOf("Total") >= 0 && k.length > 5) continue;
+        copy[k] = stats[k];
+    }
+    enrichStatsSnapshot(uuid, copy);
+    writeJsonFile(statsFile(uuid), copy);
+    cachePutStatsJson(uuid, copy);
 }
 
 function ugwConfigFile(ugwId) {
@@ -529,6 +584,28 @@ function getGearSlotItem(slot) {
 
 var LORE_BONUS_HEADER = "§x§4§4§a§5§f§f组件加成";
 
+function stripPlainLore(str) {
+    return String(str || "")
+        .replace(/§x(§[0-9a-fA-F]){6}/g, "")
+        .replace(/§./g, "")
+        .replace(/&#[0-9a-fA-F]{6}/g, "")
+        .replace(/&[0-9a-fk-or]/gi, "");
+}
+
+function isDynamicBonusLoreLine(plain) {
+    plain = stripPlainLore(plain);
+    if (plain.indexOf("组件加成") >= 0) return true;
+    if (plain.indexOf("加成") >= 0 && plain.indexOf("+") >= 0) return true;
+    return false;
+}
+
+/** 制式组件（GEAR_REGISTRY）已在 items.yml 写死 lore，勿再动态追加 */
+function shouldSyncUgwLore(stack) {
+    if (!stack || stack.getType() === Material.AIR) return false;
+    if (getRegistryEntry(getSlimefunId(stack))) return false;
+    return !!getUgwIdFromItem(stack);
+}
+
 function formatUgwBonusVal(statKey, val) {
     val = Number(val) || 0;
     if (statKey === "cardiovascular" || statKey === "particleRefraction" || statKey === "finalDamageReduction") {
@@ -537,9 +614,10 @@ function formatUgwBonusVal(statKey, val) {
     return String(Math.round(val * 1000) / 1000);
 }
 
-/** 装备/拆卸/提升时同步 UGW lore 中的数值加成段 */
+/** 装备/拆卸/提升时同步 UGW lore 中的数值加成段（仅常规 UGW） */
 function syncUgwLore(stack) {
     if (!stack || stack.getType() === Material.AIR) return stack;
+    if (!shouldSyncUgwLore(stack)) return stack;
     var bonuses = emptyBonuses();
     var ugwId = getUgwIdFromItem(stack);
     if (ugwId) {
@@ -552,18 +630,10 @@ function syncUgwLore(stack) {
         if (!meta) return stack;
         var oldLore = meta.hasLore() ? meta.getLore() : new ArrayList();
         var newLore = new ArrayList();
-        var skipping = false;
         for (var i = 0; i < oldLore.size(); i++) {
-            var plain = String(oldLore.get(i));
-            if (plain.indexOf(LORE_BONUS_HEADER) >= 0) {
-                skipping = true;
-                continue;
-            }
-            if (skipping) {
-                if (plain.indexOf("§8§m") >= 0) skipping = false;
-                else continue;
-            }
-            newLore.add(oldLore.get(i));
+            var line = oldLore.get(i);
+            if (isDynamicBonusLoreLine(String(line))) continue;
+            newLore.add(line);
         }
         var wrote = false;
         for (var sk in bonuses) {
@@ -578,6 +648,7 @@ function syncUgwLore(stack) {
             var label = opt ? opt.label : sk;
             newLore.add("§7" + label + " §f+" + formatUgwBonusVal(sk, v));
         }
+        if (wrote) newLore.add("§8§m                    ");
         meta.setLore(newLore);
         stack.setItemMeta(meta);
     } catch (e) {}
@@ -586,20 +657,34 @@ function syncUgwLore(stack) {
 
 function getSlimefunId(stack) {
     if (!stack || stack.getType() === Material.AIR) return null;
+    // RSC 定制物品：反序列化后 getByItem 常失败，PDC 更可靠（与装备菜单一致）
     try {
         var meta = stack.getItemMeta();
         if (meta) {
             var pdc = meta.getPersistentDataContainer();
             if (pdc.has(SF_ITEM_KEY, PersistentDataType.STRING)) {
                 var fromPdc = pdc.get(SF_ITEM_KEY, PersistentDataType.STRING);
-                return fromPdc != null ? String(fromPdc) : null;
+                if (fromPdc != null && String(fromPdc).length > 0) return String(fromPdc);
             }
         }
-    } catch (e) {}
+    } catch (e1) {}
     try {
         var sf = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem").getByItem(stack);
-        return sf ? String(sf.getId()) : null;
-    } catch (e2) {}
+        if (sf) return String(sf.getId());
+    } catch (e0) {}
+    return null;
+}
+
+function getRegistryEntry(itemId) {
+    loadGearConfig();
+    if (!itemId || !GEAR_CFG || !GEAR_CFG.GEAR_REGISTRY) return null;
+    var reg = GEAR_CFG.GEAR_REGISTRY;
+    var id = String(itemId);
+    if (reg[id]) return reg[id];
+    var lower = id.toLowerCase();
+    for (var k in reg) {
+        if (Object.prototype.hasOwnProperty.call(reg, k) && String(k).toLowerCase() === lower) return reg[k];
+    }
     return null;
 }
 
@@ -608,22 +693,22 @@ function isRegularUgwConfig(cfg) {
 }
 
 function getGearEntryForStack(stack) {
-    loadGearConfig();
     var id = getSlimefunId(stack);
-    if (!id || !GEAR_CFG) return null;
-    return GEAR_CFG.GEAR_REGISTRY[String(id)] || null;
+    if (!id) return null;
+    return getRegistryEntry(id);
 }
 
 /** @returns {"regular"|"simple"|null} */
 function getUgwKind(stack) {
     if (!stack || stack.getType() === Material.AIR) return null;
+    // 简易 UGW：粘液 ID 在 GEAR_REGISTRY 即认定（优先于 ugw_id）
     if (getGearEntryForStack(stack)) return "simple";
     var ugwId = getUgwIdFromItem(stack);
     if (!ugwId) return null;
     var cfg = loadUgwConfig(ugwId);
+    if (!cfg) return null; // 有 ugw_id 但无配置且非登记表 → 非有效组件
     if (isRegularUgwConfig(cfg)) return "regular";
-    if (cfg) return "simple";
-    return "regular";
+    return "simple";
 }
 
 function isMageAccessory(stack) {
@@ -647,8 +732,7 @@ function mergeBonus(target, src) {
 
 function getBonusesFromGearId(itemId) {
     var b = emptyBonuses();
-    if (!itemId || !GEAR_CFG) return b;
-    var entry = GEAR_CFG.GEAR_REGISTRY[String(itemId)];
+    var entry = getRegistryEntry(itemId);
     if (entry && entry.bonuses) mergeBonus(b, entry.bonuses);
     return b;
 }
@@ -693,7 +777,9 @@ function clampHard(statKey, v) {
 function canEquipInSlot(stack, slotIndex, playerUuid) {
     loadGearConfig();
     if (!GEAR_CFG || !stack) return false;
-    var def = GEAR_CFG.getSlotDef(slotIndex);
+    var def = null;
+    try { if (typeof GEAR_CFG.getSlotDef === "function") def = GEAR_CFG.getSlotDef(slotIndex); } catch (e0) {}
+    if (!def && GEAR_CFG.EQUIP_SLOT_DEFS) def = GEAR_CFG.EQUIP_SLOT_DEFS[slotIndex];
     if (!def) return false;
 
     var entry = getGearEntryForStack(stack);
@@ -795,6 +881,65 @@ function dedupeUgwOnEquip(player, stack) {
     return stack;
 }
 
+function getSlotBonuses(slot) {
+    var b = emptyBonuses();
+    if (!slot) return b;
+    var ugwId = slot.ugwId;
+    var item = getGearSlotItem(slot);
+    if (!ugwId && item) ugwId = getUgwIdFromItem(item);
+    if (ugwId) mergeBonus(b, getBonusesFromUgwConfig(loadUgwConfig(ugwId)));
+    var gearId = slot.sfId || (item ? getSlimefunId(item) : null);
+    if (gearId) mergeBonus(b, getBonusesFromGearId(gearId));
+    return b;
+}
+
+/** 组件潜能并入存档池；装备层不再叠加潜能（避免重复统计） */
+function equipStatBonusesOnly(full) {
+    var b = emptyBonuses();
+    mergeBonus(b, full);
+    b.magePotential = 0;
+    b.bodyPotential = 0;
+    return b;
+}
+
+function revertOnePoolSpend(data, pool) {
+    var table = pool === "body" ? BODY_POINT_OPTIONS : MAGE_POINT_OPTIONS;
+    var keys = [];
+    for (var k in table) keys.push(k);
+    var defs = defaultStats();
+    for (var i = keys.length - 1; i >= 0; i--) {
+        var sk = keys[i];
+        var sf = spentField(sk);
+        var spent = Number(data[sf]) || 0;
+        if (spent <= 0) continue;
+        var opt = table[sk];
+        data[sf] = spent - 1;
+        data[sk] = (Number(data[sk]) || 0) - opt.per;
+        var floor = Number(defs[sk]) || 0;
+        if ((Number(data[sk]) || 0) < floor) data[sk] = floor;
+        return true;
+    }
+    return false;
+}
+
+/** 装配/卸下潜能组件时增减存档潜能；卸下时若点数不足则回滚已分配属性 */
+function applyEquipPotentialChange(data, deltaMage, deltaBody) {
+    if (!data) return;
+    function apply(field, pool, delta) {
+        delta = Math.floor(Number(delta) || 0);
+        if (!delta) return;
+        var cur = Number(data[field]) || 0;
+        var next = cur + delta;
+        while (next < 0) {
+            if (!revertOnePoolSpend(data, pool)) break;
+            next++;
+        }
+        data[field] = Math.max(0, next);
+    }
+    apply("magePotential", "mage", deltaMage);
+    apply("bodyPotential", "body", deltaBody);
+}
+
 function getEquipmentBonuses(uuid) {
     uuid = String(uuid);
     var key = cacheKey(uuid);
@@ -810,21 +955,49 @@ function getEquipmentBonuses(uuid) {
     var total = emptyBonuses();
     var gear = getPlayerGear(uuid);
     var n = equipSlotCount();
+    var gearDirty = false;
+    var hasSlot = false;
     for (var i = 0; i < n; i++) {
         if (!gear.slots[i]) continue;
+        hasSlot = true;
         var slot = gear.slots[i];
-        var ugwId = slot.ugwId;
-        var item = getGearSlotItem(slot);
-        if (!ugwId && item) ugwId = getUgwIdFromItem(item);
+        if (!slot.sfId) {
+            var item = getGearSlotItem(slot);
+            if (item) {
+                var inferred = getSlimefunId(item);
+                if (inferred) {
+                    slot.sfId = inferred;
+                    gearDirty = true;
+                }
+            }
+        }
+        mergeBonus(total, getSlotBonuses(slot));
+    }
+    if (gearDirty) savePlayerGear(uuid, gear);
 
-        if (ugwId) {
-            mergeBonus(total, getBonusesFromUgwConfig(loadUgwConfig(ugwId)));
-        } else if (item) {
-            mergeBonus(total, getBonusesFromGearId(getSlimefunId(item)));
+    if (hasSlot && !bonusHasStat(total)) {
+        try { equipBonusCache.remove(key); } catch (eRm) {}
+        GEAR_CFG = null;
+        loadGearConfig();
+        total = emptyBonuses();
+        for (var j = 0; j < n; j++) {
+            if (!gear.slots[j]) continue;
+            mergeBonus(total, getSlotBonuses(gear.slots[j]));
         }
     }
+
     try { equipBonusCache.put(key, JSON.stringify(total)); } catch (e2) {}
     return total;
+}
+
+function bonusHasStat(b) {
+    if (!b) return false;
+    var keys = ["particlePower", "cardiovascular", "particleRefraction", "finalDamageReduction",
+        "meleeDamage", "maxHealth", "armor", "toughness", "speed", "reach"];
+    for (var i = 0; i < keys.length; i++) {
+        if (Number(b[keys[i]])) return true;
+    }
+    return false;
 }
 
 function clamp01(v) {
@@ -836,21 +1009,23 @@ function sumStat(base, equip, staff, key) {
 }
 
 function buildTotalStatsObject(base, equip, staff) {
+    var statEquip = equipStatBonusesOnly(equip);
+    var statStaff = equipStatBonusesOnly(staff);
     var out = {
         mageLevel: Math.max(0, Math.min(8, Number(base.mageLevel) || 0)),
         proficiency: Math.max(0, Math.min(8, Number(base.proficiency) || 0)),
-        magePotential: base.magePotential || 0,
-        bodyPotential: base.bodyPotential || 0,
-        particlePower: sumStat(base, equip, staff, "particlePower"),
-        cardiovascular: clampHard("cardiovascular", sumStat(base, equip, staff, "cardiovascular")),
-        particleRefraction: clampHard("particleRefraction", sumStat(base, equip, staff, "particleRefraction")),
-        meleeDamage: sumStat(base, equip, staff, "meleeDamage"),
-        maxHealth: sumStat(base, equip, staff, "maxHealth"),
-        armor: clampHard("armor", sumStat(base, equip, staff, "armor")),
-        toughness: clampHard("toughness", sumStat(base, equip, staff, "toughness")),
-        speed: sumStat(base, equip, staff, "speed"),
-        reach: sumStat(base, equip, staff, "reach"),
-        finalDamageReduction: clampHard("finalDamageReduction", sumStat(base, equip, staff, "finalDamageReduction"))
+        magePotential: Math.max(0, Number(base.magePotential) || 0),
+        bodyPotential: Math.max(0, Number(base.bodyPotential) || 0),
+        particlePower: sumStat(base, statEquip, statStaff, "particlePower"),
+        cardiovascular: clampHard("cardiovascular", sumStat(base, statEquip, statStaff, "cardiovascular")),
+        particleRefraction: clampHard("particleRefraction", sumStat(base, statEquip, statStaff, "particleRefraction")),
+        meleeDamage: sumStat(base, statEquip, statStaff, "meleeDamage"),
+        maxHealth: sumStat(base, statEquip, statStaff, "maxHealth"),
+        armor: clampHard("armor", sumStat(base, statEquip, statStaff, "armor")),
+        toughness: clampHard("toughness", sumStat(base, statEquip, statStaff, "toughness")),
+        speed: sumStat(base, statEquip, statStaff, "speed"),
+        reach: sumStat(base, statEquip, statStaff, "reach"),
+        finalDamageReduction: clampHard("finalDamageReduction", sumStat(base, statEquip, statStaff, "finalDamageReduction"))
     };
     for (var i = 0; i < ALL_STAT_KEYS.length; i++) {
         var sk = ALL_STAT_KEYS[i];
@@ -941,13 +1116,19 @@ function ensureSpentFields(data) {
     }
 }
 
+/** 潜能池：仅存档剩余（组件潜能已在装配时写入存档） */
+function potentialPoolLeft(data, pool) {
+    var field = pool === "body" ? "bodyPotential" : "magePotential";
+    return Math.max(0, Number(data[field]) || 0);
+}
+
 function spendPotentialOnData(data, pool, statKey) {
     var table = pool === "body" ? BODY_POINT_OPTIONS : MAGE_POINT_OPTIONS;
     if (!table[statKey]) return { ok: false, msg: "无效属性" };
     ensureSpentFields(data);
     var field = pool === "body" ? "bodyPotential" : "magePotential";
     var sf = spentField(statKey);
-    if ((data[field] || 0) < 1) return { ok: false, msg: "潜能点不足" };
+    if (potentialPoolLeft(data, pool) < 1) return { ok: false, msg: "潜能点不足" };
 
     var opt = table[statKey];
     var spentNow = Number(data[sf]) || 0;
@@ -955,7 +1136,7 @@ function spendPotentialOnData(data, pool, statKey) {
         return { ok: false, msg: opt.label + " 潜能已达上限（" + opt.maxPoints + " 点）" };
     }
 
-    data[field] -= 1;
+    data[field] = (Number(data[field]) || 0) - 1;
     data[statKey] = (Number(data[statKey]) || 0) + opt.per;
     data[sf] = spentNow + 1;
 
@@ -963,7 +1144,7 @@ function spendPotentialOnData(data, pool, statKey) {
     if (statKey === "cardiovascular" || statKey === "particleRefraction" || statKey === "finalDamageReduction") {
         shown = (Math.round(opt.per * 1000) / 10) + "%";
     }
-    return { ok: true, msg: opt.label + " +" + shown, left: data[field] };
+    return { ok: true, msg: opt.label + " +" + shown, left: potentialPoolLeft(data, pool) };
 }
 
 function resetAllPotentialsOnData(data) {
@@ -1226,6 +1407,8 @@ var MAGE_API_EXPORT = {
     savePlayerGear: savePlayerGear,
     getTotalStats: getTotalStats,
     getTotalStatsFromBase: getTotalStatsFromBase,
+    buildTotalStatsObject: buildTotalStatsObject,
+    emptyBonuses: emptyBonuses,
     invalidatePlayerCache: invalidatePlayerCache,
     getGLI: getGLI,
     calcSpellDamage: calcSpellDamage,
@@ -1234,6 +1417,11 @@ var MAGE_API_EXPORT = {
     tryLevelUp: tryLevelUp,
     spendPotential: spendPotential,
     spendPotentialOnData: spendPotentialOnData,
+    applyEquipPotentialChange: applyEquipPotentialChange,
+    getSlotBonuses: getSlotBonuses,
+    equipStatBonusesOnly: equipStatBonusesOnly,
+    shouldSyncUgwLore: shouldSyncUgwLore,
+    potentialPoolLeft: potentialPoolLeft,
     resetAllPotentials: resetAllPotentials,
     resetAllPotentialsOnData: resetAllPotentialsOnData,
     adminAdjustLevel: adminAdjustLevel,
@@ -1260,6 +1448,7 @@ var MAGE_API_EXPORT = {
     itemFromBase64: itemFromBase64,
     getSlimefunId: getSlimefunId,
     getEquipmentBonuses: getEquipmentBonuses,
+    syncStatsTotalsAfterGearChange: syncStatsTotalsAfterGearChange,
     getStaffBonuses: getStaffBonuses,
     loadUgwConfig: loadUgwConfig,
     getUgwIdFromItem: getUgwIdFromItem,
@@ -1398,15 +1587,15 @@ function buildMageBridges(api, gliAtPublish) {
             try {
                 var coeffN = Number(coeff) || 0;
                 var p = resolveBridgePlayer(player) || player;
+                var vCore = Number(closed.calcSpellDamage(p, coeffN));
+                if (isFinite(vCore) && vCore > 0) return java.lang.Double.valueOf(vCore);
                 var raw = statsBridge.apply(p, java.lang.Boolean.TRUE);
                 if (raw != null) {
                     var pp = Number(raw.get("particlePower")) || 0;
                     var v = pp * coeffN * gli;
                     if (isFinite(v) && v > 0) return java.lang.Double.valueOf(v);
                 }
-                var v2 = Number(closed.calcSpellDamage(p, coeffN));
-                if (!isFinite(v2)) v2 = 0;
-                return java.lang.Double.valueOf(v2);
+                return java.lang.Double.valueOf(0);
             } catch (e) {
                 return java.lang.Double.valueOf(0);
             }

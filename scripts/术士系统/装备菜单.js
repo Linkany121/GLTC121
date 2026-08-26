@@ -16,10 +16,10 @@ var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
 var ClickType = Java.type("org.bukkit.event.inventory.ClickType");
 var Arrays = Java.type("java.util.Arrays");
-var HashSet = Java.type("java.util.HashSet");
 var HashMap = Java.type("java.util.HashMap");
 var JBase64 = Java.type("java.util.Base64");
 var JUUID = Java.type("java.util.UUID");
+var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 var GUI_TITLE = "§x§a§2§d§e§f§f此§x§9§9§c§c§f§f岸§x§8§f§b§a§f§f雪§x§8§6§a§8§f§f™§x§7§d§9§6§f§f智§x§8§2§8§8§f§f能§x§9§7§7§f§f§f监§x§a§c§7§5§f§f控§x§c§1§6§c§f§f终§x§d§6§6§2§f§f端";
@@ -67,10 +67,10 @@ var BODY_CLICK = {
     23: "reach"
 };
 
-var activeInventories = new HashSet();
-/** inv -> { uuid, stats, dirty }  加点草稿，关闭时写盘 */
+/** 与术式承载转换仪相同：用 Inventory 引用跟踪打开的 GUI */
+var activeInventories = new java.util.HashSet();
+/** inv -> { uuid, stats, dirty } */
 var sessionByInv = new HashMap();
-var _listenerRegistered = false;
 var MENU_MAGE_API = null;
 /** hash -> 已生成头颅（clone 用）；避免重复 Java.type / JAR 扫描 */
 var _skullItemCache = new HashMap();
@@ -102,85 +102,297 @@ function initSkullJavaTypes() {
 }
 initSkullJavaTypes();
 
+/**
+ * 物品脚本与监听.js 同引擎：直接复用监听已加载的 GLTC_MAGE_API。
+ * 切勿再 eval 整份核心.js，会重置共享作用域里的 GEAR_CFG / 函数，导致识别/装备异常。
+ */
 function loadMageCore() {
-    function probe(api) {
+    function usable(api) {
         if (api == null) return false;
         try {
-            var cfg = api.getGearConfig != null ? api.getGearConfig() : null;
-            if (cfg != null && cfg.EQUIP_SLOT_DEFS != null) return true;
-        } catch (e0) {}
-        try {
-            if (typeof api.getGearConfig === "function") {
-                var cfg2 = api.getGearConfig();
-                if (cfg2 != null) return true;
-            }
-        } catch (e1) {}
-        return false;
+            var cfg = api.getGearConfig();
+            return cfg != null && cfg.EQUIP_SLOT_DEFS != null;
+        } catch (e) { return false; }
     }
-    if (probe(MENU_MAGE_API)) return true;
-    MENU_MAGE_API = null;
-    // 物品脚本独立 Graal 上下文：监听 cache / PLUGIN 字段里的 JS 对象不可调用，直接本上下文加载
+    if (usable(MENU_MAGE_API)) return true;
+    // 与监听同引擎时直接复用，切勿再 eval 污染共享作用域
     try {
-        var loader = PLUGIN.gltcScriptLoader;
-        if (loader && loader.evalScriptExport) {
-            var fromLoader = loader.evalScriptExport("术士系统/核心.js", { isolated: true, cache: false });
-            if (probe(fromLoader)) {
-                MENU_MAGE_API = fromLoader;
-                return true;
-            }
+        if (typeof GLTC_MAGE_API !== "undefined" && usable(GLTC_MAGE_API)) {
+            MENU_MAGE_API = GLTC_MAGE_API;
+            return true;
         }
-    } catch (eLoader) {}
+    } catch (e0) {}
+    try {
+        if (usable(PLUGIN.gltcMageApi)) {
+            MENU_MAGE_API = PLUGIN.gltcMageApi;
+            return true;
+        }
+    } catch (e1) {}
+    try {
+        var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+        if (RSC.INSTANCE != null && usable(RSC.INSTANCE.gltcMageApi)) {
+            MENU_MAGE_API = RSC.INSTANCE.gltcMageApi;
+            return true;
+        }
+    } catch (e2) {}
+    // 独立物品上下文兜底：IIFE 隔离 eval，不污染外层
     try {
         var File = java.io.File;
         var Files = java.nio.file.Files;
         var StandardCharsets = java.nio.charset.StandardCharsets;
         var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var dataDir = null;
-        try { dataDir = PLUGIN.getDataFolder(); } catch (eDf) {}
-        if (dataDir == null) {
-            try {
-                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
-                if (RSC.INSTANCE != null) dataDir = RSC.INSTANCE.getDataFolder();
-            } catch (eR) {}
-        }
-        if (dataDir != null) {
-            var candidates = [
-                new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js"),
-                new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js")
-            ];
-            for (var i = 0; i < candidates.length; i++) {
-                if (!candidates[i].exists()) continue;
-                var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(candidates[i].toPath()))).toString();
-                var exported = (0, eval)(code);
-                if (probe(exported)) {
-                    MENU_MAGE_API = exported;
-                    return true;
-                }
+        var dataDir = PLUGIN.getDataFolder();
+        var file = new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js");
+        if (!file.exists()) file = new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js");
+        if (file.exists()) {
+            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
+            var body = String(code).replace(/\s+$/, "");
+            if (!/\breturn\s+/.test(body.slice(-80))) {
+                body = body.replace(/([A-Za-z_$][\w$]*)\s*;\s*$/, "return $1;");
+            }
+            var exported = (0, eval)("(function(){\n" + body + "\n})();");
+            if (usable(exported)) {
+                MENU_MAGE_API = exported;
+                return true;
             }
         }
     } catch (eEval) {
-        try { Bukkit.getLogger().warning("[GLTC装备菜单] 本地加载术士核心失败: " + eEval); } catch (eL) {}
+        try { Bukkit.getLogger().warning("[GLTC装备菜单] 隔离加载核心失败: " + eEval); } catch (eL) {}
     }
     return false;
 }
 
 loadMageCore();
 
+/** 方案 A：本地加载装备登记表，UGW 识别不依赖跨上下文 API（对齐刻录仪） */
+var LOCAL_GEAR_CFG = null;
+var KEY_UGW_ID = null;
+var KEY_UGW_CREATOR = null;
+var SF_ITEM_KEY = null;
+var PdcString = null;
+try {
+    var NamespacedKey = Java.type("org.bukkit.NamespacedKey");
+    PdcString = Java.type("org.bukkit.persistence.PersistentDataType").STRING;
+    KEY_UGW_ID = new NamespacedKey("gltc", "ugw_id");
+    KEY_UGW_CREATOR = new NamespacedKey("gltc", "ugw_creator");
+    SF_ITEM_KEY = new NamespacedKey("slimefun", "slimefun_item");
+} catch (ePdcInit) {}
+
+var UGW_LETTER_TO_CATEGORY = {
+    A: "potential",
+    B: "core_heart",
+    C: "bio_hub",
+    D: "particle_hub",
+    E: "assist"
+};
+
+function evalGearExport() {
+    var rel = "术士系统/装备加成.js";
+    // 勿读 gltcEvalCache：监听上下文缓存的对象在物品脚本里读 GEAR_REGISTRY 会失败
+    try {
+        var File = java.io.File;
+        var Files = java.nio.file.Files;
+        var StandardCharsets = java.nio.charset.StandardCharsets;
+        var ByteBuffer = Java.type("java.nio.ByteBuffer");
+        var roots = ["GLTC_联合协议", "GLTC121"];
+        for (var r = 0; r < roots.length; r++) {
+            var file = new File(PLUGIN.getDataFolder().getAbsolutePath()
+                + "/addons/" + roots[r] + "/scripts/" + rel);
+            if (!file.exists()) continue;
+            var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
+            var body = String(code).replace(/\s+$/, "");
+            if (!/\breturn\s+/.test(body.slice(-80))) {
+                if (/\(\s*\{[\s\S]*\}\s*\)\s*;?\s*$/.test(body)) {
+                    body = body.replace(/\(\s*\{([\s\S]*)\}\s*\)\s*;?\s*$/, "return ({\n$1\n});");
+                } else if (/(?:^|[\n;])\s*([A-Za-z_$][\w$]*)\s*;\s*$/.test(body)) {
+                    body = body.replace(/([A-Za-z_$][\w$]*)\s*;\s*$/, "return $1;");
+                }
+            }
+            return (0, eval)("(function(){\n" + body + "\n})();");
+        }
+    } catch (eEval) {
+        try { Bukkit.getLogger().warning("[GLTC装备菜单] 加载装备加成表失败: " + eEval); } catch (eLog) {}
+    }
+    return null;
+}
+
+function ensureLocalGearCfg() {
+    if (LOCAL_GEAR_CFG && LOCAL_GEAR_CFG.GEAR_REGISTRY) return LOCAL_GEAR_CFG;
+    LOCAL_GEAR_CFG = evalGearExport();
+    return LOCAL_GEAR_CFG;
+}
+
+function getGearCfg() {
+    try {
+        if (MENU_MAGE_API) {
+            var fromApi = MENU_MAGE_API.getGearConfig();
+            if (fromApi && fromApi.EQUIP_SLOT_DEFS) return fromApi;
+        }
+    } catch (eApi) {}
+    return ensureLocalGearCfg();
+}
+
+function getSlimefunId(stack) {
+    if (!stack || stack.getType() === Material.AIR) return null;
+    // PDC 优先（RSC 定制物品比 getByItem 更可靠）
+    try {
+        var meta = stack.getItemMeta();
+        if (meta && SF_ITEM_KEY && PdcString) {
+            var pdc = meta.getPersistentDataContainer();
+            if (pdc.has(SF_ITEM_KEY, PdcString)) {
+                var fromPdc = pdc.get(SF_ITEM_KEY, PdcString);
+                if (fromPdc != null && String(fromPdc).length > 0) return String(fromPdc);
+            }
+        }
+    } catch (ePdc) {}
+    try {
+        var sf = SlimefunItem.getByItem(stack);
+        if (sf) return String(sf.getId());
+    } catch (e0) {}
+    return null;
+}
+
+function stripPlain(str) {
+    return String(str || "")
+        .replace(/§x(§[0-9a-fA-F]){6}/g, "")
+        .replace(/§./g, "")
+        .replace(/&#[0-9a-fA-F]{6}/g, "")
+        .replace(/&[0-9a-fk-or]/gi, "");
+}
+
+function getGearEntryById(cfg, itemId) {
+    if (!cfg || !itemId) return null;
+    var reg = cfg.GEAR_REGISTRY;
+    if (!reg) return null;
+    var id = String(itemId);
+    try {
+        if (reg[id]) return reg[id];
+    } catch (e0) {}
+    var lower = id.toLowerCase();
+    try {
+        var keys = Object.keys(reg);
+        for (var i = 0; i < keys.length; i++) {
+            if (String(keys[i]).toLowerCase() === lower) return reg[keys[i]];
+        }
+    } catch (e1) {}
+    return null;
+}
+
+/** items.yml 制式 UGW：术士序列 + 类型行 */
+function getUgwCategoryFromLore(stack) {
+    if (!stack) return null;
+    try {
+        var meta = stack.getItemMeta();
+        if (!meta || !meta.hasLore()) return null;
+        var lore = meta.getLore();
+        var hasSeq = false;
+        var cat = null;
+        for (var i = 0; i < lore.size(); i++) {
+            var plain = stripPlain(String(lore.get(i)));
+            if (plain.indexOf("术士序列") >= 0) hasSeq = true;
+            var m = plain.match(/([A-E])\s*·\s*(潜能模组|核心心区组件|生控中枢组件|粒术中转组件|术式辅助组件)/);
+            if (m) {
+                cat = UGW_LETTER_TO_CATEGORY[m[1]];
+            }
+        }
+        return hasSeq && cat ? cat : null;
+    } catch (e) {}
+    return null;
+}
+
+function hasUgwLoreMarkers(stack) {
+    return getUgwCategoryFromLore(stack) != null;
+}
+
+function getUgwIdFromStack(stack) {
+    if (!stack || !KEY_UGW_ID || !PdcString) return null;
+    try {
+        var meta = stack.getItemMeta();
+        if (meta && meta.getPersistentDataContainer().has(KEY_UGW_ID, PdcString)) {
+            return String(meta.getPersistentDataContainer().get(KEY_UGW_ID, PdcString));
+        }
+    } catch (e) {}
+    return null;
+}
+
+function getUgwCreatorFromStack(stack) {
+    if (!stack || !KEY_UGW_CREATOR || !PdcString) return null;
+    try {
+        var meta = stack.getItemMeta();
+        if (meta && meta.getPersistentDataContainer().has(KEY_UGW_CREATOR, PdcString)) {
+            return String(meta.getPersistentDataContainer().get(KEY_UGW_CREATOR, PdcString));
+        }
+    } catch (e) {}
+    return null;
+}
+
 function getSlotDefs() {
-    var cfg = MENU_MAGE_API.getGearConfig();
-    return cfg ? cfg.EQUIP_SLOT_DEFS : [];
+    var cfg = getGearCfg();
+    return cfg && cfg.EQUIP_SLOT_DEFS ? cfg.EQUIP_SLOT_DEFS : [];
 }
 
 function getSeparatorSlot() {
-    var cfg = MENU_MAGE_API.getGearConfig();
-    return cfg ? cfg.SEPARATOR_GUI_SLOT : 37;
+    var cfg = getGearCfg();
+    return cfg && cfg.SEPARATOR_GUI_SLOT != null ? cfg.SEPARATOR_GUI_SLOT : 37;
 }
 
 function categoryDisplayName(cat) {
-    var cfg = MENU_MAGE_API.getGearConfig();
+    var cfg = getGearCfg();
     if (cfg && cfg.CATEGORY_NAMES && cfg.CATEGORY_NAMES[cat]) return cfg.CATEGORY_NAMES[cat];
     return cat;
 }
+
+function canEquipInSlotLocal(stack, slotIndex, playerUuid) {
+    var cfg = ensureLocalGearCfg();
+    if (!cfg || !stack) return false;
+    var def = cfg.EQUIP_SLOT_DEFS ? cfg.EQUIP_SLOT_DEFS[slotIndex] : null;
+    if (!def) return false;
+
+    var entry = getGearEntryById(cfg, getSlimefunId(stack));
+    if (entry) return entry.category === def.category;
+
+    var loreCat = getUgwCategoryFromLore(stack);
+    if (loreCat) return loreCat === def.category;
+
+    var ugwId = getUgwIdFromStack(stack);
+    if (!ugwId) return false;
+    var letter = String(ugwId).charAt(0);
+    if (UGW_LETTER_TO_CATEGORY[letter] !== def.category) return false;
+    var creator = getUgwCreatorFromStack(stack);
+    if (creator && playerUuid && String(creator) !== String(playerUuid)) return false;
+    return true;
+}
+
+function canEquipInSlotForMenu(stack, slotIndex, playerUuid) {
+    try {
+        if (MENU_MAGE_API && MENU_MAGE_API.canEquipInSlot(stack, slotIndex, playerUuid)) return true;
+    } catch (eApi) {}
+    return canEquipInSlotLocal(stack, slotIndex, playerUuid);
+}
+
+function getUgwKindForMenu(stack) {
+    var local = ensureLocalGearCfg();
+    if (getGearEntryById(local, getSlimefunId(stack))) return "simple";
+    if (getUgwCategoryFromLore(stack)) return "simple";
+    if (getUgwIdFromStack(stack)) return "regular";
+    try {
+        var k = MENU_MAGE_API && MENU_MAGE_API.getUgwKind(stack);
+        if (k) return k;
+    } catch (e) {}
+    return "simple";
+}
+
+function resolveUgwId(stack) {
+    try {
+        if (MENU_MAGE_API) {
+            var fromApi = MENU_MAGE_API.getUgwIdFromItem(stack);
+            if (fromApi) return fromApi;
+        }
+    } catch (e) {}
+    return getUgwIdFromStack(stack);
+}
+
+ensureLocalGearCfg();
 
 function pane(mat, name, loreArr) {
     var item = new ItemStack(mat);
@@ -394,19 +606,24 @@ var C_CAP = "§x§f§f§6§7§a§7";        //rgb(255, 114, 173) 上限行
 
 /**
  * 可加点属性：
- * name：名称 + 当前数据
- * lore：描述 / （空行）当前总计来源 / 潜能使用 / 组件提供 / 潜能上限 / 全局上限
+ * name：名称 + 当前总计
+ * lore：描述 / 存档基础 + 组件提供（应与标题总计一致）
  */
-function buildAttrPane(mat, color, title, totalVal, descs, spentPts, per, equipVal, isPct, maxPts, hardCap) {
+function buildAttrPane(mat, color, title, totalVal, descs, baseVal, spentPts, per, equipVal, isPct, maxPts, hardCap) {
     var name = color + title + " §f+ " + formatStatVal(totalVal, isPct);
     var lore = [];
     var i;
     for (i = 0; i < descs.length; i++) lore.push(C_DESC + String(descs[i]));
     lore.push(" ");
     lore.push(C_DESC + "当前总计来源：");
-    lore.push(C_POT + "潜能使用 §f" + Math.max(0, Math.floor(Number(spentPts) || 0))
-        + " §7x §f" + formatStatVal(per, isPct));
-    lore.push(C_GEAR + "组件提供 §f" + formatStatVal(equipVal, isPct));
+    lore.push(C_POT + "存档基础 §f" + formatStatVal(baseVal, isPct));
+    if (Math.max(0, Math.floor(Number(spentPts) || 0)) > 0) {
+        lore.push(C_POT + "其中潜能 §f" + Math.max(0, Math.floor(Number(spentPts) || 0))
+            + " §7× §f" + formatStatVal(per, isPct));
+    }
+    if (Number(equipVal)) {
+        lore.push(C_GEAR + "组件提供 §f" + formatStatVal(equipVal, isPct));
+    }
     lore.push(C_CAP + "可使用潜能上限：§c" + formatPotMaxLabel(maxPts));
     lore.push(C_CAP + "全局上限：§c" + formatHardCapLabel(hardCap, !!isPct));
     return pane(mat, name, lore);
@@ -417,8 +634,77 @@ function descLine(text) {
 }
 
 function buildSeparator() {
-    return pane(Material.BLUE_STAINED_GLASS_PANE, "§9", [
-    ]);
+    return pane(Material.BLACK_STAINED_GLASS_PANE, "§0", null);
+}
+
+/** 属性中文名 + 百分比类标记（装配播报 / 本地加成汇总用） */
+var STAT_LABELS = {
+    particlePower: "粒子强度", cardiovascular: "心血管强度", particleRefraction: "粒子折射",
+    finalDamageReduction: "最终减伤", meleeDamage: "筋力解放", maxHealth: "肌脂提升",
+    armor: "骨骼结构", toughness: "体态掌控", speed: "心肺强化", reach: "体态协调",
+    magePotential: "术士潜能", bodyPotential: "体能潜能"
+};
+var PCT_STAT_KEYS = { cardiovascular: 1, particleRefraction: 1, finalDamageReduction: 1 };
+
+function mergeBonusMap(target, src) {
+    if (!src) return;
+    for (var k in src) {
+        if (Object.prototype.hasOwnProperty.call(src, k) && typeof src[k] === "number") {
+            target[k] = (target[k] || 0) + src[k];
+        }
+    }
+}
+
+function calcLocalEquipBonuses(uuid) {
+    var total = {
+        particlePower: 0, cardiovascular: 0, particleRefraction: 0, finalDamageReduction: 0,
+        meleeDamage: 0, maxHealth: 0, armor: 0, toughness: 0, speed: 0, reach: 0,
+        magePotential: 0, bodyPotential: 0
+    };
+    if (!loadMageCore() || !MENU_MAGE_API) return total;
+    var gear = MENU_MAGE_API.getPlayerGear(String(uuid));
+    var cfg = ensureLocalGearCfg();
+    if (!gear || !gear.slots || !cfg) return total;
+    for (var i = 0; i < gear.slots.length; i++) {
+        if (!gear.slots[i]) continue;
+        var slot = gear.slots[i];
+        var gearId = slot.sfId || null;
+        var item = gearSlotItem(slot);
+        if (!gearId && item) gearId = getSlimefunId(item);
+        if (!gearId) continue;
+        var entry = getGearEntryById(cfg, gearId);
+        if (entry && entry.bonuses) mergeBonusMap(total, entry.bonuses);
+    }
+    return total;
+}
+
+function getBonusesForStack(stack) {
+    var entry = getGearEntryById(ensureLocalGearCfg(), getSlimefunId(stack));
+    return entry && entry.bonuses ? entry.bonuses : null;
+}
+
+function formatBonusAnnounce(bonuses) {
+    if (!bonuses) return "";
+    var parts = [];
+    for (var k in bonuses) {
+        if (!Object.prototype.hasOwnProperty.call(bonuses, k)) continue;
+        var v = Number(bonuses[k]) || 0;
+        if (!v) continue;
+        var label = STAT_LABELS[k] || k;
+        parts.push(label + " §f+" + (PCT_STAT_KEYS[k] ? formatPct(v) : formatNum(v)));
+    }
+    return parts.join("§7，");
+}
+
+function announceEquip(player, stack, slotLabel) {
+    var entry = getGearEntryById(ensureLocalGearCfg(), getSlimefunId(stack));
+    var name = (entry && entry.name) ? entry.name : slotLabel;
+    var bonusText = formatBonusAnnounce(entry ? entry.bonuses : getBonusesForStack(stack));
+    if (bonusText) {
+        player.sendMessage(GLTC_PREFIX + "§a已装配 §e" + name + " §7→ 提升 " + bonusText);
+    } else {
+        player.sendMessage(GLTC_PREFIX + "§a已装备至 §e" + slotLabel);
+    }
 }
 
 function cloneData(obj) {
@@ -453,12 +739,110 @@ function gearSlotItem(slot) {
 }
 
 function getEquipBonuses(player) {
+    var uuid = String(player.getUniqueId().toString());
+    var local = calcLocalEquipBonuses(uuid);
+    var fromApi = null;
     try {
-        if (typeof MENU_MAGE_API.getEquipmentBonuses === "function") {
-            return MENU_MAGE_API.getEquipmentBonuses(player.getUniqueId().toString()) || {};
+        if (MENU_MAGE_API && MENU_MAGE_API.getEquipmentBonuses) {
+            fromApi = MENU_MAGE_API.getEquipmentBonuses(uuid);
         }
     } catch (e) {}
-    return {};
+    if (!fromApi) return local;
+    var merged = {};
+    var keys = ["particlePower", "cardiovascular", "particleRefraction", "finalDamageReduction",
+        "meleeDamage", "maxHealth", "armor", "toughness", "speed", "reach", "magePotential", "bodyPotential"];
+    for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        merged[k] = Math.max(Number(fromApi[k]) || 0, Number(local[k]) || 0);
+    }
+    return merged;
+}
+
+/** 菜单显示用总计：属性加成不含潜能（潜能已在装配时写入存档） */
+function buildMenuTotal(player, base) {
+    var equip = getEquipBonuses(player);
+    var staff = null;
+    if (MENU_MAGE_API && typeof MENU_MAGE_API.emptyBonuses === "function") {
+        staff = MENU_MAGE_API.emptyBonuses();
+    }
+    if (!staff) {
+        staff = {
+            particlePower: 0, cardiovascular: 0, particleRefraction: 0, finalDamageReduction: 0,
+            meleeDamage: 0, maxHealth: 0, armor: 0, toughness: 0, speed: 0, reach: 0,
+            magePotential: 0, bodyPotential: 0
+        };
+    }
+    var statEquip = equip;
+    if (typeof MENU_MAGE_API.equipStatBonusesOnly === "function") {
+        statEquip = MENU_MAGE_API.equipStatBonusesOnly(equip);
+    } else {
+        statEquip = {
+            particlePower: equip.particlePower, cardiovascular: equip.cardiovascular,
+            particleRefraction: equip.particleRefraction, finalDamageReduction: equip.finalDamageReduction,
+            meleeDamage: equip.meleeDamage, maxHealth: equip.maxHealth, armor: equip.armor,
+            toughness: equip.toughness, speed: equip.speed, reach: equip.reach,
+            magePotential: 0, bodyPotential: 0
+        };
+    }
+    if (typeof MENU_MAGE_API.buildTotalStatsObject === "function") {
+        return MENU_MAGE_API.buildTotalStatsObject(base, statEquip, staff);
+    }
+    var out = {
+        mageLevel: Math.max(0, Math.min(8, Number(base.mageLevel) || 0)),
+        proficiency: Math.max(0, Math.min(8, Number(base.proficiency) || 0)),
+        magePotential: Math.max(0, Number(base.magePotential) || 0),
+        bodyPotential: Math.max(0, Number(base.bodyPotential) || 0)
+    };
+    var statKeys = ["particlePower", "cardiovascular", "particleRefraction", "finalDamageReduction",
+        "meleeDamage", "maxHealth", "armor", "toughness", "speed", "reach"];
+    for (var ti = 0; ti < statKeys.length; ti++) {
+        var sk = statKeys[ti];
+        out[sk] = (Number(base[sk]) || 0) + (Number(statEquip[sk]) || 0) + (Number(staff[sk]) || 0);
+    }
+    return out;
+}
+
+function syncStatsTotalsAfterGear(uuid) {
+    if (!MENU_MAGE_API) return;
+    try {
+        if (typeof MENU_MAGE_API.syncStatsTotalsAfterGearChange === "function") {
+            MENU_MAGE_API.syncStatsTotalsAfterGearChange(String(uuid));
+            return;
+        }
+    } catch (e0) {}
+    try {
+        var stats = MENU_MAGE_API.getPlayerStats(String(uuid));
+        MENU_MAGE_API.savePlayerStats(String(uuid), stats);
+    } catch (e1) {}
+}
+
+function applyPotentialFromStack(player, stack, sign, session) {
+    if (!stack || !MENU_MAGE_API || typeof MENU_MAGE_API.applyEquipPotentialChange !== "function") return;
+    var bonuses = getBonusesForStack(stack);
+    if (!bonuses) return;
+    var dm = sign * (Number(bonuses.magePotential) || 0);
+    var db = sign * (Number(bonuses.bodyPotential) || 0);
+    if (!dm && !db) return;
+    var uuid = String(player.getUniqueId().toString());
+    if (session && session.stats) {
+        MENU_MAGE_API.applyEquipPotentialChange(session.stats, dm, db);
+        session.dirty = true;
+        return;
+    }
+    var stats = MENU_MAGE_API.getPlayerStats(uuid);
+    MENU_MAGE_API.applyEquipPotentialChange(stats, dm, db);
+    MENU_MAGE_API.savePlayerStats(uuid, stats);
+}
+
+function maybeSyncUgwLore(stack) {
+    if (!stack || !MENU_MAGE_API) return stack;
+    try {
+        if (typeof MENU_MAGE_API.shouldSyncUgwLore === "function" && !MENU_MAGE_API.shouldSyncUgwLore(stack)) {
+            return stack;
+        }
+        if (typeof MENU_MAGE_API.syncUgwLore === "function") return MENU_MAGE_API.syncUgwLore(stack);
+    } catch (e) {}
+    return stack;
 }
 
 function hardCapOf(statKey, isPct) {
@@ -479,13 +863,17 @@ function refreshStatIcons(inv, player) {
     } catch (eEns) {}
 
     var total;
-    if (session && session.dirty && session.stats && typeof MENU_MAGE_API.getTotalStatsFromBase === "function") {
-        total = MENU_MAGE_API.getTotalStatsFromBase(player, session.stats);
+    if (session && session.stats) {
+        total = buildMenuTotal(player, session.stats);
     } else {
         try { MENU_MAGE_API.invalidatePlayerCache(player.getUniqueId().toString()); } catch (eInv) {}
-        total = MENU_MAGE_API.getTotalStats(player, true);
+        total = buildMenuTotal(player, MENU_MAGE_API.getPlayerStats(player.getUniqueId().toString()));
     }
     var equip = getEquipBonuses(player);
+    var statEquip = equip;
+    if (typeof MENU_MAGE_API.equipStatBonusesOnly === "function") {
+        statEquip = MENU_MAGE_API.equipStatBonusesOnly(equip);
+    }
     var mageOpt = MENU_MAGE_API.MAGE_POINT_OPTIONS || {};
     var bodyOpt = MENU_MAGE_API.BODY_POINT_OPTIONS || {};
     var gli = MENU_MAGE_API.getGLI();
@@ -501,9 +889,10 @@ function refreshStatIcons(inv, player) {
     inv.setItem(STAT_SLOTS.particlePower, buildAttrPane(
         Material.AMETHYST_SHARD, "§b", "粒子强度", total.particlePower,
         ["提升自身粒子的强度与控制能力","最终伤害 = 强度 × 术式系数 × GLI"],
+        Number(base.particlePower) || 0,
         getSpentPts(base, "mage", "particlePower"),
         (mageOpt.particlePower && mageOpt.particlePower.per) || 0.1,
-        Number(equip.particlePower) || 0, false,
+        Number(statEquip.particlePower) || 0, false,
         optMaxPoints(mageOpt.particlePower),
         hardCapOf("particlePower", false)
     ));
@@ -513,41 +902,46 @@ function refreshStatIcons(inv, player) {
             "提升供氧与心血管系统强度，减少术式冷却",
             "当前术式的最终冷却比例： " + formatPct(Math.max(0.01, 1 - (Number(total.cardiovascular) || 0)))
         ],
+        Number(base.cardiovascular) || 0,
         getSpentPts(base, "mage", "cardiovascular"),
         (mageOpt.cardiovascular && mageOpt.cardiovascular.per) || 0.01,
-        Number(equip.cardiovascular) || 0, true,
+        Number(statEquip.cardiovascular) || 0, true,
         optMaxPoints(mageOpt.cardiovascular) || 32,
         hardCapOf("cardiovascular", true)
     ));
     inv.setItem(STAT_SLOTS.refraction, buildAttrPane(
         Material.PRISMARINE_CRYSTALS, "§3", "粒子折射", total.particleRefraction,
         ["折射粒子射流，减少受到的粒子伤害"],
+        Number(base.particleRefraction) || 0,
         getSpentPts(base, "mage", "particleRefraction"),
         (mageOpt.particleRefraction && mageOpt.particleRefraction.per) || 0.02,
-        Number(equip.particleRefraction) || 0, true,
+        Number(statEquip.particleRefraction) || 0, true,
         optMaxPoints(mageOpt.particleRefraction) || 24,
         hardCapOf("particleRefraction", true)
     ));
     inv.setItem(STAT_SLOTS.finalDR, buildAttrPane(
         Material.SHIELD, "§6", "最终减伤", total.finalDamageReduction,
         ["影响常规伤害与粒子伤害", "无法影响脉冲伤害"],
+        Number(base.finalDamageReduction) || 0,
         getSpentPts(base, "mage", "finalDamageReduction"),
         (mageOpt.finalDamageReduction && mageOpt.finalDamageReduction.per) || 0.02,
-        Number(equip.finalDamageReduction) || 0, true,
+        Number(statEquip.finalDamageReduction) || 0, true,
         optMaxPoints(mageOpt.finalDamageReduction) || 24,
         hardCapOf("finalDamageReduction", true)
     ));
 
     var magePtsLore = [
         descLine("用于提升驭粒相关能力的潜能，"),
-        descLine("术士等级提升时能获得。")
+        descLine("术士等级提升时能获得。"),
+        descLine("潜能组件加成在装配时直接并入此数值")
     ];
     if (saveTip) magePtsLore.push(saveTip);
     inv.setItem(STAT_SLOTS.magePts, pane(Material.PURPLE_DYE, "§d术士潜能 §f+ " + formatNum(total.magePotential), magePtsLore));
 
     var bodyPtsLore = [
         descLine("用于提升通用身体机能的潜能，"),
-        descLine("术士等级提升时能获得。")
+        descLine("术士等级提升时能获得。"),
+        descLine("潜能组件加成在装配时直接并入此数值")
     ];
     if (saveTip) bodyPtsLore.push(saveTip);
     inv.setItem(STAT_SLOTS.bodyPts, pane(Material.LIME_DYE, "§a体能潜能 §f+ " + formatNum(total.bodyPotential), bodyPtsLore));
@@ -562,54 +956,60 @@ function refreshStatIcons(inv, player) {
     inv.setItem(STAT_SLOTS.melee, buildAttrPane(
         Material.IRON_SWORD, "§f", "筋力解放", total.meleeDamage,
         ["解放肌肉与神经协调上限","提升近战伤害白值"],
+        Number(base.meleeDamage) || 0,
         getSpentPts(base, "body", "meleeDamage"),
         (bodyOpt.meleeDamage && bodyOpt.meleeDamage.per) || 0.6,
-        Number(equip.meleeDamage) || 0, false,
+        Number(statEquip.meleeDamage) || 0, false,
         optMaxPoints(bodyOpt.meleeDamage),
         hardCapOf("meleeDamage", false)
     ));
     inv.setItem(STAT_SLOTS.maxHealth, buildAttrPane(
         Material.GOLDEN_APPLE, "§f", "肌脂提升", total.maxHealth,
         ["提升脂肪与肌肉的糅合强度","提升血量白值"],
+        Number(base.maxHealth) || 0,
         getSpentPts(base, "body", "maxHealth"),
         (bodyOpt.maxHealth && bodyOpt.maxHealth.per) || 8,
-        Number(equip.maxHealth) || 0, false,
+        Number(statEquip.maxHealth) || 0, false,
         optMaxPoints(bodyOpt.maxHealth),
         hardCapOf("maxHealth", false)
     ));
     inv.setItem(STAT_SLOTS.armor, buildAttrPane(
         Material.IRON_CHESTPLATE, "§f", "骨骼结构", total.armor,
         ["优化、改进自身的整体骨骼结构","提升防御值白值"],
+        Number(base.armor) || 0,
         getSpentPts(base, "body", "armor"),
         (bodyOpt.armor && bodyOpt.armor.per) || 2,
-        Number(equip.armor) || 0, false,
+        Number(statEquip.armor) || 0, false,
         optMaxPoints(bodyOpt.armor) || 16,
         hardCapOf("armor", false)
     ));
     inv.setItem(STAT_SLOTS.toughness, buildAttrPane(
         Material.NETHERITE_CHESTPLATE, "§f", "体态掌控", total.toughness,
         ["进一步擢升椎反应与身体协调","提升韧性白值"],
+        Number(base.toughness) || 0,
         getSpentPts(base, "body", "toughness"),
         (bodyOpt.toughness && bodyOpt.toughness.per) || 0.4,
-        Number(equip.toughness) || 0, false,
+        Number(statEquip.toughness) || 0, false,
         optMaxPoints(bodyOpt.toughness) || 25,
         hardCapOf("toughness", false)
     ));
     inv.setItem(STAT_SLOTS.speed, buildAttrPane(
         Material.SUGAR, "§f", "心肺强化", total.speed,
         ["全方位强化氧转化与肌肉活性","提升速度白值"],
+        Number(base.speed) || 0,
         getSpentPts(base, "body", "speed"),
         (bodyOpt.speed && bodyOpt.speed.per) || 0.005,
-        Number(equip.speed) || 0, false,
+        Number(statEquip.speed) || 0, false,
         optMaxPoints(bodyOpt.speed) || 48,
         hardCapOf("speed", false)
     ));
     inv.setItem(STAT_SLOTS.reach, buildAttrPane(
         Material.STICK, "§f", "体态协调", total.reach,
         ["掌握自己的全身系统与核心稳定","提升手长白值"],
+        Number(base.reach) || 0,
         getSpentPts(base, "body", "reach"),
         (bodyOpt.reach && bodyOpt.reach.per) || 0.1,
-        Number(equip.reach) || 0, false,
+        Number(statEquip.reach) || 0, false,
         optMaxPoints(bodyOpt.reach),
         hardCapOf("reach", false)
     ));
@@ -637,6 +1037,7 @@ function paintMenu(inv, player) {
     refreshStatIcons(inv, player);
 }
 
+
 function syncAllRelatedData(player) {
     if (!player || !(player instanceof Player)) return;
     if (!loadMageCore() || !MENU_MAGE_API) return;
@@ -645,18 +1046,11 @@ function syncAllRelatedData(player) {
     try { MENU_MAGE_API.applyMageAttributes(player); } catch (e1) {}
 }
 
-function isMageMenuTop(inv) {
-    try { return activeInventories.contains(inv); } catch (e) { return false; }
-}
-
-/** 取消点击后改物品须延后 1 tick，否则 Paper 回滚 */
-function deferMenuAction(player, top, fn) {
+/** 取消点击后改物品须延后 1 tick，否则 Paper 回滚（同术式承载转换仪） */
+function runNextTick(fn) {
     try {
         Bukkit.getScheduler().runTask(PLUGIN, function() {
-            try {
-                if (!player.isOnline() || !isMageMenuTop(top)) return;
-                fn();
-            } catch (eRun) {
+            try { fn(); } catch (eRun) {
                 try { Bukkit.getLogger().warning("[GLTC装备菜单] 延后任务异常: " + eRun); } catch (eL) {}
             }
         });
@@ -665,24 +1059,18 @@ function deferMenuAction(player, top, fn) {
     }
 }
 
-/** 延後到下一 tick，避免在 InventoryClick/Close 事件堆疊中阻塞主執行緒 */
 function scheduleSyncAllRelatedData(player) {
     if (!player || !(player instanceof Player)) return;
-    try {
-        Bukkit.getScheduler().runTask(PLUGIN, function() {
-            try { syncAllRelatedData(player); } catch (e) {}
-        });
-    } catch (eSch) {
-        syncAllRelatedData(player);
-    }
+    runNextTick(function() { syncAllRelatedData(player); });
 }
 
 function openMageMenu(player) {
+    ensureLocalGearCfg();
     if (!loadMageCore()) {
         player.sendMessage(GLTC_PREFIX + "§c术士核心未加载。");
         return;
     }
-    if (!MENU_MAGE_API.getGearConfig()) {
+    if (!getSlotDefs().length) {
         player.sendMessage(GLTC_PREFIX + "§c装备加成表未加载。");
         return;
     }
@@ -694,14 +1082,9 @@ function openMageMenu(player) {
     try {
         if (typeof MENU_MAGE_API.ensureSpentMaps === "function") MENU_MAGE_API.ensureSpentMaps(stats);
     } catch (e1) {}
-    var session = {
-        uuid: uuid,
-        stats: stats,
-        dirty: false
-    };
-    sessionByInv.put(inv, session);
-    paintMenu(inv, player);
+    sessionByInv.put(inv, { uuid: uuid, stats: stats, dirty: false });
     activeInventories.add(inv);
+    paintMenu(inv, player);
     player.openInventory(inv);
     try { player.playSound(player.getLocation(), "minecraft:block.vault.open_shutter", 1.0, 1.0); } catch (eSnd) {}
 }
@@ -715,12 +1098,24 @@ function equipSlotIndex(rawSlot) {
 }
 
 function giveOrDrop(player, item) {
+    if (!item || item.getType() === Material.AIR) return;
     var left = player.getInventory().addItem(item);
     var it = left.values().iterator();
     while (it.hasNext()) player.getWorld().dropItemNaturally(player.getLocation(), it.next());
 }
 
-/** 取走背包格中 1 个（堆叠则减 1） */
+/** 同刻录仪：取消点击后归还光标物品，避免干扰背包识别 */
+function refundCursor(player, event) {
+    try {
+        var cursor = event.getCursor();
+        if (cursor != null && cursor.getType() !== Material.AIR) {
+            var copy = cursor.clone();
+            event.setCursor(null);
+            giveOrDrop(player, copy);
+        }
+    } catch (e) {}
+}
+
 function takeOneFromInventorySlot(inv, slot) {
     var stack = inv.getItem(slot);
     if (!stack || stack.getType() === Material.AIR) return null;
@@ -734,39 +1129,64 @@ function takeOneFromInventorySlot(inv, slot) {
     return one;
 }
 
-/** 找第一个空且类型匹配的装备槽 */
-function findEmptyEquipSlot(stack, gear, playerUuid) {
+function isUgwStack(stack) {
+    if (!stack || stack.getType() === Material.AIR) return false;
+    var local = ensureLocalGearCfg();
+    if (getGearEntryById(local, getSlimefunId(stack))) return true;
+    if (getUgwCategoryFromLore(stack)) return true;
+    var ugwId = getUgwIdFromStack(stack);
+    if (ugwId && UGW_LETTER_TO_CATEGORY[String(ugwId).charAt(0)]) return true;
+    try {
+        if (MENU_MAGE_API && MENU_MAGE_API.isMageAccessory(stack)) return true;
+    } catch (e0) {}
+    return false;
+}
+
+function findEmptyEquipSlot(stack, gear, uuid) {
     var defs = getSlotDefs();
     for (var i = 0; i < defs.length; i++) {
         if (gear.slots[i]) continue;
-        if (MENU_MAGE_API.canEquipInSlot(stack, i, playerUuid)) return i;
+        if (canEquipInSlotForMenu(stack, i, uuid)) return i;
     }
     return -1;
 }
 
 function tryEquipUgwFromBag(player, top, bagSlot) {
+    if (!player.isOnline() || !activeInventories.contains(top)) return;
     if (!loadMageCore() || !MENU_MAGE_API) return;
     var bottom;
     try { bottom = player.getOpenInventory().getBottomInventory(); } catch (eInv) { return; }
-    if (!bottom || !isMageMenuTop(top)) return;
+    if (!bottom) return;
     var stack = bottom.getItem(bagSlot);
     if (!stack || stack.getType() === Material.AIR) return;
+    if (!isUgwStack(stack)) {
+        player.sendMessage(GLTC_PREFIX + "§c无法识别为术士组件。");
+        return;
+    }
 
-    var kind = MENU_MAGE_API.getUgwKind(stack);
-    if (!kind) return;
-
-    var uuid = player.getUniqueId().toString();
+    var kind = getUgwKindForMenu(stack);
+    var uuid = String(player.getUniqueId().toString());
     if (kind === "regular") {
-        var ownerCheck = MENU_MAGE_API.validateRegularUgwOwner(player, stack);
+        var ownerCheck = { ok: true, msg: "" };
+        try {
+            ownerCheck = MENU_MAGE_API.validateRegularUgwOwner(player, stack);
+        } catch (eOwn) {
+            var creator = getUgwCreatorFromStack(stack);
+            if (creator && String(creator) !== uuid) {
+                ownerCheck = { ok: false, msg: "该组件的制作者不是你，无法装备。" };
+            }
+        }
         if (!ownerCheck.ok) {
             player.sendMessage(GLTC_PREFIX + "§c" + ownerCheck.msg);
             return;
         }
-        var ugwId = MENU_MAGE_API.getUgwIdFromItem(stack);
-        var removed = MENU_MAGE_API.dedupeRegularUgwInBag(player, ugwId, bagSlot);
-        if (removed > 0) {
-            player.sendMessage(GLTC_PREFIX + "§7已删除背包中 §e" + removed + " §7件重复的常规组件。");
-        }
+        var ugwId = resolveUgwId(stack);
+        try {
+            var removed = MENU_MAGE_API.dedupeRegularUgwInBag(player, ugwId, bagSlot);
+            if (removed > 0) {
+                player.sendMessage(GLTC_PREFIX + "§7已删除背包中 §e" + removed + " §7件重复的常规组件。");
+            }
+        } catch (eDed) {}
     }
 
     var gear = MENU_MAGE_API.getPlayerGear(uuid);
@@ -777,34 +1197,50 @@ function tryEquipUgwFromBag(player, top, bagSlot) {
     }
     var one = takeOneFromInventorySlot(bottom, bagSlot);
     if (!one) return;
-    if (kind === "regular") one = MENU_MAGE_API.dedupeUgwOnEquip(player, one);
-    one = MENU_MAGE_API.syncUgwLore(one);
-    var defs = getSlotDefs();
-    gear.slots[idx] = { ugwId: MENU_MAGE_API.getUgwIdFromItem(one), item: MENU_MAGE_API.itemToBase64(one) };
-    MENU_MAGE_API.savePlayerGear(uuid, gear);
-    try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
-    scheduleSyncAllRelatedData(player);
-    top.setItem(defs[idx].gui, one.clone());
-    refreshStatIcons(top, player);
-    player.sendMessage(GLTC_PREFIX + "§a已装备至 §e" + defs[idx].label);
+    try {
+        if (kind === "regular") {
+            try { one = MENU_MAGE_API.dedupeUgwOnEquip(player, one); } catch (eDed) {}
+        }
+        one = maybeSyncUgwLore(one);
+        var session = getSession(top);
+        applyPotentialFromStack(player, one, 1, session);
+        var defs = getSlotDefs();
+        gear.slots[idx] = {
+            ugwId: resolveUgwId(one),
+            sfId: getSlimefunId(one),
+            item: MENU_MAGE_API.itemToBase64(one)
+        };
+        MENU_MAGE_API.savePlayerGear(uuid, gear);
+        syncStatsTotalsAfterGear(uuid);
+        try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+        syncAllRelatedData(player);
+        top.setItem(defs[idx].gui, one.clone());
+        refreshStatIcons(top, player);
+        announceEquip(player, one, defs[idx].label);
+    } catch (eEq) {
+        try { giveOrDrop(player, one); } catch (eGive) {}
+        try { Bukkit.getLogger().warning("[GLTC装备菜单] 装备失败: " + eEq); } catch (eL) {}
+        player.sendMessage(GLTC_PREFIX + "§c装备失败，组件已归还。");
+    }
 }
 
 function unequipToPlayerInv(player, top, idx) {
-    var uuid = player.getUniqueId().toString();
+    if (!player.isOnline() || !activeInventories.contains(top)) return;
+    var uuid = String(player.getUniqueId().toString());
     var gear = MENU_MAGE_API.getPlayerGear(uuid);
     var slotEntry = gear.slots[idx];
     if (!slotEntry) return;
     var item = gearSlotItem(slotEntry);
+    var session = getSession(top);
+    applyPotentialFromStack(player, item, -1, session);
     gear.slots[idx] = null;
     MENU_MAGE_API.savePlayerGear(uuid, gear);
+    syncStatsTotalsAfterGear(uuid);
     try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
     scheduleSyncAllRelatedData(player);
     var defs = getSlotDefs();
     top.setItem(defs[idx].gui, buildEmptySlot(defs[idx]));
-    if (item) {
-        if (typeof MENU_MAGE_API.syncUgwLore === "function") item = MENU_MAGE_API.syncUgwLore(item);
-        giveOrDrop(player, item);
-    }
+    if (item) giveOrDrop(player, maybeSyncUgwLore(item));
     refreshStatIcons(top, player);
     player.sendMessage(GLTC_PREFIX + "§e已卸下 §f" + defs[idx].label);
 }
@@ -818,7 +1254,7 @@ function trySpendClick(player, raw, inv) {
         if (!rr.ok) { player.sendMessage(GLTC_PREFIX + "§c" + rr.msg); return true; }
         session.dirty = true;
         player.sendMessage(GLTC_PREFIX + "§a已重置潜能：§d术士 +" + rr.mage + " §7/ §a体能 +" + rr.body
-            + " §7(现有 §d" + rr.mageLeft + " §7/ §a" + rr.bodyLeft + "§7) §8(待关闭保存)");
+            + " §7(现有 §d" + rr.mageLeft + " §7/ §a" + rr.bodyLeft + "§7)");
         refreshStatIcons(inv, player);
         return true;
     }
@@ -826,7 +1262,7 @@ function trySpendClick(player, raw, inv) {
         var r = MENU_MAGE_API.spendPotentialOnData(session.stats, "mage", MAGE_CLICK[raw]);
         if (!r.ok) { player.sendMessage(GLTC_PREFIX + "§c" + r.msg); return true; }
         session.dirty = true;
-        player.sendMessage(GLTC_PREFIX + "§a术士潜能：§f" + r.msg + " §7(剩余 " + r.left + ") §8(待关闭保存)");
+        player.sendMessage(GLTC_PREFIX + "§a术士潜能：§f" + r.msg + " §7(剩余 " + r.left + ")");
         refreshStatIcons(inv, player);
         return true;
     }
@@ -834,7 +1270,7 @@ function trySpendClick(player, raw, inv) {
         var r2 = MENU_MAGE_API.spendPotentialOnData(session.stats, "body", BODY_CLICK[raw]);
         if (!r2.ok) { player.sendMessage(GLTC_PREFIX + "§c" + r2.msg); return true; }
         session.dirty = true;
-        player.sendMessage(GLTC_PREFIX + "§a体能潜能：§f" + r2.msg + " §7(剩余 " + r2.left + ") §8(待关闭保存)");
+        player.sendMessage(GLTC_PREFIX + "§a体能潜能：§f" + r2.msg + " §7(剩余 " + r2.left + ")");
         refreshStatIcons(inv, player);
         return true;
     }
@@ -844,45 +1280,43 @@ function trySpendClick(player, raw, inv) {
 function commitMageSession(player, session) {
     if (!session || !loadMageCore()) return;
     var uuid = session.uuid;
-    if (session.dirty) {
-        try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
-        var ok = MENU_MAGE_API.savePlayerStats(uuid, session.stats);
-        if (ok) {
-            player.sendMessage(GLTC_PREFIX + "§a潜能改动已写入。");
-            // 通知监听上下文清缓存，并重发 Java 桥（闭包钉死最新 API）
-            try {
-                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
-                var store = RSC.INSTANCE != null ? RSC.INSTANCE.gltcJavaBridges : null;
-                if (store == null) store = PLUGIN.gltcJavaBridges;
-                if (store != null) {
-                    var invBr = store.get("gltcMage_invalidateCache");
-                    if (invBr != null && invBr.accept != null) invBr.accept(String(uuid));
-                }
-            } catch (eInvBr) {}
-        } else {
-            player.sendMessage(GLTC_PREFIX + "§c潜能写入失败。");
-        }
+    if (!session.dirty) {
+        scheduleSyncAllRelatedData(player);
+        return;
+    }
+    try {
+        if (typeof MENU_MAGE_API.ensureSpentFields === "function") MENU_MAGE_API.ensureSpentFields(session.stats);
+        else if (typeof MENU_MAGE_API.ensureSpentMaps === "function") MENU_MAGE_API.ensureSpentMaps(session.stats);
+    } catch (eEns) {}
+    try { MENU_MAGE_API.invalidatePlayerCache(uuid); } catch (e0) {}
+    var ok = MENU_MAGE_API.savePlayerStats(uuid, session.stats);
+    if (ok) {
+        player.sendMessage(GLTC_PREFIX + "§a潜能改动已写入。");
+        try {
+            var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+            var store = RSC.INSTANCE != null ? RSC.INSTANCE.gltcJavaBridges : null;
+            if (store == null) store = PLUGIN.gltcJavaBridges;
+            if (store != null) {
+                var invBr = store.get("gltcMage_invalidateCache");
+                if (invBr != null && invBr.accept != null) invBr.accept(String(uuid));
+            }
+        } catch (eInvBr) {}
+    } else {
+        player.sendMessage(GLTC_PREFIX + "§c潜能写入失败。");
     }
     scheduleSyncAllRelatedData(player);
 }
 
-/** 关闭面板时延后提交，避免在 InventoryClick/Close 嵌套中阻塞主线程 */
 function scheduleCommitMageSession(player, session) {
     if (!player || !(player instanceof Player)) return;
     if (!session) {
         scheduleSyncAllRelatedData(player);
         return;
     }
-    try {
-        Bukkit.getScheduler().runTask(PLUGIN, function() {
-            try {
-                if (!player.isOnline()) return;
-                commitMageSession(player, session);
-            } catch (e) {}
-        });
-    } catch (eSch) {
+    runNextTick(function() {
+        if (!player.isOnline()) return;
         commitMageSession(player, session);
-    }
+    });
 }
 
 function onUse(event) {
@@ -892,17 +1326,26 @@ function onUse(event) {
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === Material.AIR) return;
     try {
-        var sf = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem").getByItem(item);
+        var sf = SlimefunItem.getByItem(item);
         if (!sf || sf.getId() !== MENU_ITEM_ID) return;
     } catch (e2) { return; }
     openMageMenu(player);
 }
 
 function registerListeners() {
-    if (_listenerRegistered) return;
-    _listenerRegistered = true;
+    try {
+        if (PLUGIN.gltcMageMenuListener != null) {
+            InventoryClickEvent.getHandlerList().unregister(PLUGIN.gltcMageMenuListener);
+            InventoryDragEvent.getHandlerList().unregister(PLUGIN.gltcMageMenuListener);
+            InventoryCloseEvent.getHandlerList().unregister(PLUGIN.gltcMageMenuListener);
+            PlayerDropItemEvent.getHandlerList().unregister(PLUGIN.gltcMageMenuListener);
+            PlayerSwapHandItemsEvent.getHandlerList().unregister(PLUGIN.gltcMageMenuListener);
+        }
+    } catch (eUn) {}
+
     var ListenerClass = Java.extend(Listener, {});
     var listenerInstance = new ListenerClass();
+    PLUGIN.gltcMageMenuListener = listenerInstance;
 
     Bukkit.getPluginManager().registerEvent(
         InventoryClickEvent, listenerInstance, EventPriority.HIGH,
@@ -911,32 +1354,55 @@ function registerListeners() {
             if (!activeInventories.contains(top)) return;
             var player = event.getWhoClicked();
             if (!(player instanceof Player)) return;
-            if (!loadMageCore()) return;
 
-            // 禁止移动/拿起物品；仅允许 GUI 加点、卸下、背包左/右键装备 UGW
+            var click = event.getClick();
+            if (click === ClickType.DOUBLE_CLICK || click === ClickType.NUMBER_KEY
+                || click === ClickType.SWAP_OFFHAND || click === ClickType.DROP
+                || click === ClickType.CONTROL_DROP || click === ClickType.CREATIVE
+                || click === ClickType.SHIFT_LEFT || click === ClickType.SHIFT_RIGHT) {
+                event.setCancelled(true);
+                refundCursor(player, event);
+                return;
+            }
+
+            if (!loadMageCore()) {
+                event.setCancelled(true);
+                refundCursor(player, event);
+                player.sendMessage(GLTC_PREFIX + "§c术士核心未加载，无法操作。");
+                return;
+            }
+
             event.setCancelled(true);
+            refundCursor(player, event);
 
             var raw = event.getRawSlot();
-            var clicked = event.getClickedInventory();
-            var click = event.getClick();
+            var clickName = String(click.name());
+            var isLeft = clickName === "LEFT";
+            var isRight = clickName === "RIGHT";
 
-            if (clicked === top) {
+            if (raw >= 0 && raw < top.getSize()) {
                 if (trySpendClick(player, raw, top)) return;
                 var idx = equipSlotIndex(raw);
-                if (idx >= 0 && click === ClickType.LEFT) {
-                    deferMenuAction(player, top, function() { unequipToPlayerInv(player, top, idx); });
+                if (idx >= 0 && isLeft) {
+                    runNextTick(function() { unequipToPlayerInv(player, top, idx); });
                 }
                 return;
             }
 
-            if (raw >= top.getSize() && (click === ClickType.LEFT || click === ClickType.RIGHT)) {
+            if (raw >= top.getSize() && (isLeft || isRight)) {
                 var cur = event.getCurrentItem();
-                if (cur && cur.getType() !== Material.AIR && MENU_MAGE_API.isMageAccessory(cur)) {
-                    var bagSlot = event.getSlot();
-                    deferMenuAction(player, top, function() {
-                        tryEquipUgwFromBag(player, top, bagSlot);
-                    });
+                if (!cur || cur.getType() === Material.AIR) return;
+                if (!isUgwStack(cur)) {
+                    if (hasUgwLoreMarkers(cur)) {
+                        player.sendMessage(GLTC_PREFIX + "§c无法识别为术士组件。");
+                    }
+                    return;
                 }
+                var bagSlot = event.getSlot();
+                runNextTick(function() {
+                    if (!activeInventories.contains(top)) return;
+                    tryEquipUgwFromBag(player, top, bagSlot);
+                });
             }
         }, PLUGIN
     );
@@ -960,15 +1426,15 @@ function registerListeners() {
                 try { session = sessionByInv.get(inv); sessionByInv.remove(inv); } catch (e1) {}
             }
             var p = event.getPlayer();
-            if (p instanceof Player && MENU_MAGE_API) scheduleCommitMageSession(p, session);
+            if (p instanceof Player) scheduleCommitMageSession(p, session);
         }, PLUGIN
     );
 
-    function blockIfMenuOpen(event) {
+    function blockIfMenuOpen(l, event) {
         var p = event.getPlayer();
         if (!(p instanceof Player)) return;
         try {
-            if (isMageMenuTop(p.getOpenInventory().getTopInventory())) event.setCancelled(true);
+            if (activeInventories.contains(p.getOpenInventory().getTopInventory())) event.setCancelled(true);
         } catch (e) {}
     }
 

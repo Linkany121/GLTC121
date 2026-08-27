@@ -177,6 +177,26 @@ var GLTC_SHARED_ROOT_API = gltcEvalScript("_gltcSharedRoot.js", true);
     }
 })();
 
+(function preloadRuntimeCastHelper() {
+    try {
+        var loader = PLUGIN.gltcScriptLoader;
+        if (!loader || !loader.evalScriptExport) return;
+        var api = loader.evalScriptExport("术式/_runtimeCast.js", { isolated: true, cache: true });
+        if (api != null) {
+            try { PLUGIN.gltcRuntimeCastApi = api; } catch (e0) {}
+            try {
+                var RSC = Java.type("org.lins.mmmjjkx.rykenslimefuncustomizer.RykenSlimefunCustomizer");
+                if (RSC.INSTANCE != null) RSC.INSTANCE.gltcRuntimeCastApi = api;
+            } catch (eInst) {}
+            Bukkit.getLogger().info("[GLTC监听] 已加载 术式/_runtimeCast.js");
+        } else {
+            Bukkit.getLogger().warning("[GLTC监听] 术式/_runtimeCast.js 预加载失败（文件是否存在？）");
+        }
+    } catch (e) {
+        Bukkit.getLogger().warning("[GLTC监听] _runtimeCast 预加载异常: " + e);
+    }
+})();
+
 (function initSharedMapsEarly() {
     var CHM = Java.type("java.util.concurrent.ConcurrentHashMap");
     var sharedRoot = null;
@@ -295,43 +315,66 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
             } catch (e2) {}
         }, PLUGIN
     );
+    var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
+    /** 粒子/脉冲：清零所有非 BASE 的 DamageModifier（护甲、保护附魔、抗性、格挡、吸收等） */
+    function applyTrueSpellDamage(event, trueAmount) {
+        var amt = Number(trueAmount);
+        if (!(amt >= 0) || !isFinite(amt)) amt = Math.max(0, Number(event.getDamage()) || 0);
+        try {
+            var DM = EntityDamageEvent.DamageModifier;
+            var mods = DM.values();
+            for (var mi = 0; mi < mods.length; mi++) {
+                if (mods[mi] === DM.BASE) continue;
+                try { event.setDamage(mods[mi], 0); } catch (eZ) {}
+            }
+            event.setDamage(DM.BASE, amt);
+        } catch (eMod) {
+            try { event.setDamage(amt); } catch (eFb) {}
+        }
+        try {
+            event.getEntity().setMetadata("gltc_spell_bypass_armor", new FixedMetadataValue0(PLUGIN, java.lang.Boolean.TRUE));
+        } catch (eFlag) {}
+    }
+    function readMetaDouble(entity, key) {
+        try {
+            if (!entity.hasMetadata(key)) return 0;
+            return Number(entity.getMetadata(key).get(0).value());
+        } catch (e) { return 0; }
+    }
     Bukkit.getPluginManager().registerEvent(
         EntityDamageEvent, listenerInstance, EventPriority.HIGHEST,
         function(l, event) {
             if (event.isCancelled()) return;
             var entity = event.getEntity();
-            if (!(entity instanceof Player)) return;
+            try { if (!(entity instanceof LivingEntity)) return; } catch (eEnt) { return; }
             try {
-                var api = GLTC_MAGE_API != null ? GLTC_MAGE_API : PLUGIN.gltcMageApi;
-                if (!api) return;
-                // 脉冲伤害：不吃粒子折射、不吃最终减伤
-                if (api.isPulseDamage && api.isPulseDamage(entity)) {
-                    try { entity.removeMetadata("gltc_pulse_hit", PLUGIN); } catch (ePulse) {}
+                // 粒子/脉冲优先处理，不依赖 mage API 是否就绪
+                var particleAmt = readMetaDouble(entity, "gltc_spell_particle_hit");
+                var isPulseMeta = false;
+                try { isPulseMeta = entity.hasMetadata("gltc_pulse_hit"); } catch (ePm) {}
+                if (isPulseMeta || particleAmt > 0) {
+                    var trueAmt = isPulseMeta ? readMetaDouble(entity, "gltc_pulse_hit_amount") : particleAmt;
+                    if (!(trueAmt > 0)) trueAmt = Number(event.getDamage());
+                    applyTrueSpellDamage(event, trueAmt);
+                    try { entity.removeMetadata("gltc_pulse_hit", PLUGIN); } catch (eP0) {}
+                    try { entity.removeMetadata("gltc_pulse_hit_amount", PLUGIN); } catch (eP1) {}
+                    try { entity.removeMetadata("gltc_spell_particle_hit", PLUGIN); } catch (eP2) {}
                     return;
                 }
-                var isSpellParticle = false;
-                try { isSpellParticle = entity.hasMetadata("gltc_spell_particle_hit"); } catch (eSp) {}
-                if (isSpellParticle) {
-                    try { entity.removeMetadata("gltc_spell_particle_hit", PLUGIN); } catch (eRmSp) {}
-                    // 粒子术式：剥离护甲/韧性/保护附魔等 vanilla 减伤，仅保留折射与最终减伤
-                    try {
-                        var DM = EntityDamageEvent.DamageModifier;
-                        var strip = ["ARMOR", "ARMOR_ENCHANTMENTS", "RESISTANCE", "HARD_HAT", "MAGIC_RESISTANCE"];
-                        for (var si = 0; si < strip.length; si++) {
-                            try { event.setDamage(DM.valueOf(strip[si]), 0); } catch (eStrip) {}
-                        }
-                    } catch (eMod) {}
-                }
+                var api = GLTC_MAGE_API != null ? GLTC_MAGE_API : PLUGIN.gltcMageApi;
+                if (!api) return;
+                if (!(entity instanceof Player)) return;
+                try {
+                    if (entity.hasMetadata("gltc_spell_bypass_armor")) {
+                        entity.removeMetadata("gltc_spell_bypass_armor", PLUGIN);
+                        return;
+                    }
+                } catch (eBypass) {}
                 var stats = api.getTotalStats(entity, false);
                 var dmg = event.getDamage();
-                if (isSpellParticle) {
-                    var refract = stats.particleRefraction || 0;
-                    if (refract > 0) dmg = dmg * (1 - Math.min(0.95, refract));
-                }
                 var fdr = stats.finalDamageReduction || 0;
                 if (fdr > 0) dmg = dmg * (1 - Math.min(0.90, fdr));
-                if (dmg < 0) dmg = 0;
-                event.setDamage(dmg);
+                event.setDamage(Math.max(0, dmg));
             } catch (e) {}
         }, PLUGIN
     );
@@ -348,6 +391,38 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
 })();
 
 // ---------- 3b) 术式运行时 v2（写入 Metadata 共享根，勿依赖 PLUGIN 动态字段） ----------
+function gltcPublishRuntimeInvokeBridge(runtime) {
+    if (!runtime) return;
+    try {
+        var FunctionJ = Java.type("java.util.function.Function");
+        var bridge = new (Java.extend(FunctionJ, {
+            apply: function(pack) {
+                try {
+                    if (pack == null) return java.lang.Boolean.FALSE;
+                    var method = pack.length != null ? pack[0] : pack.get(0);
+                    var player = pack.length != null ? pack[1] : pack.get(1);
+                    var dmg = pack.length != null ? pack[2] : pack.get(2);
+                    var info = pack.length != null ? pack[3] : pack.get(3);
+                    var key = String(method);
+                    if (key === "castHuaRuHuaJuan" && runtime.castHuaRuHuaJuan != null) {
+                        return java.lang.Boolean.valueOf(!!runtime.castHuaRuHuaJuan(player, Number(dmg), info));
+                    }
+                    var fn = runtime[key];
+                    if (fn == null) return java.lang.Boolean.FALSE;
+                    return java.lang.Boolean.valueOf(!!fn(player, Number(dmg), info));
+                } catch (e) {
+                    return java.lang.Boolean.FALSE;
+                }
+            }
+        }))();
+        if (GLTC_SHARED_ROOT_API && GLTC_SHARED_ROOT_API.putJavaBridge) {
+            GLTC_SHARED_ROOT_API.putJavaBridge("gltcRuntime_invokeCast", bridge);
+        }
+    } catch (eBr) {
+        Bukkit.getLogger().warning("[GLTC监听] invokeCast 桥发布失败: " + eBr);
+    }
+}
+
 (function preloadSpellRuntime() {
     var runtime = null;
     // 优先走脚本加载器缓存，避免与施术核心二次 eval
@@ -380,6 +455,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
             var cache = PLUGIN.gltcEvalCache;
             if (cache != null) cache.put("术式运行时/核心.js", runtime);
         } catch (eCache) {}
+        gltcPublishRuntimeInvokeBridge(runtime);
         Bukkit.getLogger().info("[GLTC监听] 已加载 术式运行时/核心.js v2");
     } else {
         Bukkit.getLogger().warning("[GLTC监听] 术式运行时加载失败");

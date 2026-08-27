@@ -52,6 +52,7 @@ var KEY_UGW_CREATOR = new NamespacedKey("gltc", "ugw_creator");
 var GLI_CONFIG_KEY = "ParticleConcentration";
 var GLI_DEFAULT = 1.0;
 var PULSE_META = "gltc_pulse_hit";
+var PULSE_AMT_META = "gltc_pulse_hit_amount";
 
 var GEAR_CFG = null;
 var STAFF_CFG = null;
@@ -1321,9 +1322,11 @@ function schedulePulseMetaCleanup(target) {
     try {
         Bukkit.getScheduler().runTask(PLUGIN, function() {
             try { target.removeMetadata(PULSE_META, PLUGIN); } catch (e0) {}
+            try { target.removeMetadata(PULSE_AMT_META, PLUGIN); } catch (e1) {}
         });
     } catch (e1) {
         try { target.removeMetadata(PULSE_META, PLUGIN); } catch (e2) {}
+        try { target.removeMetadata(PULSE_AMT_META, PLUGIN); } catch (e3) {}
     }
 }
 
@@ -1345,6 +1348,7 @@ function applyVoidDamageSource(target, amount, attacker, typeKey) {
             try { b = b.withDamager(attacker); } catch (e2) {}
             try { b = b.withDirectEntity(attacker); } catch (e3) {}
         }
+        try { b = b.bypassArmor(); } catch (eBA) {}
         target.setNoDamageTicks(0);
         target.damage(Number(amount), b.build());
         return true;
@@ -1356,6 +1360,7 @@ function dealPulseDamage(target, amount, attacker) {
     if (!target || amount <= 0) return;
     try {
         target.setMetadata(PULSE_META, new FixedMetadataValue(PLUGIN, true));
+        target.setMetadata(PULSE_AMT_META, new FixedMetadataValue(PLUGIN, java.lang.Double.valueOf(Number(amount))));
         if (!applyVoidDamageSource(target, amount, attacker, "pulse")) {
             try {
                 var hp = Math.max(0, Number(target.getHealth()) - Number(amount));

@@ -33,6 +33,7 @@ var SPELL_BOOK        = true;
 // === 冷却 / 伤害 ===
 var SPELL_COOLDOWN_MS = 3000;
 var SPELL_COEFFICIENT = 1.2;
+var SPELL_DEBUG       = true;   // false true：三枚投射物分别为系数 1 的物理 / 粒子 / 脉冲伤害
 
 // === 展示实体 / 弹体 ===
 var DISPLAY_SCALE     = 0.72;
@@ -86,10 +87,11 @@ function rt(mageApi) {
     return null;
 }
 
-function calcSpellDamage(player, mageApi) {
+function calcSpellDamage(player, mageApi, coeff) {
+    if (!(coeff > 0) || !isFinite(coeff)) coeff = SPELL_COEFFICIENT;
     try {
         if (mageApi != null && mageApi.calcSpellDamage != null) {
-            var v = Number(mageApi.calcSpellDamage(player, SPELL_COEFFICIENT));
+            var v = Number(mageApi.calcSpellDamage(player, coeff));
             if (v > 0 && isFinite(v)) return v;
         }
     } catch (eApi) {}
@@ -100,10 +102,20 @@ function calcSpellDamage(player, mageApi) {
             var data = JSON.parse(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString());
             var total = Number(data.particlePowerTotal);
             var pp = (isFinite(total) && total > 0) ? total : Number(data.particlePower);
-            if (pp > 0 && isFinite(pp)) return pp * SPELL_COEFFICIENT;
+            if (pp > 0 && isFinite(pp)) return pp * coeff;
         }
     } catch (eDisk) {}
-    return SPELL_COEFFICIENT;
+    return coeff;
+}
+
+function applyProjectileDamage(runtime, hitEnt, dmg, player, spellInfo, dmgType) {
+    if (dmgType === "physical") {
+        runtime.dealPhysicalSpellDamage(hitEnt, dmg, player, spellInfo);
+    } else if (dmgType === "pulse") {
+        runtime.dealPulseSpellDamage(hitEnt, dmg, player, spellInfo);
+    } else {
+        runtime.dealParticleSpellDamage(hitEnt, dmg, player, spellInfo);
+    }
 }
 
 function playSpellSound(world, loc, sound, vol, pitch) {
@@ -160,7 +172,7 @@ function eyeSpawn(player) {
     };
 }
 
-function launchStraightProjectile(player, mageApi, runtime, dmg, offsetVec) {
+function launchStraightProjectile(player, mageApi, runtime, dmg, offsetVec, dmgType) {
     var world = player.getWorld();
     var spawn = eyeSpawn(player);
     var loc = spawn.loc.clone();
@@ -214,7 +226,7 @@ function launchStraightProjectile(player, mageApi, runtime, dmg, offsetVec) {
                 if (!hitEnt && !hitSolid && traveled < MAX_DISTANCE) return;
 
                 if (hitEnt) {
-                    runtime.dealParticleSpellDamage(hitEnt, dmg, player, spellInfo);
+                    applyProjectileDamage(runtime, hitEnt, dmg, player, spellInfo, dmgType);
                     applyBlindness(hitEnt, BLINDNESS_SEC);
                 }
                 cleanup();
@@ -232,16 +244,19 @@ function castWeiFengHuaLiu(player, mageApi) {
     var runtime = rt(mageApi);
     if (!runtime) return false;
 
-    var dmg = calcSpellDamage(player, mageApi);
     var spawn = eyeSpawn(player);
     var offsets = [
         perpOffset(spawn.dir, -SPREAD_OFFSET),
         perpOffset(spawn.dir, 0),
         perpOffset(spawn.dir, SPREAD_OFFSET)
     ];
+    var debugTypes = ["physical", "particle", "pulse"];
     var ok = false;
     for (var i = 0; i < PROJECTILE_COUNT; i++) {
-        if (launchStraightProjectile(player, mageApi, runtime, dmg, offsets[i])) ok = true;
+        var dmgType = SPELL_DEBUG ? debugTypes[i] : null;
+        var coeff = SPELL_DEBUG ? 1 : SPELL_COEFFICIENT;
+        var dmg = calcSpellDamage(player, mageApi, coeff);
+        if (launchStraightProjectile(player, mageApi, runtime, dmg, offsets[i], dmgType)) ok = true;
     }
     if (ok) playSpellSound(player.getWorld(), spawn.loc, SOUND_CAST, SOUND_CAST_VOL, SOUND_CAST_PITCH);
     return ok;

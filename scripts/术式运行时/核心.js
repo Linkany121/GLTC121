@@ -21,6 +21,10 @@ var FixedMetadataValue = Java.type("org.bukkit.metadata.FixedMetadataValue");
 var ItemStack = Java.type("org.bukkit.inventory.ItemStack");
 var ItemDisplay = null;
 try { ItemDisplay = Java.type("org.bukkit.entity.ItemDisplay"); } catch (e0) {}
+var Vector = null;
+try { Vector = Java.type("org.bukkit.util.Vector"); } catch (eV0) {}
+var EntityType = null;
+try { EntityType = Java.type("org.bukkit.entity.EntityType"); } catch (eEt0) {}
 var Transformation = null;
 try { Transformation = Java.type("org.bukkit.util.Transformation"); } catch (e1) {}
 var Vector3f = null;
@@ -50,12 +54,15 @@ var DMG_PULSE    = "pulse";
 
 // === 实体 Metadata 键 ===
 var META_SPELL_HIT      = "gltc_spell_hit_info";      // 命中信息（播报）
-var META_SPELL_PARTICLE = "gltc_spell_particle_hit"; // 粒子伤害标记（折射）
+var META_SPELL_PARTICLE = "gltc_spell_particle_hit"; // 粒子伤害标记（跳过原版减伤）
 var META_PULSE          = "gltc_pulse_hit";           // 脉冲伤害标记（跳过减伤）
+var META_PULSE_AMT      = "gltc_pulse_hit_amount";    // 脉冲真实伤害额（监听.js 用）
 
 // === 交互门槛（可调）===
 var LEFT_GATE_MS            = 120; // 左键二次操作最短间隔（毫秒）
-var SPELL_DMG_LISTENER_VER  = 6;   // v6=粒子 MAGIC  bypass 护甲、脉冲改 MAGIC+单路播报、左键 Java 桥
+var SPELL_DMG_LISTENER_VER  = 8;   // v8=粒子改 SONIC_BOOM + 运行时 HIGHEST 兜底 + 花如画卷左键状态兜底
+var HUA_RU_SPELL_ID         = "VASA_花如画卷";
+var HUA_RU_STATE_KEY        = "huaru_state";
 
 var _tokenSeq = 0;
 var _dmgListenerReady = false;
@@ -124,6 +131,7 @@ function clearSpellHitMeta(target) {
     try { target.removeMetadata(META_SPELL_HIT, PLUGIN); } catch (e0) {}
     try { target.removeMetadata(META_SPELL_PARTICLE, PLUGIN); } catch (e1) {}
     try { target.removeMetadata(META_PULSE, PLUGIN); } catch (e2) {}
+    try { target.removeMetadata(META_PULSE_AMT, PLUGIN); } catch (e3) {}
 }
 
 /** 按玩家 UUID 前缀清理共享根 Map（quit 防泄漏） */
@@ -178,15 +186,26 @@ var SHARED_ROOT_API = loadSharedRootApi();
 
 function sharedRoot() {
     if (SHARED_ROOT_API && SHARED_ROOT_API.getGltcSharedRoot) {
-        var r = SHARED_ROOT_API.getGltcSharedRoot();
-        if (r != null) return r;
+        try {
+            var r = SHARED_ROOT_API.getGltcSharedRoot();
+            if (r != null) return r;
+        } catch (e0) {}
     }
+    try {
+        if (PLUGIN != null && PLUGIN.hasMetadata("gltc_shared_root_maps")) {
+            var metaRoot = PLUGIN.getMetadata("gltc_shared_root_maps").get(0).value();
+            if (metaRoot != null) return metaRoot;
+        }
+    } catch (eMeta) {}
     var map = new CHM();
     try {
         if (SHARED_ROOT_API && SHARED_ROOT_API.publishGltcSharedRoot) {
             return SHARED_ROOT_API.publishGltcSharedRoot(map);
         }
-    } catch (e) {}
+    } catch (ePub) {}
+    try {
+        PLUGIN.setMetadata("gltc_shared_root_maps", new FixedMetadataValue(PLUGIN, map));
+    } catch (eSet) {}
     return map;
 }
 
@@ -331,11 +350,11 @@ function clearSessions(playerOrUuid, opts) {
 
 function registerLeftClick(player, spellId, runnable) {
     if (!player || !spellId) return false;
-    if (runnable == null && getLeftClickBridge(spellId) == null) return false;
-    var map = new java.util.HashMap();
-    map.put("spellId", java.lang.String.valueOf(String(spellId)));
-    map.put("runnable", runnable);
-    leftClickMap().put(jUuid(playerUuid(player)), map);
+    var key = jUuid(playerUuid(player));
+    var ent = new CHM();
+    ent.put(jUuid("spellId"), java.lang.String.valueOf(String(spellId)));
+    if (runnable != null) ent.put(jUuid("runnable"), runnable);
+    leftClickMap().put(key, ent);
     return true;
 }
 
@@ -343,16 +362,66 @@ function clearLeftClick(playerOrUuid) {
     leftClickMap().remove(jUuid(playerUuid(playerOrUuid)));
 }
 
-function getLeftClickBridge(spellId) {
-    var key = "gltc_spell_left_" + String(spellId || "");
+function getMageApi() {
+    try { if (PLUGIN.gltcMageApi != null) return PLUGIN.gltcMageApi; } catch (e0) {}
     try {
-        if (SHARED_ROOT_API && SHARED_ROOT_API.getJavaBridge) {
-            var b = SHARED_ROOT_API.getJavaBridge(key);
-            if (b != null) return b;
+        var root = sharedRoot();
+        if (root != null) {
+            var hit = root.get("gltcMageApi");
+            if (hit != null) return hit;
         }
-    } catch (e0) {}
-    try { return sharedRoot().get(key); } catch (e1) {}
+    } catch (e1) {}
     return null;
+}
+
+/** 粒子伤害：仅粒子折射（玩家）；怪物全额 */
+function calcParticleApplyAmount(target, amount) {
+    var amt = Number(amount);
+    if (!(amt > 0)) return 0;
+    var p = asPlayer(target);
+    if (!p) return amt;
+    try {
+        var api = getMageApi();
+        if (api != null && api.getTotalStats) {
+            var refract = Number(api.getTotalStats(p, false).particleRefraction) || 0;
+            if (refract > 0) amt = amt * (1 - Math.min(0.95, refract));
+        }
+    } catch (e) {}
+    return amt;
+}
+
+function announceDealtHit(target, attacker, info, hpBefore) {
+    if (!target || !info) return;
+    var who = asPlayer(attacker) || resolveAttackerFromInfo(info);
+    if (!who) return;
+    var dealt = measureDealtDamage(target, hpBefore);
+    if (!(dealt > 0)) return;
+    info.targetName = entityDisplayName(target);
+    announceSpellHit(who, info, dealt);
+}
+
+/** 死亡播报归因 + 延迟清 meta（须在 damage 返回后仍保留一 tick 供 MONITOR 兜底） */
+function commitSpellHit(target, info, amount, attacker, hpBefore) {
+    if (!target || !info) return;
+    try {
+        if (PLUGIN.gltcRecordSpellHit) {
+            PLUGIN.gltcRecordSpellHit(target, info, Number(amount) || 0, attacker);
+        } else {
+            var root = sharedRoot();
+            if (root != null) {
+                var recFn = root.get("gltcRecordSpellHit");
+                if (recFn != null) recFn(target, info, Number(amount) || 0, attacker);
+            }
+        }
+    } catch (eRec) {}
+    announceDealtHit(target, attacker, info, hpBefore);
+    try {
+        Bukkit.getScheduler().runTask(PLUGIN, new (Java.extend(java.lang.Runnable, {
+            run: function() { clearSpellHitMeta(target); }
+        }))());
+    } catch (eDef) {
+        clearSpellHitMeta(target);
+    }
 }
 
 function dispatchLeftClick(player) {
@@ -360,9 +429,21 @@ function dispatchLeftClick(player) {
     if (!player) return false;
     var uuid = jUuid(playerUuid(player));
     var ent = leftClickMap().get(uuid);
-    if (ent == null) return false;
+    if (ent == null) {
+        // 花如画卷：左键注册失败或跨 Context 丢失登记时，仍可按活跃状态齐射
+        var stFallback = huaRuStateMap().get(uuid);
+        if (stFallback != null && stFallback.alive) {
+            projectHuaRuFlowers(uuid);
+            return true;
+        }
+        return false;
+    }
     var spellId = "";
-    try { spellId = String(ent.get("spellId") || ""); } catch (e) { return false; }
+    try {
+        if (ent.get != null) spellId = String(ent.get(jUuid("spellId")) || ent.get("spellId") || "");
+        else spellId = String(ent["spellId"] || "");
+    } catch (e) { return false; }
+    if (!spellId) return false;
 
     var gate = leftGateMap();
     var now = Date.now();
@@ -370,17 +451,16 @@ function dispatchLeftClick(player) {
     if (prev != null && now - readEpochMs(prev) < LEFT_GATE_MS) return true;
     try { gate.put(uuid, toJavaLong(now)); } catch (eG) {}
 
-    var bridge = getLeftClickBridge(spellId);
-    if (bridge != null) {
-        try {
-            bridge.accept(uuid);
-            return true;
-        } catch (eBr) {
-            try { Bukkit.getLogger().warning("[GLTC运行时] leftClick桥 " + spellId + ": " + eBr); } catch (e2) {}
-        }
+    if (spellId === HUA_RU_SPELL_ID) {
+        projectHuaRuFlowers(uuid);
+        return true;
     }
     var runnable = null;
-    try { runnable = ent.get("runnable"); } catch (eR) {}
+    try {
+        if (ent.get != null) runnable = ent.get(jUuid("runnable"));
+        if (runnable == null && ent.get != null) runnable = ent.get("runnable");
+        if (runnable == null) runnable = ent["runnable"];
+    } catch (eR) {}
     if (runnable == null) return false;
     try {
         if (runnable.run != null) runnable.run();
@@ -422,8 +502,11 @@ function onContextChange(player, keepSpellId, reason) {
         var uuid = jUuid(playerUuid(player));
         var ent = leftClickMap().get(uuid);
         if (ent != null) {
-            var sid = "";
-            try { sid = String(ent.get("spellId") || ""); } catch (e) {}
+        var sid = "";
+        try {
+            if (ent.get != null) sid = String(ent.get(jUuid("spellId")) || ent.get("spellId") || "");
+            else sid = String(ent["spellId"] || "");
+        } catch (e) {}
             if (!keep || sid !== keep) clearLeftClick(player);
         }
         return clearSessions(player, {
@@ -613,6 +696,10 @@ function buildEntityDamageSource(typeKey, attacker) {
             try { b = b.withDamager(attacker); } catch (e0) {}
             try { b = b.withDirectEntity(attacker); } catch (e1) {}
         }
+        // 粒子/脉冲伤害必须绕过护甲，否则原版防御/保护/韧性仍会减免
+        if (typeKey === "sonic" || typeKey === "pulse") {
+            try { b = b.bypassArmor(); } catch (eBA) {}
+        }
         return b.build();
     } catch (e2) { return null; }
 }
@@ -676,16 +763,17 @@ function tagHitInfo(target, info) {
     try {
         target.setMetadata(META_SPELL_HIT, new FixedMetadataValue(PLUGIN, info));
     } catch (e) {}
+    // 提前写入死亡归因：保证术式伤害直接致死时 PlayerDeathEvent 一定能读到（不依赖 MONITOR 时序）
+    try {
+        if (PLUGIN.gltcRecordSpellHit) PLUGIN.gltcRecordSpellHit(target, info, 0, null);
+    } catch (eR) {}
 }
 
-/** 事件未播报时：有攻击者则补播；否则只清 meta（取消路径由 MONITOR ignoreCancelled=false 清理） */
+/** 补播 fallback（MONITOR 已移除，仅作安全网） */
 function flushPendingHitAnnounce(target, attacker, fallbackAmount) {
     if (!target || !PLUGIN) return;
     try {
-        if (!target.hasMetadata(META_SPELL_HIT)) {
-            try { target.removeMetadata(META_SPELL_PARTICLE, PLUGIN); } catch (eP) {}
-            return;
-        }
+        if (!target.hasMetadata(META_SPELL_HIT)) return;
         var info = null;
         try { info = target.getMetadata(META_SPELL_HIT).get(0).value(); } catch (eI) {}
         clearSpellHitMeta(target);
@@ -747,37 +835,64 @@ function readInstalledDmgListenerVer() {
     return ver;
 }
 
-function dealPhysicalSpellDamage(target, amount, attacker, info) {
-    if (!isLivingEntity(target) || !(amount > 0)) return;
-    info = prepareHitInfo(info, DMG_PHYSICAL, attacker);
-    tagHitInfo(target, info);
+/**
+ * 通用伤害应用（处理 noDamageTicks + hpBefore）
+ * @returns 伤害前的生命值
+ */
+function _applyDamage(target, amount, attacker) {
+    var hpBefore = 0;
+    try { hpBefore = Number(target.getHealth()); } catch (eHp) {}
     try {
         target.setNoDamageTicks(0);
         if (attacker) target.damage(Number(amount), attacker);
         else target.damage(Number(amount));
     } catch (e) {}
-    // 监听已播报则 meta 已清；取消则只清不播
-    flushPendingHitAnnounce(target, attacker, amount);
+    return hpBefore;
+}
+
+/**
+ * 粒子/脉冲伤害安全 Fallback（DamageSource API 不可用时）
+ * metadata 已由调用方写入，监听.js HIGHEST 会清零护甲/保护等修饰符
+ */
+function _safeSpellDamage(target, amount, attacker) {
+    if (!isLivingEntity(target)) return;
+    try {
+        target.setNoDamageTicks(0);
+        if (attacker) target.damage(Number(amount), attacker);
+        else target.damage(Number(amount));
+    } catch (e) {}
+}
+
+/** 粒子/脉冲：只结算一次伤害；成功走 DamageSource，失败走带 meta 的 fallback */
+function applyBypassSpellDamage(target, amount, attacker, typeKey) {
+    var hpBefore = 0;
+    try { hpBefore = Number(target.getHealth()); } catch (eHp) {}
+    if (!applyDamageWithSource(target, amount, attacker, typeKey)) {
+        _safeSpellDamage(target, amount, attacker);
+    }
+    return hpBefore;
+}
+
+function dealPhysicalSpellDamage(target, amount, attacker, info) {
+    if (!isLivingEntity(target) || !(amount > 0)) return;
+    info = prepareHitInfo(info, DMG_PHYSICAL, attacker);
+    tagHitInfo(target, info);
+    var hpBefore = _applyDamage(target, amount, attacker);
+    commitSpellHit(target, info, amount, attacker, hpBefore);
 }
 
 function dealParticleSpellDamage(target, amount, attacker, info) {
     if (!isLivingEntity(target) || !(amount > 0)) return;
     try { if (target.isDead()) return; } catch (eDead) {}
+    var applyAmt = calcParticleApplyAmount(target, amount);
+    if (!(applyAmt > 0)) return;
     info = prepareHitInfo(info, DMG_PARTICLE, attacker);
     tagHitInfo(target, info);
     try {
-        target.setMetadata(META_SPELL_PARTICLE, new FixedMetadataValue(PLUGIN, java.lang.Boolean.TRUE));
+        target.setMetadata(META_SPELL_PARTICLE, new FixedMetadataValue(PLUGIN, java.lang.Double.valueOf(applyAmt)));
     } catch (eM) {}
-    // 勿用 SONIC_BOOM DamageSource：Paper 会播「被一道音波尖啸抹除了」且 getKiller 不稳定。
-    // 粒子/物理区分靠 META_SPELL_PARTICLE + damageType；玩家侧折射在 监听.js 读 meta。
-    try { target.setNoDamageTicks(0); } catch (eN) {}
-    if (!applyDamageWithSource(target, amount, attacker, "magic")) {
-        try {
-            if (attacker) target.damage(Number(amount), attacker);
-            else target.damage(Number(amount));
-        } catch (e) {}
-    }
-    flushPendingHitAnnounce(target, attacker, amount);
+    var hpBefore = applyBypassSpellDamage(target, applyAmt, attacker, "sonic");
+    commitSpellHit(target, info, applyAmt, attacker, hpBefore);
 }
 
 function dealPulseSpellDamage(target, amount, attacker, info) {
@@ -786,23 +901,10 @@ function dealPulseSpellDamage(target, amount, attacker, info) {
     tagHitInfo(target, info);
     try {
         target.setMetadata(META_PULSE, new FixedMetadataValue(PLUGIN, java.lang.Boolean.TRUE));
+        target.setMetadata(META_PULSE_AMT, new FixedMetadataValue(PLUGIN, java.lang.Double.valueOf(Number(amount))));
     } catch (eM) {}
-    var hpBefore = 0;
-    try { hpBefore = Number(target.getHealth()); } catch (eHp0) {}
-    try { target.setNoDamageTicks(0); } catch (eN) {}
-    if (!applyDamageWithSource(target, amount, attacker, "pulse")) {
-        try {
-            if (attacker) target.damage(Number(amount), attacker);
-            else target.damage(Number(amount));
-        } catch (e) {}
-    }
-    var who = asPlayer(attacker) || resolveAttackerFromInfo(info);
-    var dealt = measureDealtDamage(target, hpBefore);
-    clearSpellHitMeta(target);
-    if (dealt > 0 && who) {
-        info.targetName = entityDisplayName(target);
-        announceSpellHit(who, info, dealt);
-    }
+    var hpBefore = applyBypassSpellDamage(target, amount, attacker, "pulse");
+    commitSpellHit(target, info, amount, attacker, hpBefore);
 }
 
 function ensureSpellDamageListener() {
@@ -811,12 +913,6 @@ function ensureSpellDamageListener() {
         _dmgListenerReady = true;
         return;
     }
-    try {
-        if (PLUGIN.gltcSpellDmgListenerV2 != null) {
-            try { EntityDamageByEntityEvent.getHandlerList().unregister(PLUGIN.gltcSpellDmgListenerV2); } catch (eU0) {}
-            try { EntityDamageEvent.getHandlerList().unregister(PLUGIN.gltcSpellDmgListenerV2); } catch (eU1) {}
-        }
-    } catch (e0) {}
     _dmgListenerReady = true;
     try { PLUGIN.gltcSpellDmgListenerReady = true; } catch (eF2) {}
     try { PLUGIN.gltcSpellDmgListenerVer = SPELL_DMG_LISTENER_VER; } catch (eVer) {}
@@ -825,57 +921,12 @@ function ensureSpellDamageListener() {
     } catch (eSet) {
         try { PLUGIN.setMetadata("gltc_spell_dmg_listener", new FixedMetadataValue(PLUGIN, SPELL_DMG_LISTENER_VER)); } catch (eSet2) {}
     }
-    var ListenerClass = Java.extend(Listener, {});
-    var listener = new ListenerClass();
-    try { PLUGIN.gltcSpellDmgListenerV2 = listener; } catch (eL) {}
-    // 监听父类：脉冲虚空伤害多为 EntityDamageEvent(VOID)，不进 ByEntity
-    Bukkit.getPluginManager().registerEvent(
-        EntityDamageEvent, listener, EventPriority.MONITOR,
-        function(l, event) {
-            try {
-                var victim = event.getEntity();
-                if (!isLivingEntity(victim)) return;
-                if (!victim.hasMetadata(META_SPELL_HIT)) return;
-                // 取消 / 零伤：只清 meta，防折射残留与假播报
-                if (event.isCancelled()) {
-                    clearSpellHitMeta(victim);
-                    return;
-                }
-                var info = null;
-                try { info = victim.getMetadata(META_SPELL_HIT).get(0).value(); } catch (eI) {}
-                if (!info) {
-                    clearSpellHitMeta(victim);
-                    return;
-                }
-                // 脉冲由 dealPulseSpellDamage 单路播报，避免 VOID 事件与监听双播
-                if (String(info.damageType || "").toLowerCase() === DMG_PULSE) {
-                    clearSpellHitMeta(victim);
-                    return;
-                }
-                var finalDmg = 0;
-                try { finalDmg = Number(event.getFinalDamage()); } catch (eF) {
-                    try { finalDmg = Number(event.getDamage()); } catch (eF2) {}
-                }
-                if (!(finalDmg > 0)) {
-                    clearSpellHitMeta(victim);
-                    return;
-                }
-                var attacker = resolveSpellAttacker(event, info);
-                if (!attacker) return; // 保留 meta，供 deal* 结束后处理
-                clearSpellHitMeta(victim);
-                info.targetName = entityDisplayName(victim);
-                announceSpellHit(attacker, info, finalDmg);
-            } catch (ex) {}
-        }, PLUGIN, false
-    );
     try {
         if (PLUGIN.gltcSpellDmgLogVer !== SPELL_DMG_LISTENER_VER) {
             PLUGIN.gltcSpellDmgLogVer = SPELL_DMG_LISTENER_VER;
-            Bukkit.getLogger().info("[GLTC运行时] 伤害播报监听已挂载 v" + SPELL_DMG_LISTENER_VER);
+            Bukkit.getLogger().info("[GLTC运行时] 粒子伤害 v" + SPELL_DMG_LISTENER_VER + "（SONIC_BOOM + 监听.js 减伤清零）");
         }
-    } catch (eLog) {
-        Bukkit.getLogger().info("[GLTC运行时] 伤害播报监听已挂载 v" + SPELL_DMG_LISTENER_VER);
-    }
+    } catch (eLog) {}
 }
 
 function spawnFlyingItemDisplay(world, loc, mat, scale) {
@@ -920,6 +971,287 @@ function removeFlyingDisplay(d) {
     d.entity = null;
 }
 
+// --- 花如画卷：左键齐射（状态与逻辑均在运行时上下文，避免 Graal 隔离失效）---
+function huaRuStateMap() { return mapOf(HUA_RU_STATE_KEY); }
+
+function huaRuCreateState(player, dmg, spellInfo) {
+    var uuid = jUuid(playerUuid(player));
+    var state = {
+        alive: true,
+        playerUuid: uuid,
+        dmg: Number(dmg),
+        spellInfo: spellInfo || {},
+        spellId: HUA_RU_SPELL_ID,
+        orbiters: []
+    };
+    huaRuStateMap().put(uuid, state);
+    return state;
+}
+
+function huaRuClearState(uuid) {
+    try { huaRuStateMap().remove(jUuid(String(uuid))); } catch (e) {}
+}
+
+function huaRuAddOrbiter(state, display, angle) {
+    if (!state || !display) return null;
+    var orb = { display: display, angle: Number(angle) || 0, projected: false, removed: false };
+    state.orbiters.push(orb);
+    return orb;
+}
+
+function normalizeVec(v) {
+    if (Vector == null || v == null) return null;
+    var len = Math.sqrt(v.getX() * v.getX() + v.getY() * v.getY() + v.getZ() * v.getZ());
+    if (len < 1e-6) return new Vector(0, 0, 1);
+    return new Vector(v.getX() / len, v.getY() / len, v.getZ() / len);
+}
+
+function blendVec(forward, toward, weight) {
+    var f = normalizeVec(forward);
+    var t = normalizeVec(toward);
+    if (f == null || t == null) return f;
+    var w = weight != null ? weight : 0.45;
+    return normalizeVec(new Vector(
+        f.getX() * (1 - w) + t.getX() * w,
+        f.getY() * (1 - w) + t.getY() * w,
+        f.getZ() * (1 - w) + t.getZ() * w
+    ));
+}
+
+function huaRuFindHit(world, loc, casterUuid, half) {
+    if (world == null || loc == null) return null;
+    var h = half != null ? half : 0.5;
+    var it = world.getNearbyEntities(loc, h, h, h).iterator();
+    while (it.hasNext()) {
+        var ent = it.next();
+        if (!isLivingEntity(ent)) continue;
+        try { if (ent.isDead()) continue; } catch (eD) { continue; }
+        try {
+            if (Player.class.isInstance(ent) && String(ent.getUniqueId().toString()) === casterUuid) continue;
+        } catch (eP) {}
+        try {
+            if (EntityType != null) {
+                var t = ent.getType();
+                if (t === EntityType.ARMOR_STAND || t === EntityType.ITEM_DISPLAY) continue;
+            }
+        } catch (eT) {}
+        return ent;
+    }
+    return null;
+}
+
+function launchHomingDisplay(player, display, dmg, spellInfo, opts) {
+    if (!player || !display || !isFlyingDisplayAlive(display)) return false;
+    opts = opts || {};
+    var world = player.getWorld();
+    var loc = display.lastLoc != null ? display.lastLoc.clone() : player.getEyeLocation().clone();
+    var ownerUuid = String(player.getUniqueId().toString());
+    var speed = (opts.speed != null ? opts.speed : 16) / 20.0;
+    var maxDist = opts.maxDist != null ? opts.maxDist : 32;
+    var homing = opts.homing != null ? opts.homing : 0.45;
+    var aimDist = opts.aimDist != null ? opts.aimDist : 28;
+    var spellId = opts.spellId || HUA_RU_SPELL_ID;
+    var traveled = 0;
+    var alive = true;
+    var task = null;
+    var token = null;
+    var dir = player.getEyeLocation().getDirection().clone();
+
+    function cleanupFly() {
+        if (!alive) return;
+        alive = false;
+        try { if (task != null) task.cancel(); } catch (eC) {}
+        task = null;
+        removeFlyingDisplay(display);
+    }
+
+    token = begin(player, spellId, new (Java.extend(java.lang.Runnable, { run: cleanupFly })), {
+        persistence: SESSION_PROJECTED,
+        replace: false
+    });
+    if (!token) {
+        removeFlyingDisplay(display);
+        return false;
+    }
+
+    task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
+        run: function() {
+            try {
+                if (!alive) return;
+                var eye = player.getEyeLocation();
+                var aim = eye.clone().add(eye.getDirection().multiply(aimDist));
+                dir = blendVec(dir, aim.toVector().subtract(loc.toVector()), homing);
+                if (dir == null) return;
+                var prev = loc.clone();
+                loc.add(dir.getX() * speed, dir.getY() * speed, dir.getZ() * speed);
+                traveled += prev.distance(loc);
+                moveFlyingDisplay(display, loc);
+
+                var hitSolid = false;
+                try { hitSolid = loc.getBlock().getType().isSolid(); } catch (eB) {}
+                var hitEnt = huaRuFindHit(world, loc, ownerUuid, 0.5);
+                if (!hitEnt && !hitSolid && traveled < maxDist) return;
+
+                if (hitEnt) dealParticleSpellDamage(hitEnt, dmg, player, spellInfo);
+                cleanupFly();
+                try { end(player, token, false); } catch (eEnd) {}
+            } catch (ex) {
+                cleanupFly();
+                try { end(player, token, false); } catch (eEnd2) {}
+            }
+        }
+    })), 0, 1);
+    return true;
+}
+
+function projectHuaRuFlowers(uuidKey) {
+    uuidKey = String(uuidKey);
+    var state = huaRuStateMap().get(jUuid(uuidKey));
+    if (!state || !state.alive) return;
+    var player = findOnline(uuidKey);
+    if (player == null) {
+        try { player = asPlayer(Bukkit.getPlayer(java.util.UUID.fromString(uuidKey))); } catch (eP) {}
+    }
+    if (player == null || !player.isOnline()) return;
+
+    var launched = 0;
+    var orbiters = state.orbiters || [];
+    for (var i = 0; i < orbiters.length; i++) {
+        var o = orbiters[i];
+        if (!o || o.projected || o.removed || !isFlyingDisplayAlive(o.display)) continue;
+        o.projected = true;
+        if (launchHomingDisplay(player, o.display, state.dmg, state.spellInfo, { spellId: HUA_RU_SPELL_ID })) {
+            launched++;
+            o.display = null;
+        }
+    }
+    if (launched > 0) {
+        try { player.getWorld().playSound(player.getEyeLocation(), "entity.arrow.shoot", 0.65, 1.35); } catch (eS) {}
+    }
+}
+
+function huaRuRemoveOrbiter(state, o) {
+    if (!o || o.removed) return;
+    o.removed = true;
+    removeFlyingDisplay(o.display);
+    o.display = null;
+}
+
+var HUA_RU_FLOWER_POOL = [
+    Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM,
+    Material.AZURE_BLUET, Material.OXEYE_DAISY, Material.CORNFLOWER,
+    Material.LILY_OF_THE_VALLEY
+];
+var HUA_RU_DISPLAY_SCALE  = 0.72;
+var HUA_RU_STATE_DURATION = 100;
+var HUA_RU_SPAWN_INTERVAL = 10;
+var HUA_RU_ORBIT_RADIUS   = 3.0;
+var HUA_RU_ORBIT_SPIN     = 0.08;
+var HUA_RU_ORBIT_DRIFT    = 0.12;
+var HUA_RU_CHERRY_PARTICLE = (function() {
+    try { return Particle.CHERRY_LEAVES; } catch (e0) {}
+    return Particle.END_ROD;
+})();
+
+function huaRuRandomFlower() {
+    return HUA_RU_FLOWER_POOL[Math.floor(Math.random() * HUA_RU_FLOWER_POOL.length)];
+}
+
+/** 花如画卷完整施展（须在运行时上下文执行，避免 Graal 隔离导致左键/状态丢失） */
+function castHuaRuHuaJuan(player, dmg, spellInfo) {
+    if (!player || !(dmg > 0)) return false;
+    var uuid = String(player.getUniqueId().toString());
+    var world = player.getWorld();
+    var state = huaRuCreateState(player, dmg, spellInfo || {});
+    if (!state) return false;
+    var angleBase = 0;
+    var ticks = 0;
+    var alive = true;
+    var task = null;
+    var token = null;
+
+    function cleanup() {
+        if (!alive) return;
+        alive = false;
+        state.alive = false;
+        try { huaRuClearState(uuid); } catch (eRm) {}
+        try { if (task != null) task.cancel(); } catch (eC) {}
+        task = null;
+        clearLeftClick(player);
+        var orbiters = state.orbiters || [];
+        for (var i = 0; i < orbiters.length; i++) {
+            if (!orbiters[i].projected) huaRuRemoveOrbiter(state, orbiters[i]);
+        }
+    }
+
+    token = begin(player, HUA_RU_SPELL_ID, new (Java.extend(java.lang.Runnable, { run: cleanup })), {
+        persistence: SESSION_UNPROJECTED,
+        replace: true
+    });
+    if (!token) {
+        cleanup();
+        return false;
+    }
+    registerLeftClick(player, HUA_RU_SPELL_ID);
+
+    try { world.playSound(player.getLocation(), "block.cherry_leaves.place", 0.85, 1.1); } catch (eS) {}
+    var center0 = player.getLocation().clone().add(0, 1.0, 0);
+    var d0 = spawnFlyingItemDisplay(world, center0, huaRuRandomFlower(), HUA_RU_DISPLAY_SCALE);
+    if (d0) huaRuAddOrbiter(state, d0, angleBase);
+
+    task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
+        run: function() {
+            try {
+                if (!alive) return;
+                if (!player.isOnline()) {
+                    cleanup();
+                    try { end(player, token, false); } catch (eOff) {}
+                    return;
+                }
+                ticks++;
+                angleBase += HUA_RU_ORBIT_DRIFT;
+                var center = player.getLocation().clone().add(0, 1.0, 0);
+
+                if (ticks % HUA_RU_SPAWN_INTERVAL === 0) {
+                    var spawnLoc = center.clone();
+                    spawnLoc.setX(center.getX() + Math.cos(angleBase + state.orbiters.length * 0.9) * HUA_RU_ORBIT_RADIUS);
+                    spawnLoc.setZ(center.getZ() + Math.sin(angleBase + state.orbiters.length * 0.9) * HUA_RU_ORBIT_RADIUS);
+                    var nd = spawnFlyingItemDisplay(world, spawnLoc, huaRuRandomFlower(), HUA_RU_DISPLAY_SCALE);
+                    if (nd) huaRuAddOrbiter(state, nd, angleBase + state.orbiters.length * 0.9);
+                }
+
+                var orbiters = state.orbiters;
+                for (var i = orbiters.length - 1; i >= 0; i--) {
+                    var o = orbiters[i];
+                    if (o.projected || o.removed) continue;
+                    if (!isFlyingDisplayAlive(o.display)) {
+                        huaRuRemoveOrbiter(state, o);
+                        continue;
+                    }
+                    o.angle += HUA_RU_ORBIT_SPIN;
+                    var oloc = center.clone();
+                    oloc.setX(center.getX() + Math.cos(o.angle) * HUA_RU_ORBIT_RADIUS);
+                    oloc.setZ(center.getZ() + Math.sin(o.angle) * HUA_RU_ORBIT_RADIUS);
+                    moveFlyingDisplay(o.display, oloc);
+                    try {
+                        world.spawnParticle(HUA_RU_CHERRY_PARTICLE, oloc, 2, 0.12, 0.12, 0.12, 0.01);
+                    } catch (eCherry) {}
+                }
+
+                if (ticks >= HUA_RU_STATE_DURATION) {
+                    cleanup();
+                    try { end(player, token, false); } catch (eEnd) {}
+                }
+            } catch (ex) {
+                cleanup();
+                try { end(player, token, false); } catch (eEnd2) {}
+            }
+        }
+    })), 0, 1);
+
+    return true;
+}
+
 ensureSpellDamageListener();
 
 var API = {
@@ -950,6 +1282,13 @@ var API = {
     clearSpellHitMeta: clearSpellHitMeta,
     sharedRoot: sharedRoot,
     mapOf: mapOf,
+    huaRuCreateState: huaRuCreateState,
+    huaRuClearState: huaRuClearState,
+    huaRuAddOrbiter: huaRuAddOrbiter,
+    huaRuRemoveOrbiter: huaRuRemoveOrbiter,
+    castHuaRuHuaJuan: castHuaRuHuaJuan,
+    projectHuaRuFlowers: projectHuaRuFlowers,
+    launchHomingDisplay: launchHomingDisplay,
     GLTC_PREFIX: GLTC_PREFIX,
     C_MSG: C_MSG,
     C_SPELL: C_SPELL
@@ -1011,6 +1350,94 @@ try {
         }
     } catch (eSrAnn) {}
 } catch (eBrAnn) {}
+
+function publishBridge(key, bridge) {
+    try { sharedRoot().put(key, bridge); } catch (e0) {}
+    try {
+        if (SHARED_ROOT_API && SHARED_ROOT_API.putJavaBridge) {
+            SHARED_ROOT_API.putJavaBridge(key, bridge);
+        }
+    } catch (e1) {}
+}
+
+// 跨 Context 左键：pack = [player, spellId] 或 [player, spellId, runnable]
+try {
+    var ConsumerLeftReg = Java.type("java.util.function.Consumer");
+    publishBridge("gltcRuntime_registerLeftClick", new (Java.extend(ConsumerLeftReg, {
+        accept: function(pack) {
+            try {
+                if (pack == null) return;
+                var player = pack.length != null ? pack[0] : pack.get(0);
+                var spellId = pack.length != null ? pack[1] : pack.get(1);
+                var runnable = null;
+                try { runnable = pack.length != null ? pack[2] : pack.get(2); } catch (eR) {}
+                API.registerLeftClick(player, spellId, runnable);
+            } catch (e) {}
+        }
+    }))());
+} catch (eBrReg) {}
+
+try {
+    var FunctionDispatch = Java.type("java.util.function.Function");
+    publishBridge("gltcRuntime_dispatchLeftClick", new (Java.extend(FunctionDispatch, {
+        apply: function(player) {
+            try { return java.lang.Boolean.valueOf(!!API.dispatchLeftClick(player)); } catch (e) {
+                return java.lang.Boolean.FALSE;
+            }
+        }
+    }))());
+} catch (eBrDisp) {}
+
+try {
+    var ConsumerClearLc = Java.type("java.util.function.Consumer");
+    publishBridge("gltcRuntime_clearLeftClick", new (Java.extend(ConsumerClearLc, {
+        accept: function(player) {
+            try { API.clearLeftClick(player); } catch (e) {}
+        }
+    }))());
+} catch (eBrClr) {}
+
+try {
+    var FunctionInvokeCast = Java.type("java.util.function.Function");
+    publishBridge("gltcRuntime_invokeCast", new (Java.extend(FunctionInvokeCast, {
+        apply: function(pack) {
+            try {
+                if (pack == null) return java.lang.Boolean.FALSE;
+                var method = pack.length != null ? pack[0] : pack.get(0);
+                var player = pack.length != null ? pack[1] : pack.get(1);
+                var dmg = pack.length != null ? pack[2] : pack.get(2);
+                var info = pack.length != null ? pack[3] : pack.get(3);
+                var key = String(method);
+                if (key === "castHuaRuHuaJuan") {
+                    return java.lang.Boolean.valueOf(!!castHuaRuHuaJuan(player, Number(dmg), info));
+                }
+                var fn = API[key];
+                if (fn == null) return java.lang.Boolean.FALSE;
+                return java.lang.Boolean.valueOf(!!fn(player, Number(dmg), info));
+            } catch (e) {
+                try { Bukkit.getLogger().warning("[GLTC运行时] invokeCast 异常: " + e); } catch (eLog) {}
+                return java.lang.Boolean.FALSE;
+            }
+        }
+    }))());
+} catch (eBrInvoke) {
+    try { Bukkit.getLogger().warning("[GLTC运行时] invokeCast 桥发布失败: " + eBrInvoke); } catch (eLogBr) {}
+}
+
+try {
+    var ConsumerHuaRu = Java.type("java.util.function.Consumer");
+    publishBridge("gltcRuntime_huaRuCreateState", new (Java.extend(ConsumerHuaRu, {
+        accept: function(pack) {
+            try {
+                if (pack == null) return;
+                var player = pack.length != null ? pack[0] : pack.get(0);
+                var dmg = pack.length != null ? pack[1] : pack.get(1);
+                var info = pack.length != null ? pack[2] : pack.get(2);
+                return API.huaRuCreateState(player, Number(dmg), info);
+            } catch (e) { return null; }
+        }
+    }))());
+} catch (eBrHua) {}
 
 try {
     var logged = false;

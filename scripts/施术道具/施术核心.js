@@ -11,6 +11,10 @@ var Player = Java.type("org.bukkit.entity.Player");
 var PlayerQuitEvent = Java.type("org.bukkit.event.player.PlayerQuitEvent");
 var PlayerItemHeldEvent = Java.type("org.bukkit.event.player.PlayerItemHeldEvent");
 var PlayerInteractEvent = Java.type("org.bukkit.event.player.PlayerInteractEvent");
+var PlayerAnimationEvent = null;
+var PlayerAnimationType = null;
+try { PlayerAnimationEvent = Java.type("org.bukkit.event.player.PlayerAnimationEvent"); } catch (eAnim) {}
+try { PlayerAnimationType = Java.type("org.bukkit.event.player.PlayerAnimationType"); } catch (eAnimT) {}
 var EntityDamageByEntityEvent = Java.type("org.bukkit.event.entity.EntityDamageByEntityEvent");
 var EventPriority = Java.type("org.bukkit.event.EventPriority");
 var Listener = Java.type("org.bukkit.event.Listener");
@@ -38,7 +42,7 @@ try { SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.Sli
 // === 交互 / 侵蚀（可调）===
 var STAFF_USE_DEBOUNCE_MS   = 120;  // 右键施展防抖（毫秒，合并 Interact + onUse）
 var EROSION_HP_PCT          = 0.2;  // 侵蚀自伤：当前生命上限百分比（按术式侵蚀等级）
-var SPELL_CORE_LISTENER_VER = 1;    // 监听器版本号（热重载升级用）
+var SPELL_CORE_LISTENER_VER = 3;    // v3=左键 ARM_SWING 兜底（点空气也能齐射）
 
 var CAST_MAGE_HOLDER = { api: null };
 /** 监听 boot 注入的 Java 桥 Map（闭包直读，不依赖 Graal 动态字段） */
@@ -1158,6 +1162,42 @@ function handleStaffUse(player, opts) {
     return true;
 }
 
+function dispatchStaffLeftClick(player) {
+    var br = bridgeGet("gltcRuntime_dispatchLeftClick");
+    if (br != null) {
+        try {
+            var hit = br.apply(player);
+            if (hit === true || hit === java.lang.Boolean.TRUE) return true;
+        } catch (eBr) {}
+    }
+    var rt = getRuntime();
+    return !!(rt && rt.dispatchLeftClick && rt.dispatchLeftClick(player));
+}
+
+function hasPendingStaffLeftClick(player) {
+    if (!player) return false;
+    var rt = getRuntime();
+    if (!rt) return false;
+    try {
+        var uuid = String(player.getUniqueId().toString());
+        if (rt.mapOf) {
+            var lc = rt.mapOf("spell_left_click");
+            if (lc != null && lc.get(java.lang.String.valueOf(uuid)) != null) return true;
+        }
+        if (rt.sharedRoot) {
+            var root = rt.sharedRoot();
+            if (root != null) {
+                var hua = root.get("huaru_state");
+                if (hua != null) {
+                    var st = hua.get(java.lang.String.valueOf(uuid));
+                    if (st != null && st.alive) return true;
+                }
+            }
+        }
+    } catch (eChk) {}
+    return false;
+}
+
 function handleStaffLeftClick(player) {
     if (!player || !(player instanceof Player)) return false;
     if (!loadDeps()) return false;
@@ -1168,9 +1208,7 @@ function handleStaffLeftClick(player) {
         if (opened) invokeHook(getStaffHooks(player), "onSneakUse", player);
         return true;
     }
-    var rt = getRuntime();
-    if (rt && rt.dispatchLeftClick) rt.dispatchLeftClick(player);
-    return true;
+    return dispatchStaffLeftClick(player) || true;
 }
 
 function syncStaffHoldState(player, reasonIfLost) {
@@ -1203,6 +1241,9 @@ function ensureListeners(force) {
             try { EntityDamageByEntityEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e1) {}
             try { PlayerQuitEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e2) {}
             try { PlayerItemHeldEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e3) {}
+            if (PlayerAnimationEvent != null) {
+                try { PlayerAnimationEvent.getHandlerList().unregister(PLUGIN.gltcSpellCoreListenerV2); } catch (e4) {}
+            }
         }
     } catch (eU) {}
 
@@ -1248,21 +1289,39 @@ function ensureListeners(force) {
         }, PLUGIN
     );
 
+    // 左键点空气时 Interact 常不触发；挥臂动画作为花如画卷等二次操作兜底
+    if (PlayerAnimationEvent != null) {
+        Bukkit.getPluginManager().registerEvent(
+            PlayerAnimationEvent, listener, EventPriority.NORMAL,
+            function(l, event) {
+                try {
+                    if (PlayerAnimationType != null && event.getAnimationType() !== PlayerAnimationType.ARM_SWING) return;
+                    var who = event.getPlayer();
+                    if (!(who instanceof Player)) return;
+                    if (!isMageStaffItem(who.getInventory().getItemInMainHand())) return;
+                    if (!requireSingleStaff(who)) return;
+                    if (who.isSneaking()) return;
+                    if (isSpellGuiOpen(who)) return;
+                    if (!hasPendingStaffLeftClick(who)) return;
+                    dispatchStaffLeftClick(who);
+                } catch (eAnim) {}
+            }, PLUGIN
+        );
+    }
+
     Bukkit.getPluginManager().registerEvent(
-        EntityDamageByEntityEvent, listener, EventPriority.NORMAL,
+        EntityDamageByEntityEvent, listener, EventPriority.MONITOR,
         function(l, event) {
             try {
-                if (event.isCancelled()) return;
                 var damager = event.getDamager();
                 if (!(damager instanceof Player)) return;
                 if (!isMageStaffItem(damager.getInventory().getItemInMainHand())) return;
                 if (!requireSingleStaff(damager)) return;
                 if (damager.isSneaking()) return;
                 if (isSpellGuiOpen(damager)) return;
-                var rt = getRuntime();
-                if (rt && rt.dispatchLeftClick && rt.dispatchLeftClick(damager)) event.setCancelled(true);
+                if (dispatchStaffLeftClick(damager)) event.setCancelled(true);
             } catch (eDmg) {}
-        }, PLUGIN
+        }, PLUGIN, true
     );
 
     Bukkit.getPluginManager().registerEvent(
@@ -1301,10 +1360,10 @@ function ensureListeners(force) {
     try {
         if (!PLUGIN.gltcSpellCoreListenLogged) {
             PLUGIN.gltcSpellCoreListenLogged = true;
-            Bukkit.getLogger().info("[GLTC施术] 核心 v2 已挂载交互：右键施展 / 蹲下开GUI / 左键二次操作");
+            Bukkit.getLogger().info("[GLTC施术] 核心 v3 已挂载交互：右键施展 / 蹲下开GUI / 左键二次操作（含挥臂兜底）");
         }
     } catch (eLog) {
-        Bukkit.getLogger().info("[GLTC施术] 核心 v2 已挂载交互：右键施展 / 蹲下开GUI / 左键二次操作");
+        Bukkit.getLogger().info("[GLTC施术] 核心 v3 已挂载交互：右键施展 / 蹲下开GUI / 左键二次操作（含挥臂兜底）");
     }
 }
 

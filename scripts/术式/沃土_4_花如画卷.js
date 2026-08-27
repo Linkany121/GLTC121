@@ -1,10 +1,8 @@
 // ===================================================================
 // 术式：花如画卷 —— 4环 · 沃土奥法（环绕蓄力 + 左键齐射）
-// ID：VASA_花如画卷（与 items.yml 术式载体一致）
-// 右键进入状态：花朵环绕自身；左键将全部未发射花朵朝视野方向射出
+// ID：VASA_花如画卷
 // ===================================================================
 
-// === Java 类型导入 ===
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var Material = Java.type("org.bukkit.Material");
 var Particle = Java.type("org.bukkit.Particle");
@@ -18,21 +16,18 @@ var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var META_SHARED = "gltc_shared_root_maps";
 var META_RUNTIME = "gltc_spell_runtime";
+var LEFT_BRIDGE_KEY = "gltc_spell_left_VASA_花如画卷";
+var STATE_MAP_KEY = "huaru_state";
 
-// === 术式身份 / 登记导出 ===
 var SPELL_ID          = "VASA_花如画卷";
 var SPELL_NAME        = "花如画卷";
 var SPELL_RING        = 4;
 var SPELL_SCHOOL      = "沃土";
 var SPELL_BOOK        = true;
-
-// === 冷却 / 伤害 ===
 var SPELL_COOLDOWN_MS = 12000;
 var SPELL_COEFFICIENT = 1.5;
 
-// === [花如画卷] 状态（未投射）===
 var DISPLAY_SCALE     = 0.72;
 var HIT_HALF          = 0.5;
 var STATE_DURATION    = 100;
@@ -40,14 +35,11 @@ var SPAWN_INTERVAL    = 10;
 var ORBIT_RADIUS      = 3.0;
 var ORBIT_SPIN        = 0.08;
 var ORBIT_DRIFT       = 0.12;
-
-// === 左键齐射（已投射）===
 var PROJECT_SPEED     = 16;
 var MAX_FLY_DISTANCE  = 32;
 var HOMING_WEIGHT     = 0.45;
 var AIM_DISTANCE      = 28;
 
-// === 花朵 / 粒子 ===
 var FLOWER_POOL = [
     Material.DANDELION, Material.POPPY, Material.BLUE_ORCHID, Material.ALLIUM,
     Material.AZURE_BLUET, Material.OXEYE_DAISY, Material.CORNFLOWER,
@@ -62,16 +54,15 @@ var CHERRY_PARTICLE = (function() {
     try { return Particle.CHERRY_LEAVES; } catch (e0) {}
     return Particle.END_ROD;
 })();
-var CHERRY_COUNT      = 2;
-var CHERRY_SPREAD     = 0.12;
 
-// === 音效 ===
-var SOUND_CAST        = "block.cherry_leaves.place";
-var SOUND_CAST_VOL    = 0.85;
-var SOUND_CAST_PITCH  = 1.1;
-var SOUND_LAUNCH      = "entity.arrow.shoot";
-var SOUND_LAUNCH_VOL  = 0.65;
-var SOUND_LAUNCH_PITCH  = 1.35;
+var SHARED_ROOT_API = (function() {
+    try {
+        var f = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/_gltcSharedRoot.js");
+        if (!f.exists()) return null;
+        var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(f.toPath()))).toString();
+        return (0, eval)(code);
+    } catch (e) { return null; }
+})();
 
 function rt(mageApi) {
     try {
@@ -85,12 +76,7 @@ function rt(mageApi) {
     } catch (eApi) {}
     try {
         if (PLUGIN != null && PLUGIN.hasMetadata(META_RUNTIME)) {
-            var direct = PLUGIN.getMetadata(META_RUNTIME).get(0).value();
-            if (direct != null) return direct;
-        }
-        if (PLUGIN != null && PLUGIN.hasMetadata(META_SHARED)) {
-            var hit = PLUGIN.getMetadata(META_SHARED).get(0).value().get("gltcSpellRuntime");
-            if (hit != null) return hit;
+            return PLUGIN.getMetadata(META_RUNTIME).get(0).value();
         }
         if (PLUGIN != null && PLUGIN.gltcSpellRuntime != null) return PLUGIN.gltcSpellRuntime;
     } catch (e) {}
@@ -117,22 +103,24 @@ function calcSpellDamage(player, mageApi) {
     return SPELL_COEFFICIENT;
 }
 
-function playSpellSound(world, loc, sound, vol, pitch) {
+function playSound(world, loc, sound, vol, pitch) {
     if (world == null || loc == null) return;
     try { world.playSound(loc, sound, vol, pitch); return; } catch (e0) {}
     try { world.playSound(loc, String(sound), vol, pitch); } catch (e1) {}
 }
 
 function isTarget(ent, casterUuid) {
-    var living = false;
-    try { living = LivingEntity.class.isInstance(ent); } catch (e0) {
-        try { living = ent instanceof LivingEntity; } catch (e1) {}
+    try { if (!LivingEntity.class.isInstance(ent)) return false; } catch (e0) {
+        try { if (!(ent instanceof LivingEntity)) return false; } catch (e1) { return false; }
     }
-    if (!living || ent.isDead()) return false;
+    try { if (ent.isDead()) return false; } catch (eD) { return false; }
     try {
         if (Player.class.isInstance(ent) && String(ent.getUniqueId().toString()) === casterUuid) return false;
     } catch (eP) {}
-    try { if (ent.getType() === EntityType.ARMOR_STAND || ent.getType() === EntityType.ITEM_DISPLAY) return false; } catch (eT) {}
+    try {
+        var t = ent.getType();
+        if (t === EntityType.ARMOR_STAND || t === EntityType.ITEM_DISPLAY) return false;
+    } catch (eT) {}
     return true;
 }
 
@@ -166,23 +154,33 @@ function blendDirection(forward, toward, weight) {
     ));
 }
 
-function launchHomingFlower(player, mageApi, runtime, display, startLoc) {
-    if (!display || !runtime.isFlyingDisplayAlive(display)) return false;
+function stateMap(runtime) {
+    return runtime.mapOf(STATE_MAP_KEY);
+}
+
+function getState(runtime, uuid) {
+    return stateMap(runtime).get(String(uuid));
+}
+
+function launchHomingFlower(state, orb) {
+    var runtime = state.runtime;
+    var player = state.player;
+    if (!orb || orb.projected || orb.removed || !runtime.isFlyingDisplayAlive(orb.display)) return false;
 
     var world = player.getWorld();
-    var loc = startLoc.clone();
-    var ownerUuid = String(player.getUniqueId().toString());
-    var dmg = calcSpellDamage(player, mageApi);
+    var loc = orb.display.lastLoc != null ? orb.display.lastLoc.clone() : player.getEyeLocation().clone();
+    var display = orb.display;
+    var ownerUuid = state.ownerUuid;
+    var dmg = state.dmg;
     var speed = PROJECT_SPEED / 20.0;
     var traveled = 0;
     var alive = true;
-    var spellInfo = { ring: SPELL_RING, name: SPELL_NAME, spellId: SPELL_ID };
+    var spellInfo = state.spellInfo;
     var task = null;
     var token = null;
-    var eye = player.getEyeLocation();
-    var dir = eye.getDirection().clone().normalize();
+    var dir = player.getEyeLocation().getDirection().clone().normalize();
 
-    function cleanup() {
+    function cleanupFly() {
         if (!alive) return;
         alive = false;
         try { if (task != null) task.cancel(); } catch (eC) {}
@@ -190,9 +188,7 @@ function launchHomingFlower(player, mageApi, runtime, display, startLoc) {
         try { runtime.removeFlyingDisplay(display); } catch (eR) {}
     }
 
-    token = runtime.begin(player, SPELL_ID, new (Java.extend(java.lang.Runnable, {
-        run: cleanup
-    })), {
+    token = runtime.begin(player, SPELL_ID, new (Java.extend(java.lang.Runnable, { run: cleanupFly })), {
         persistence: runtime.SESSION_PROJECTED,
         replace: false
     });
@@ -205,7 +201,7 @@ function launchHomingFlower(player, mageApi, runtime, display, startLoc) {
         run: function() {
             try {
                 if (!alive) return;
-                eye = player.getEyeLocation();
+                var eye = player.getEyeLocation();
                 var aim = eye.clone().add(eye.getDirection().multiply(AIM_DISTANCE));
                 dir = blendDirection(dir, aim.toVector().subtract(loc.toVector()), HOMING_WEIGHT);
                 var prev = loc.clone();
@@ -220,10 +216,10 @@ function launchHomingFlower(player, mageApi, runtime, display, startLoc) {
                 if (!hitEnt && !hitSolid && traveled < MAX_FLY_DISTANCE) return;
 
                 if (hitEnt) runtime.dealParticleSpellDamage(hitEnt, dmg, player, spellInfo);
-                cleanup();
+                cleanupFly();
                 try { runtime.end(player, token, false); } catch (eEnd) {}
             } catch (ex) {
-                cleanup();
+                cleanupFly();
                 try { runtime.end(player, token, false); } catch (eEnd2) {}
             }
         }
@@ -231,10 +227,52 @@ function launchHomingFlower(player, mageApi, runtime, display, startLoc) {
     return true;
 }
 
+function projectAllForUuid(uuid) {
+    var runtime = rt(null);
+    if (!runtime) return;
+    var state = getState(runtime, uuid);
+    if (!state || !state.alive) return;
+    var player = runtime.findOnline ? runtime.findOnline(uuid) : null;
+    if (player == null) {
+        try { player = Bukkit.getPlayer(java.util.UUID.fromString(String(uuid))); } catch (eP) {}
+    }
+    if (player == null || !player.isOnline()) return;
+    state.player = player;
+
+    var launched = 0;
+    for (var i = 0; i < state.orbiters.length; i++) {
+        var o = state.orbiters[i];
+        if (o.projected || o.removed || !runtime.isFlyingDisplayAlive(o.display)) continue;
+        o.projected = true;
+        if (launchHomingFlower(state, o)) {
+            launched++;
+            o.display = null;
+        }
+    }
+    if (launched > 0) {
+        playSound(player.getWorld(), player.getEyeLocation(), "entity.arrow.shoot", 0.65, 1.35);
+    }
+}
+
+(function registerLeftClickBridge() {
+    try {
+        var Consumer = Java.type("java.util.function.Consumer");
+        var bridge = new (Java.extend(Consumer, {
+            accept: function(uuid) { projectAllForUuid(String(uuid)); }
+        }))();
+        if (SHARED_ROOT_API && SHARED_ROOT_API.putJavaBridge) {
+            SHARED_ROOT_API.putJavaBridge(LEFT_BRIDGE_KEY, bridge);
+        }
+        var root = SHARED_ROOT_API && SHARED_ROOT_API.getGltcSharedRoot ? SHARED_ROOT_API.getGltcSharedRoot() : null;
+        if (root != null) root.put(LEFT_BRIDGE_KEY, bridge);
+    } catch (eBr) {}
+})();
+
 function castHuaRuHuaJuan(player, mageApi) {
     var runtime = rt(mageApi);
     if (!runtime) return false;
 
+    var uuid = String(player.getUniqueId().toString());
     var world = player.getWorld();
     var orbiters = [];
     var angleBase = 0;
@@ -242,6 +280,17 @@ function castHuaRuHuaJuan(player, mageApi) {
     var alive = true;
     var task = null;
     var token = null;
+
+    var state = {
+        alive: true,
+        player: player,
+        ownerUuid: uuid,
+        runtime: runtime,
+        dmg: calcSpellDamage(player, mageApi),
+        spellInfo: { ring: SPELL_RING, name: SPELL_NAME, spellId: SPELL_ID },
+        orbiters: orbiters
+    };
+    stateMap(runtime).put(uuid, state);
 
     function removeOrbiter(o) {
         if (!o || o.removed) return;
@@ -253,13 +302,15 @@ function castHuaRuHuaJuan(player, mageApi) {
     function cleanup() {
         if (!alive) return;
         alive = false;
+        state.alive = false;
+        try { stateMap(runtime).remove(uuid); } catch (eRm) {}
         try { if (task != null) task.cancel(); } catch (eC) {}
         task = null;
         try { runtime.clearLeftClick(player); } catch (eL) {}
         for (var i = 0; i < orbiters.length; i++) {
             if (!orbiters[i].projected) removeOrbiter(orbiters[i]);
         }
-        orbiters = [];
+        orbiters.length = 0;
     }
 
     function spawnOrbiter(center, ang) {
@@ -273,47 +324,19 @@ function castHuaRuHuaJuan(player, mageApi) {
         return orb;
     }
 
-    function projectAll() {
-        if (!alive) return;
-        var who = player;
-        try {
-            if (runtime.findOnline) {
-                var online = runtime.findOnline(String(player.getUniqueId().toString()));
-                if (online != null) who = online;
-            }
-        } catch (eWho) {}
-        var launched = 0;
-        for (var i = 0; i < orbiters.length; i++) {
-            var o = orbiters[i];
-            if (o.projected || o.removed || !runtime.isFlyingDisplayAlive(o.display)) continue;
-            o.projected = true;
-            var startLoc = o.display.lastLoc != null ? o.display.lastLoc.clone() : who.getLocation().clone();
-            if (launchHomingFlower(who, mageApi, runtime, o.display, startLoc)) {
-                launched++;
-                o.display = null;
-            }
-        }
-        if (launched > 0) {
-            playSpellSound(world, who.getEyeLocation(), SOUND_LAUNCH, SOUND_LAUNCH_VOL, SOUND_LAUNCH_PITCH);
-        }
-    }
-
-    token = runtime.begin(player, SPELL_ID, new (Java.extend(java.lang.Runnable, {
-        run: cleanup
-    })), {
+    token = runtime.begin(player, SPELL_ID, new (Java.extend(java.lang.Runnable, { run: cleanup })), {
         persistence: runtime.SESSION_UNPROJECTED,
         replace: true
     });
-    if (!token) return false;
+    if (!token) {
+        cleanup();
+        return false;
+    }
 
-    runtime.registerLeftClick(player, SPELL_ID, new (Java.extend(java.lang.Runnable, {
-        run: projectAll
-    })));
+    runtime.registerLeftClick(player, SPELL_ID, null);
 
-    playSpellSound(world, player.getLocation(), SOUND_CAST, SOUND_CAST_VOL, SOUND_CAST_PITCH);
-
-    var center0 = player.getLocation().clone().add(0, 1.0, 0);
-    spawnOrbiter(center0, angleBase);
+    playSound(world, player.getLocation(), "block.cherry_leaves.place", 0.85, 1.1);
+    spawnOrbiter(player.getLocation().clone().add(0, 1.0, 0), angleBase);
 
     task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
         run: function() {
@@ -345,7 +368,7 @@ function castHuaRuHuaJuan(player, mageApi) {
                     oloc.setZ(center.getZ() + Math.sin(o.angle) * ORBIT_RADIUS);
                     runtime.moveFlyingDisplay(o.display, oloc);
                     try {
-                        world.spawnParticle(CHERRY_PARTICLE, oloc, CHERRY_COUNT, CHERRY_SPREAD, CHERRY_SPREAD, CHERRY_SPREAD, 0.01);
+                        world.spawnParticle(CHERRY_PARTICLE, oloc, 2, 0.12, 0.12, 0.12, 0.01);
                     } catch (eCherry) {}
                 }
 

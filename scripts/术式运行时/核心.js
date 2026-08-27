@@ -55,7 +55,7 @@ var META_PULSE          = "gltc_pulse_hit";           // 脉冲伤害标记（�
 
 // === 交互门槛（可调）===
 var LEFT_GATE_MS            = 120; // 左键二次操作最短间隔（毫秒）
-var SPELL_DMG_LISTENER_VER  = 5;   // v5=会话 list.remove、LivingEntity.isInstance、取消不补播、meta 必清
+var SPELL_DMG_LISTENER_VER  = 6;   // v6=粒子 MAGIC  bypass 护甲、脉冲改 MAGIC+单路播报、左键 Java 桥
 
 var _tokenSeq = 0;
 var _dmgListenerReady = false;
@@ -330,7 +330,8 @@ function clearSessions(playerOrUuid, opts) {
 }
 
 function registerLeftClick(player, spellId, runnable) {
-    if (!player || !spellId || runnable == null) return false;
+    if (!player || !spellId) return false;
+    if (runnable == null && getLeftClickBridge(spellId) == null) return false;
     var map = new java.util.HashMap();
     map.put("spellId", java.lang.String.valueOf(String(spellId)));
     map.put("runnable", runnable);
@@ -342,19 +343,26 @@ function clearLeftClick(playerOrUuid) {
     leftClickMap().remove(jUuid(playerUuid(playerOrUuid)));
 }
 
+function getLeftClickBridge(spellId) {
+    var key = "gltc_spell_left_" + String(spellId || "");
+    try {
+        if (SHARED_ROOT_API && SHARED_ROOT_API.getJavaBridge) {
+            var b = SHARED_ROOT_API.getJavaBridge(key);
+            if (b != null) return b;
+        }
+    } catch (e0) {}
+    try { return sharedRoot().get(key); } catch (e1) {}
+    return null;
+}
+
 function dispatchLeftClick(player) {
     player = asPlayer(player);
     if (!player) return false;
     var uuid = jUuid(playerUuid(player));
     var ent = leftClickMap().get(uuid);
     if (ent == null) return false;
-    var runnable = null;
     var spellId = "";
-    try {
-        spellId = String(ent.get("spellId") || "");
-        runnable = ent.get("runnable");
-    } catch (e) { return false; }
-    if (runnable == null) return false;
+    try { spellId = String(ent.get("spellId") || ""); } catch (e) { return false; }
 
     var gate = leftGateMap();
     var now = Date.now();
@@ -362,6 +370,18 @@ function dispatchLeftClick(player) {
     if (prev != null && now - readEpochMs(prev) < LEFT_GATE_MS) return true;
     try { gate.put(uuid, toJavaLong(now)); } catch (eG) {}
 
+    var bridge = getLeftClickBridge(spellId);
+    if (bridge != null) {
+        try {
+            bridge.accept(uuid);
+            return true;
+        } catch (eBr) {
+            try { Bukkit.getLogger().warning("[GLTC运行时] leftClick桥 " + spellId + ": " + eBr); } catch (e2) {}
+        }
+    }
+    var runnable = null;
+    try { runnable = ent.get("runnable"); } catch (eR) {}
+    if (runnable == null) return false;
     try {
         if (runnable.run != null) runnable.run();
         else runnable();
@@ -566,6 +586,10 @@ function resolveDamageType(typeKey) {
     if (!ensureDamageSourceApi()) return null;
     var names = typeKey === "sonic"
         ? ["SONIC_BOOM"]
+        : typeKey === "magic"
+        ? ["MAGIC", "INDIRECT_MAGIC", "GENERIC"]
+        : typeKey === "pulse"
+        ? ["GENERIC_KILL", "MAGIC", "GENERIC"]
         : ["OUT_OF_WORLD", "VOID", "GENERIC_KILL"];
     for (var i = 0; i < names.length; i++) {
         try {
@@ -675,23 +699,17 @@ function flushPendingHitAnnounce(target, attacker, fallbackAmount) {
     } catch (e) {}
 }
 
-/** 脉冲专用：仅在实际掉血时补播（虚空常被取消） */
-function announcePulseIfDealt(target, attacker, info, requestedAmount, hpBefore) {
-    if (!target || !info) return;
-    var dealt = 0;
+function measureDealtDamage(target, hpBefore) {
     try {
         var hpAfter = Number(target.getHealth());
         if (isFinite(hpBefore) && isFinite(hpAfter) && hpBefore > hpAfter) {
-            dealt = hpBefore - hpAfter;
+            return hpBefore - hpAfter;
         }
     } catch (eH) {}
-    try { clearSpellHitMeta(target); } catch (eC) {}
-    if (!(dealt > 0)) return;
-    info.targetName = entityDisplayName(target);
-    announceSpellHit(attacker, info, dealt);
+    return 0;
 }
 
-/** 脉冲/虚空 DamageSource 常不走 ByEntity，需多路解析攻击者 */
+/** 脉冲/魔法 DamageSource 常不走 ByEntity，需多路解析攻击者 */
 function resolveSpellAttacker(event, info) {
     var attacker = null;
     try {
@@ -752,11 +770,13 @@ function dealParticleSpellDamage(target, amount, attacker, info) {
     } catch (eM) {}
     // 勿用 SONIC_BOOM DamageSource：Paper 会播「被一道音波尖啸抹除了」且 getKiller 不稳定。
     // 粒子/物理区分靠 META_SPELL_PARTICLE + damageType；玩家侧折射在 监听.js 读 meta。
-    try {
-        target.setNoDamageTicks(0);
-        if (attacker) target.damage(Number(amount), attacker);
-        else target.damage(Number(amount));
-    } catch (e) {}
+    try { target.setNoDamageTicks(0); } catch (eN) {}
+    if (!applyDamageWithSource(target, amount, attacker, "magic")) {
+        try {
+            if (attacker) target.damage(Number(amount), attacker);
+            else target.damage(Number(amount));
+        } catch (e) {}
+    }
     flushPendingHitAnnounce(target, attacker, amount);
 }
 
@@ -769,23 +789,19 @@ function dealPulseSpellDamage(target, amount, attacker, info) {
     } catch (eM) {}
     var hpBefore = 0;
     try { hpBefore = Number(target.getHealth()); } catch (eHp0) {}
-    if (!applyDamageWithSource(target, amount, attacker, "void")) {
+    try { target.setNoDamageTicks(0); } catch (eN) {}
+    if (!applyDamageWithSource(target, amount, attacker, "pulse")) {
         try {
-            target.setNoDamageTicks(0);
             if (attacker) target.damage(Number(amount), attacker);
             else target.damage(Number(amount));
         } catch (e) {}
     }
-    // 监听已用 finalDamage 播报并清 meta 则跳过；否则按实际掉血补播
-    try {
-        if (target.hasMetadata(META_SPELL_HIT)) {
-            announcePulseIfDealt(target, attacker, info, amount, hpBefore);
-        } else {
-            try { target.removeMetadata(META_SPELL_PARTICLE, PLUGIN); } catch (eP) {}
-            try { target.removeMetadata(META_PULSE, PLUGIN); } catch (ePu) {}
-        }
-    } catch (eAnn) {
-        clearSpellHitMeta(target);
+    var who = asPlayer(attacker) || resolveAttackerFromInfo(info);
+    var dealt = measureDealtDamage(target, hpBefore);
+    clearSpellHitMeta(target);
+    if (dealt > 0 && who) {
+        info.targetName = entityDisplayName(target);
+        announceSpellHit(who, info, dealt);
     }
 }
 
@@ -828,6 +844,11 @@ function ensureSpellDamageListener() {
                 var info = null;
                 try { info = victim.getMetadata(META_SPELL_HIT).get(0).value(); } catch (eI) {}
                 if (!info) {
+                    clearSpellHitMeta(victim);
+                    return;
+                }
+                // 脉冲由 dealPulseSpellDamage 单路播报，避免 VOID 事件与监听双播
+                if (String(info.damageType || "").toLowerCase() === DMG_PULSE) {
                     clearSpellHitMeta(victim);
                     return;
                 }

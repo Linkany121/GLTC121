@@ -1327,14 +1327,17 @@ function schedulePulseMetaCleanup(target) {
     }
 }
 
-function applyVoidDamageSource(target, amount, attacker) {
+function applyVoidDamageSource(target, amount, attacker, typeKey) {
     try {
         var DamageType = Java.type("org.bukkit.damage.DamageType");
         var DamageSource = Java.type("org.bukkit.damage.DamageSource");
+        var names = typeKey === "magic"
+            ? ["MAGIC", "INDIRECT_MAGIC", "GENERIC"]
+            : ["GENERIC_KILL", "MAGIC", "GENERIC"];
         var dt = null;
-        try { dt = DamageType.OUT_OF_WORLD; } catch (e0) {}
-        if (dt == null) {
-            try { dt = DamageType.valueOf("OUT_OF_WORLD"); } catch (e1) {}
+        for (var i = 0; i < names.length; i++) {
+            try { dt = DamageType[names[i]]; if (dt != null) break; } catch (e0) {}
+            try { dt = DamageType.valueOf(names[i]); if (dt != null) break; } catch (e1) {}
         }
         if (dt == null) return false;
         var b = DamageSource.builder(dt);
@@ -1348,12 +1351,12 @@ function applyVoidDamageSource(target, amount, attacker) {
     } catch (e4) { return false; }
 }
 
-/** 脉冲伤害：虚空伤害模型，忽视所有减伤；失败时直接扣血 */
+/** 脉冲伤害：魔法伤害模型 + meta 跳过减伤；失败时直接扣血 */
 function dealPulseDamage(target, amount, attacker) {
     if (!target || amount <= 0) return;
     try {
         target.setMetadata(PULSE_META, new FixedMetadataValue(PLUGIN, true));
-        if (!applyVoidDamageSource(target, amount, attacker)) {
+        if (!applyVoidDamageSource(target, amount, attacker, "pulse")) {
             try {
                 var hp = Math.max(0, Number(target.getHealth()) - Number(amount));
                 target.setHealth(hp <= 0 ? 0 : hp);

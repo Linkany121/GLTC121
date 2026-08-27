@@ -1,13 +1,13 @@
 // ===================================================================
 // 术式：庇护脉络 —— 3环 · 沃土奥法（粒子环增益 + 推伤）
-// ID：VASA_庇护脉络（与 items.yml 术式载体一致）
-// 右键施展：周身粒子环持续存在，每秒随机增益自身并推伤环内敌对生物
+// ID：VASA_庇护脉络
 // ===================================================================
 
-// === Java 类型导入 ===
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var Particle = Java.type("org.bukkit.Particle");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
+var Player = Java.type("org.bukkit.entity.Player");
+var EntityType = Java.type("org.bukkit.entity.EntityType");
 var PotionEffect = Java.type("org.bukkit.potion.PotionEffect");
 var PotionEffectType = Java.type("org.bukkit.potion.PotionEffectType");
 var Vector = Java.type("org.bukkit.util.Vector");
@@ -17,28 +17,16 @@ var StandardCharsets = java.nio.charset.StandardCharsets;
 var ByteBuffer = Java.type("java.nio.ByteBuffer");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var META_SHARED = "gltc_shared_root_maps";
 var META_RUNTIME = "gltc_spell_runtime";
 
-var Monster = null;
-var Enemy = null;
-var Player = null;
-try { Monster = Java.type("org.bukkit.entity.Monster"); } catch (eM) {}
-try { Enemy = Java.type("org.bukkit.entity.Enemy"); } catch (eE) {}
-try { Player = Java.type("org.bukkit.entity.Player"); } catch (eP) {}
-
-// === 术式身份 / 登记导出 ===
 var SPELL_ID          = "VASA_庇护脉络";
 var SPELL_NAME        = "庇护脉络";
 var SPELL_RING        = 3;
 var SPELL_SCHOOL      = "沃土";
 var SPELL_BOOK        = true;
-
-// === 冷却 / 伤害 ===
 var SPELL_COOLDOWN_MS = 16000;
 var SPELL_COEFFICIENT = 2.0;
 
-// === 粒子环 ===
 var DURATION_TICKS    = 160;
 var RING_RADIUS       = 2.5;
 var RING_SEGMENTS     = 24;
@@ -46,7 +34,6 @@ var BUFF_INTERVAL     = 20;
 var BUFF_DURATION_SEC = 5;
 var KNOCKBACK         = 0.85;
 
-// === 粒子类型 ===
 var BONE_MEAL_PARTICLE = (function() {
     try { return Particle.HAPPY_VILLAGER; } catch (e0) {}
     try { return Particle.VILLAGER_HAPPY; } catch (e1) {}
@@ -58,10 +45,14 @@ var TOTEM_PARTICLE = (function() {
     return Particle.ENCHANT;
 })();
 
-// === 施展音效 ===
 var SOUND_CAST        = "item.totem.use";
 var SOUND_CAST_VOL    = 0.55;
 var SOUND_CAST_PITCH  = 1.4;
+
+var BUFF_POOL = [
+    PotionEffectType.INCREASE_DAMAGE, PotionEffectType.SPEED, PotionEffectType.JUMP,
+    PotionEffectType.REGENERATION, PotionEffectType.DAMAGE_RESISTANCE, PotionEffectType.ABSORPTION
+];
 
 function rt(mageApi) {
     try {
@@ -75,12 +66,7 @@ function rt(mageApi) {
     } catch (eApi) {}
     try {
         if (PLUGIN != null && PLUGIN.hasMetadata(META_RUNTIME)) {
-            var direct = PLUGIN.getMetadata(META_RUNTIME).get(0).value();
-            if (direct != null) return direct;
-        }
-        if (PLUGIN != null && PLUGIN.hasMetadata(META_SHARED)) {
-            var hit = PLUGIN.getMetadata(META_SHARED).get(0).value().get("gltcSpellRuntime");
-            if (hit != null) return hit;
+            return PLUGIN.getMetadata(META_RUNTIME).get(0).value();
         }
         if (PLUGIN != null && PLUGIN.gltcSpellRuntime != null) return PLUGIN.gltcSpellRuntime;
     } catch (e) {}
@@ -107,48 +93,42 @@ function calcSpellDamage(player, mageApi) {
     return SPELL_COEFFICIENT;
 }
 
-function playSpellSound(world, loc, sound, vol, pitch) {
+function playSound(world, loc) {
     if (world == null || loc == null) return;
-    try { world.playSound(loc, sound, vol, pitch); return; } catch (e0) {}
-    try { world.playSound(loc, String(sound), vol, pitch); } catch (e1) {}
+    try { world.playSound(loc, SOUND_CAST, SOUND_CAST_VOL, SOUND_CAST_PITCH); return; } catch (e0) {}
+    try { world.playSound(loc, String(SOUND_CAST), SOUND_CAST_VOL, SOUND_CAST_PITCH); } catch (e1) {}
 }
 
-function isRingHostile(ent, casterUuid) {
+function isRingTarget(ent, casterUuid) {
     if (ent == null) return false;
-    var living = false;
-    try { living = LivingEntity.class.isInstance(ent); } catch (e0) {
-        try { living = ent instanceof LivingEntity; } catch (e1) {}
+    try { if (!LivingEntity.class.isInstance(ent)) return false; } catch (e0) {
+        try { if (!(ent instanceof LivingEntity)) return false; } catch (e1) { return false; }
     }
-    if (!living) return false;
     try { if (ent.isDead()) return false; } catch (eDead) { return false; }
     try {
-        if (Player != null && Player.class.isInstance(ent)) {
-            return String(ent.getUniqueId().toString()) !== String(casterUuid);
-        }
+        if (Player.class.isInstance(ent) && String(ent.getUniqueId().toString()) === casterUuid) return false;
     } catch (ePl) {}
-    if (Monster != null) {
-        try { if (Monster.class.isInstance(ent)) return true; } catch (eM0) {}
-    }
-    if (Enemy != null) {
-        try { if (Enemy.class.isInstance(ent)) return true; } catch (eE0) {}
-    }
-    return false;
+    try {
+        var t = ent.getType();
+        if (t === EntityType.ARMOR_STAND || t === EntityType.ITEM_DISPLAY) return false;
+    } catch (eT) {}
+    return true;
 }
 
-function horizontalDistance(a, b) {
+function distSq(a, b) {
     var dx = a.getX() - b.getX();
+    var dy = a.getY() - b.getY();
     var dz = a.getZ() - b.getZ();
-    return Math.sqrt(dx * dx + dz * dz);
+    return dx * dx + dy * dy + dz * dz;
 }
 
 function applyRandomBuff(player, seconds) {
     var ticks = Math.max(1, Math.floor(Number(seconds) * 20));
-    var pool = [
-        PotionEffectType.INCREASE_DAMAGE, PotionEffectType.SPEED, PotionEffectType.JUMP,
-        PotionEffectType.REGENERATION, PotionEffectType.DAMAGE_RESISTANCE, PotionEffectType.ABSORPTION
-    ];
     try {
-        player.addPotionEffect(new PotionEffect(pool[Math.floor(Math.random() * pool.length)], ticks, 0, false, true, true));
+        player.addPotionEffect(
+            new PotionEffect(BUFF_POOL[Math.floor(Math.random() * BUFF_POOL.length)], ticks, 0, false, true, true),
+            true
+        );
     } catch (e) {}
 }
 
@@ -164,15 +144,27 @@ function applyKnockbackFrom(ent, center, strength) {
 }
 
 function spawnRingParticles(world, center, tickIndex) {
+    var r2 = RING_RADIUS;
     for (var i = 0; i < RING_SEGMENTS; i++) {
         var ang = (Math.PI * 2 * i) / RING_SEGMENTS;
-        var x = center.getX() + Math.cos(ang) * RING_RADIUS;
-        var z = center.getZ() + Math.sin(ang) * RING_RADIUS;
-        var y = center.getY() + 0.15;
         try {
             var pt = ((i + tickIndex) % 2) === 0 ? TOTEM_PARTICLE : BONE_MEAL_PARTICLE;
-            world.spawnParticle(pt, x, y, z, 1, 0, 0.05, 0, 0.01);
+            world.spawnParticle(pt, center.getX() + Math.cos(ang) * r2, center.getY() + 0.15, center.getZ() + Math.sin(ang) * r2, 1, 0, 0.05, 0, 0.01);
         } catch (eP) {}
+    }
+}
+
+function pulseRing(runtime, player, center, dmg, ownerUuid, spellInfo) {
+    applyRandomBuff(player, BUFF_DURATION_SEC);
+    var world = player.getWorld();
+    var r2 = RING_RADIUS * RING_RADIUS;
+    var it = world.getNearbyEntities(center, RING_RADIUS, RING_RADIUS, RING_RADIUS).iterator();
+    while (it.hasNext()) {
+        var ent = it.next();
+        if (!isRingTarget(ent, ownerUuid)) continue;
+        if (distSq(ent.getLocation(), center) > r2) continue;
+        runtime.dealParticleSpellDamage(ent, dmg, player, spellInfo);
+        applyKnockbackFrom(ent, center, KNOCKBACK);
     }
 }
 
@@ -182,9 +174,10 @@ function castBiHuMaiLuo(player, mageApi) {
 
     var dmg = calcSpellDamage(player, mageApi);
     var world = player.getWorld();
+    var ownerUuid = String(player.getUniqueId().toString());
+    var spellInfo = { ring: SPELL_RING, name: SPELL_NAME, spellId: SPELL_ID };
     var ticks = 0;
     var alive = true;
-    var spellInfo = { ring: SPELL_RING, name: SPELL_NAME, spellId: SPELL_ID };
     var task = null;
     var token = null;
 
@@ -195,31 +188,14 @@ function castBiHuMaiLuo(player, mageApi) {
         task = null;
     }
 
-    token = runtime.begin(player, SPELL_ID, new (Java.extend(java.lang.Runnable, {
-        run: cleanup
-    })), {
+    token = runtime.begin(player, SPELL_ID, new (Java.extend(java.lang.Runnable, { run: cleanup })), {
         persistence: runtime.SESSION_PROJECTED,
         replace: true
     });
     if (!token) return false;
 
-    playSpellSound(world, player.getLocation(), SOUND_CAST, SOUND_CAST_VOL, SOUND_CAST_PITCH);
-
-    var ownerUuid = String(player.getUniqueId().toString());
-
-    function pulseRing(center) {
-        applyRandomBuff(player, BUFF_DURATION_SEC);
-        var nearby = world.getNearbyEntities(center, RING_RADIUS, RING_RADIUS, RING_RADIUS).iterator();
-        while (nearby.hasNext()) {
-            var ent = nearby.next();
-            if (!isRingHostile(ent, ownerUuid)) continue;
-            if (horizontalDistance(ent.getLocation(), center) > RING_RADIUS) continue;
-            runtime.dealParticleSpellDamage(ent, dmg, player, spellInfo);
-            applyKnockbackFrom(ent, center, KNOCKBACK);
-        }
-    }
-
-    pulseRing(player.getLocation().clone().add(0, 0.2, 0));
+    playSound(world, player.getLocation());
+    pulseRing(runtime, player, player.getLocation().clone().add(0, 0.2, 0), dmg, ownerUuid, spellInfo);
 
     task = Bukkit.getScheduler().runTaskTimer(PLUGIN, new (Java.extend(java.lang.Runnable, {
         run: function() {
@@ -233,11 +209,7 @@ function castBiHuMaiLuo(player, mageApi) {
                 ticks++;
                 var center = player.getLocation().clone().add(0, 0.2, 0);
                 spawnRingParticles(world, center, ticks);
-
-                if (ticks % BUFF_INTERVAL === 0) {
-                    pulseRing(center);
-                }
-
+                if (ticks % BUFF_INTERVAL === 0) pulseRing(runtime, player, center, dmg, ownerUuid, spellInfo);
                 if (ticks >= DURATION_TICKS) {
                     cleanup();
                     try { runtime.end(player, token, false); } catch (eEnd) {}

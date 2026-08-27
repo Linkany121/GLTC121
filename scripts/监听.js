@@ -296,7 +296,7 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
         }, PLUGIN
     );
     Bukkit.getPluginManager().registerEvent(
-        EntityDamageEvent, listenerInstance, EventPriority.HIGH,
+        EntityDamageEvent, listenerInstance, EventPriority.HIGHEST,
         function(l, event) {
             if (event.isCancelled()) return;
             var entity = event.getEntity();
@@ -309,17 +309,25 @@ if (gltcEvalScript("食物/战斗效果监听.js", false)) {
                     try { entity.removeMetadata("gltc_pulse_hit", PLUGIN); } catch (ePulse) {}
                     return;
                 }
-                var stats = api.getTotalStats(entity, false);
-                var dmg = event.getDamage();
                 var isSpellParticle = false;
                 try { isSpellParticle = entity.hasMetadata("gltc_spell_particle_hit"); } catch (eSp) {}
-                // 粒子折射：仅术式造成的粒子伤害；处理后立刻摘 meta，防取消/残留误套
                 if (isSpellParticle) {
                     try { entity.removeMetadata("gltc_spell_particle_hit", PLUGIN); } catch (eRmSp) {}
+                    // 粒子术式：剥离护甲/韧性/保护附魔等 vanilla 减伤，仅保留折射与最终减伤
+                    try {
+                        var DM = EntityDamageEvent.DamageModifier;
+                        var strip = ["ARMOR", "ARMOR_ENCHANTMENTS", "RESISTANCE", "HARD_HAT", "MAGIC_RESISTANCE"];
+                        for (var si = 0; si < strip.length; si++) {
+                            try { event.setDamage(DM.valueOf(strip[si]), 0); } catch (eStrip) {}
+                        }
+                    } catch (eMod) {}
+                }
+                var stats = api.getTotalStats(entity, false);
+                var dmg = event.getDamage();
+                if (isSpellParticle) {
                     var refract = stats.particleRefraction || 0;
                     if (refract > 0) dmg = dmg * (1 - Math.min(0.95, refract));
                 }
-                // 最终减伤：脉冲以外所有伤害；脉冲已在上方跳过
                 var fdr = stats.finalDamageReduction || 0;
                 if (fdr > 0) dmg = dmg * (1 - Math.min(0.90, fdr));
                 if (dmg < 0) dmg = 0;

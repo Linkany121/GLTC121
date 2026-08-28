@@ -1,0 +1,11 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: IRON_AXE
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    enchants:
+      minecraft:efficiency: 5
+    repair-cost: 1
+    Unbreakable: true

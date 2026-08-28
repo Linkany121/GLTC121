@@ -1,0 +1,13 @@
+# 首次加载后会复制到 plugins/GLTC/config.yml
+# 服主请修改 plugins/GLTC/config.yml；勿改插件 jar 内此模板。
+
+# 粒子浓度(GLI) 术式最终伤害修正，玩家不可提升 默认1（允许范围 0.01~100）
+# 术式最终伤害 = 粒子强度 × 术式伤害系数 × 粒子浓度
+ParticleConcentration: 1
+
+# 异能强度(SIT) 枪械与异能武器的伤害将受此影响 默认10
+StarbyssAdjustment: 10
+
+# 枪械与异能武器的伤害提示方式
+# chat 聊天框 / actionbar 物品栏上方 / none 不显示
+DamageNotifyMode: chat

@@ -1,0 +1,12 @@
+package com.linkany121.gltc.generated.items;
+
+public final class Items_tszspt1 {
+    private Items_tszspt1() {}
+    @SuppressWarnings("unchecked")
+    public static final java.util.Map<String, Object> DATA = java.util.Map.ofEntries(
+        java.util.Map.entry("name", "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#aa559e深渊棱镜平台&7-&eI"),
+        java.util.Map.entry("material", "pink_glazed_terracotta"),
+        java.util.Map.entry("glow", true),
+        java.util.Map.entry("lore", java.util.List.of("&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工", "&#fff5b3一种能透过uFex场挖掘悖论油质的钻井，", "&#fff5b3每次挖掘，需要消耗非常长的时间。", "&#fff5b3耐心等待全宇宙最危险的物质被开采。", "&8⇨ &7速度:5分钟/次", "&8⇨ &e⚡&7 100 J/秒"))
+    );
+}

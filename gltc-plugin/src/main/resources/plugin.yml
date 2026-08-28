@@ -1,0 +1,8 @@
+name: GLTC
+main: com.linkany121.gltc.GltcPlugin
+version: 5.0.0
+api-version: '1.21'
+depend: [Slimefun]
+softdepend: [InfinityExpansion, LiteXpansion, Networks, DynaTech, ExoticGarden, FluffyMachines]
+authors: [Linkany121]
+description: GLTC联合协议

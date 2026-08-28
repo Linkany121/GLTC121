@@ -1,0 +1,20 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 4189
+  type: LIGHT_BLUE_BANNER
+  meta:
+    ==: ItemMeta
+    meta-type: BANNER
+    patterns:
+    - ==: Pattern
+      color: BLUE
+      pattern: minecraft:bricks
+    - ==: Pattern
+      color: YELLOW
+      pattern: minecraft:gradient
+    - ==: Pattern
+      color: LIGHT_BLUE
+      pattern: minecraft:gradient_up
+    - ==: Pattern
+      color: BLUE
+      pattern: minecraft:globe

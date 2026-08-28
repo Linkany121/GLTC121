@@ -1,0 +1,17 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3465
+  type: BLACK_BANNER
+  meta:
+    ==: ItemMeta
+    meta-type: BANNER
+    patterns:
+    - ==: Pattern
+      color: PURPLE
+      pattern: mr
+    - ==: Pattern
+      color: BLACK
+      pattern: gru
+    - ==: Pattern
+      color: BLACK
+      pattern: ss

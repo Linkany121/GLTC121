@@ -1,0 +1,12 @@
+package com.linkany121.gltc.generated.items;
+
+public final class Items_tsmsft2 {
+    private Items_tsmsft2() {}
+    @SuppressWarnings("unchecked")
+    public static final java.util.Map<String, Object> DATA = java.util.Map.ofEntries(
+        java.util.Map.entry("name", "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#774cdc重型沸腾魔素热馏塔&7-&eII"),
+        java.util.Map.entry("material", "blue_glazed_terracotta"),
+        java.util.Map.entry("glow", true),
+        java.util.Map.entry("lore", java.util.List.of("&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工", "&#fff5b3能精确控制高热压循环的热馏塔，", "&#fff5b3使侵蚀油块在压力临界点中分解熔融。", "&#fff5b3有时油块需更长的时间处理，这说明里面有好东西。", "&8需同时投入油块与涵粒子容器", "&8⇨ &7速度:1分钟/次", "&8⇨ &e⚡&7 80 J/秒"))
+    );
+}

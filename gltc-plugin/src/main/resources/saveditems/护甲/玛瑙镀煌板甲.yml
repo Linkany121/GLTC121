@@ -1,0 +1,28 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: DIAMOND_CHESTPLATE
+  meta:
+    ==: ItemMeta
+    meta-type: ARMOR
+    enchants:
+      minecraft:protection: 4
+      minecraft:thorns: 3
+    attribute-modifiers:
+      minecraft:generic.armor:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 9.0
+        slot: chest
+        operation: 0
+        key: minecraft:armor.chestplate
+      minecraft:generic.armor_toughness:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 2.0
+        slot: chest
+        operation: 0
+        key: minecraft:armor.chestplate
+    repair-cost: 3
+    Unbreakable: true
+    trim:
+      material: minecraft:gold
+      pattern: minecraft:coast

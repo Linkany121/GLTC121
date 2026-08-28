@@ -14,7 +14,7 @@ FD_A1:
     material: ochre_froglight
   capacity: 80
   production: 8
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: ENHANCED_CRAFTING_TABLE
   recipe:
@@ -61,7 +61,7 @@ FD_TSBZ:
     material: 0d61ab0136c69d7caddd566d2e9bcb35fdc5f9e3ca351e27362abf1374c4e58
   capacity: 240
   production: 15
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -125,7 +125,7 @@ FD_TSBZ2:
     material: 0d61ab0136c69d7caddd566d2e9bcb35fdc5f9e3ca351e27362abf1374c4e58
   capacity: 4800
   production: 128
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -187,7 +187,7 @@ FD_TSJL:
     material: 3b1309dac556911e55398038c4367f892d96cd5e8034fc232db920736879944c
   capacity: 200
   production: 16
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -253,7 +253,7 @@ FD_TSJL2:
     material: 3b1309dac556911e55398038c4367f892d96cd5e8034fc232db920736879944c
   capacity: 4000
   production: 80
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -315,7 +315,7 @@ FD_TSYD:
     material: 87eb123a1f7e2686c85c73c3dfad336c60202740226af582326e05361cffc97b
   capacity: 360
   production: 32
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -380,7 +380,7 @@ FD_TSYD2:
     material: 87eb123a1f7e2686c85c73c3dfad336c60202740226af582326e05361cffc97b
   capacity: 8200
   production: 128
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -430,7 +430,7 @@ FD_TSYD2:
 FD_LSCS1:
   item_group: A_E2
   item:
-    name: "&#e0ffe7L&#a1ffc9S&#63ffacI&#24ff8eA &#88e381世&#75ea76纪&#62f16c末&#4eed71的&#39d393残&#24bab6余&#568592消&#aa4349化&#ff0000盒"
+    name: "&#14ff00世&#4cff00纪&#84ff00末&#bcff00的&#f4ff00残&#f7bf00余&#fa8000消&#fc4000化&#ff0000盒"
     glow: true
     lore:
     - '&b归属&9：&#ffffff莉&#e2fff5尔&#c5ffec幸&#a8ffe2丝&#8affd8有&#6dffce机&#50ffc5工&#33ffbb业'
@@ -441,7 +441,7 @@ FD_LSCS1:
     material: nether_gold_ore
   capacity: 4000
   production: 300
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -497,7 +497,7 @@ FD_发酵电容:
     - '&8⇨ &e⚡&7 32 J/秒'
   capacity: 3200 
   production: 16
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -569,7 +569,7 @@ FD_发酵电容2:
     - '&8⇨ &e⚡&7 64 J/秒'
   capacity: 12000 
   production: 32
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -636,7 +636,7 @@ FD_发酵电容3:
     - '&8⇨ &e⚡&7 512 J/秒'
   capacity: 32000 
   production: 256
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -703,7 +703,7 @@ FD_鼓风机电容:
     - '&8⇨ &e⚡&7 24 J/秒'
   capacity: 2400 
   production: 12
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -763,7 +763,7 @@ FD_鼓风机电容2:
     - '&8⇨ &e⚡&7 48 J/秒'
   capacity: 8000 
   production: 24
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -818,7 +818,7 @@ FD_鼓风机电容3:
     - '&8⇨ &e⚡&7 320 J/秒'
   capacity: 24000
   production: 160
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -873,7 +873,7 @@ FD_场地电容:
     - '&8⇨ &e⚡&7 200 J/秒'
   capacity: 20000
   production: 100
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -934,7 +934,7 @@ FD_场地电容2:
     - '&8⇨ &e⚡&7 400 J/秒'
   capacity: 10000
   production: 200
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:
@@ -995,7 +995,7 @@ FD_场地电容3:
     - '&8⇨ &e⚡&7 2400 J/秒'
   capacity: 15000 
   production: 1200
-  input: [2,3,4,5,6,11,12,13,14,15,20,21,22,23,24]
+  input: [2,3,4,5,6,11,12,13,14,15,20,21,23,24]
   output: [38,39,40,41,42,47,48,49,50,51]
   recipe_type: PF_KEW
   recipe:

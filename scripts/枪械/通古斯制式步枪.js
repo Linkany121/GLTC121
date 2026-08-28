@@ -2,7 +2,6 @@
 // 通古斯制式步枪 · 可调配置
 // 最终伤害 = 系数 × 异能强度(SIT)；改完重载脚本生效
 // ===================================================================
-var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -74,17 +73,8 @@ function scheduleReloadSound(player, cooldownMs) {
     });
     new CloseTask().runTaskLater(plugin, Math.max(1, Math.floor(cooldownMs / 50)));
 }
-function isHoldingGun(player, gunId) {
-    if (player == null || !player.isOnline()) return false;
-    var item = player.getInventory().getItemInMainHand();
-    if (!item || item.getType() === Material.AIR) return false;
-    var sfItem = SlimefunItem.getByItem(item);
-    return sfItem != null && sfItem.getId() === gunId;
-}
-function wasHoldingGun(stack, gunId) {
-    if (!stack || stack.getType() === Material.AIR) return false;
-    var sfItem = SlimefunItem.getByItem(stack);
-    return sfItem != null && sfItem.getId() === gunId;
+function wasHoldingGun(stack) {
+    return stack != null && stack.getType() !== Material.AIR;
 }
 
 var GUN_ID = "FKR_通古斯制式步枪";
@@ -109,8 +99,6 @@ function onUse(event) {
     var player = event.getPlayer();
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === Material.AIR) return;
-    var sfItem = SlimefunItem.getByItem(item);
-    if (!sfItem || sfItem.getId() !== GUN_ID) return;
     var uuid = player.getUniqueId().toString();
     var now = Date.now();
     if (cdMap.containsKey(uuid) && (now - cdMap.get(uuid)) < COOLDOWN_MS) {
@@ -156,7 +144,7 @@ function onLoad() {
         PlayerItemHeldEvent: function(evt) {
             try {
                 var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
-                if (wasHoldingGun(prev, GUN_ID)) clearGunState(evt.getPlayer());
+                if (wasHoldingGun(prev)) clearGunState(evt.getPlayer());
             } catch (e) {}
         },
         PlayerQuitEvent: function(evt) {

@@ -1,0 +1,12 @@
+package com.linkany121.gltc.generated.items;
+
+public final class Items_占位符a2 {
+    private Items_占位符a2() {}
+    @SuppressWarnings("unchecked")
+    public static final java.util.Map<String, Object> DATA = java.util.Map.ofEntries(
+        java.util.Map.entry("material", "black_stained_glass_pane"),
+        java.util.Map.entry("modelId", 1210197),
+        java.util.Map.entry("name", "&8 "),
+        java.util.Map.entry("lore", java.util.List.of("&7为了保持美观与易读性放置的占位符"))
+    );
+}

@@ -1,0 +1,1356 @@
+skey_深红远星级:
+  item_group: B_B0
+  item:
+    material: blast_furnace
+    name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ff6d6d“&#f75d5d深&#ef4e4e红&#e73e3e远&#df2f2f星&#d71f1f”&#cf1010级&#c70000重&#cf0000型&#d70101S&#df0101T&#e70202C&#ef0202合&#f70303成&#ff0303炉"
+    lore:
+    - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
+    - '&#fff5b3一台能够制造能源土的巨型机器的核心；'
+    - '&#fff5b3通过消耗电力将空气中的稀有气体嬗变并通过舰体核心技术，'
+    - '&#fff5b3将多种微物质沉淀并聚集为一种成分极度复杂的特殊材料，舰体的学者称其为“能源土”。'
+    - '&7在不消耗除电力以外的任何材料的情况下也能运行。'
+    - '&f[&e多方块机器&f]&#e1ccbd该方块为大型多方块机器的核心，摆放后将显示实际结构投影。'
+    - '&8⇨ &7速度:60秒/次'
+    - '&8⇨ &e⚡&7 1024J/秒'
+  recipe_type: PF_KEW2
+  recipe:
+  capacity: 5120
+  energyPerCraft: 512
+  speed: 1
+  hideAllRecipes: false
+  input: [4]
+  output: [10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43]
+  displayProjectiles: true
+  checkFormed: true
+  openMenuWhenClickedParts: true
+  noMenuWhenNotFormed: true
+  allowSwitchDisplayLayer: true
+  defaultNotice: true
+  displayProjectiles: true
+  ticker_type: recipe
+  structure:
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ a3 __ __ __ a3 __ __ __ __ __
+      - __ __ __ __ __ __ a3 __ a3 __ __ __ __ __ __
+      - __ __ __ __ __ __ __ a2 __ __ __ __ __ __ __
+      - __ __ __ __ __ __ a3 __ a3 __ __ __ __ __ __
+      - __ __ __ __ __ a3 __ __ __ a3 __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ a3 __ __ __ __ __ a3 __ __ __ __
+      - __ __ __ a3 a3 a3 __ __ __ a3 a3 a3 __ __ __
+      - __ __ __ __ a3 a3 a3 a1 a3 a3 a3 __ __ __ __
+      - __ __ __ __ __ a3 a3 a3 a3 a3 __ __ __ __ __
+      - __ __ __ __ __ a1 a3 a2 a3 a1 __ __ __ __ __
+      - __ __ __ __ __ a3 a3 a3 a3 a3 __ __ __ __ __
+      - __ __ __ __ a3 a3 a3 a1 a3 a3 a3 __ __ __ __
+      - __ __ __ a3 a3 a3 __ __ __ a3 a3 a3 __ __ __
+      - __ __ __ __ a3 __ __ __ __ __ a3 __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ a3 a1 a1 a1 __ a1 a1 a1 a3 __ __ __
+      - __ __ __ a1 __ __ __ a1 __ __ __ a1 __ __ __
+      - __ __ __ a1 __ __ __ a1 __ __ __ a1 __ __ __
+      - __ __ __ a1 __ __ a1 a1 a1 __ __ a1 __ __ __
+      - __ __ __ __ a1 a1 a1 a2 a1 a1 a1 __ __ __ __
+      - __ __ __ a1 __ __ a1 a1 a1 __ __ a1 __ __ __
+      - __ __ __ a1 __ __ __ a1 __ __ __ a1 __ __ __
+      - __ __ __ a1 __ __ __ a1 __ __ __ a1 __ __ __
+      - __ __ __ a3 a1 a1 a1 __ a1 a1 a1 a3 __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a3 a3 __ __ __ __ __ __ __ a3 a3 __ __
+      - __ __ a3 a3 __ __ __ a1 __ __ __ a3 a3 __ __
+      - __ __ __ __ __ __ a3 a3 a3 __ __ __ __ __ __
+      - __ __ __ __ __ a3 a2 a2 a2 a3 __ __ __ __ __
+      - __ __ __ __ a3 a2 a3 a3 a3 a2 a3 __ __ __ __
+      - __ __ __ a1 a3 a2 a3 a1 a3 a2 a3 a1 __ __ __
+      - __ __ __ __ a3 a2 a3 a3 a3 a2 a3 __ __ __ __
+      - __ __ __ __ __ a3 a2 a2 a2 a3 __ __ __ __ __
+      - __ __ __ __ __ __ a3 a3 a3 __ __ __ __ __ __
+      - __ __ a3 a3 __ __ __ a1 __ __ __ a3 a3 __ __
+      - __ __ a3 a3 __ __ __ __ __ __ __ a3 a3 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a3 a1 a3 __ __ a3 __ __ __
+      - __ __ __ __ a3 a3 a3 __ a3 a3 a3 __ __ __ __
+      - __ __ __ __ a3 __ __ a3 __ __ a3 __ __ __ __
+      - __ __ __ a3 a3 __ a3 a3 a3 __ a3 a3 __ __ __
+      - __ __ a1 a1 __ a3 a3 a3 a3 a3 __ a1 a1 __ __
+      - __ __ __ a3 a3 __ a3 a3 a3 __ a3 a3 __ __ __
+      - __ __ __ __ a3 __ __ a3 __ __ a3 __ __ __ __
+      - __ __ __ __ a3 a3 a3 __ a3 a3 a3 __ __ __ __
+      - __ __ __ a3 __ __ a3 a1 a3 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ a5 __ __ __ a3 __ __ __ a5 __ __ __
+      - __ __ a1 a6 __ __ a3 a3 a3 __ __ a6 a1 __ __
+      - __ __ __ a5 __ __ __ a3 __ __ __ a5 __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 a3 __ __ __ __ __ __ __ a3 a7 __ __
+      - __ __ a3 a3 a1 a1 a1 a6 a1 a1 a1 a3 a3 __ __
+      - __ __ __ a1 a5 a5 __ __ __ a5 a5 a1 __ __ __
+      - __ __ __ a1 a5 __ __ __ __ __ a5 a1 __ __ __
+      - __ __ __ a1 __ __ __ __ __ __ __ a1 __ __ __
+      - __ __ __ a6 __ __ __ a3 __ __ __ a6 __ __ __
+      - __ __ __ a1 __ __ __ __ __ __ __ a1 __ __ __
+      - __ __ __ a1 a5 __ __ __ __ __ a5 a1 __ __ __
+      - __ __ __ a1 a5 a5 __ __ __ a5 a5 a1 __ __ __
+      - __ __ a3 a3 a1 a1 a1 a6 a1 a1 a1 a3 a3 __ __
+      - __ __ a7 a3 __ __ __ __ __ __ __ a3 a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ a6 __ __ __ __ __ __ __ a6 __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ a6 __ __ __ a2 __ __ __ a6 __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ a6 __ __ __ __ __ __ __ a6 __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ a6 __ __ __ a3 __ __ __ a6 __ __ __
+      - __ __ __ a5 __ __ __ __ __ __ __ a5 __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ a3 __ __ a5 a6 a5 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ __ __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a5 a5 a5 __ __ a3 __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ a5 __ __ __ a3 __ __ __ a5 __ __ __
+      - __ __ a1 a5 __ __ a3 a3 a3 __ __ a5 a1 __ __
+      - __ __ __ a5 __ __ __ a3 __ __ __ a5 __ __ __
+      - __ __ __ __ a5 __ __ __ __ __ a5 __ __ __ __
+      - __ __ __ __ a5 a5 __ __ __ a5 a5 __ __ __ __
+      - __ __ __ a3 __ __ a5 a5 a5 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ a3 __ __ a3 a3 a3 __ __ a3 __ __ __
+      - __ __ __ __ a3 a3 __ __ __ a3 a3 __ __ __ __
+      - __ __ __ __ a3 __ __ a3 __ __ a3 __ __ __ __
+      - __ __ __ a3 __ __ a3 a3 a3 __ __ a3 __ __ __
+      - __ __ a1 a3 __ a3 a3 a3 a3 a3 __ a3 a1 __ __
+      - __ __ __ a3 __ __ a3 a3 a3 __ __ a3 __ __ __
+      - __ __ __ __ a3 __ __ a3 __ __ a3 __ __ __ __
+      - __ __ __ __ a3 a3 __ __ __ a3 a3 __ __ __ __
+      - __ __ __ a3 __ __ a3 a3 a3 __ __ a3 __ __ __
+      - __ __ a7 __ __ __ __ a1 __ __ __ __ a7 __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+      - __ __ __ __ __ __ __ __ __ __ __ __ __ __ __
+    - - __ __ __ __ __ __ __ a1 __ __ __ __ __ __ __
+      - __ __ a1 __ __ __ __ a1 __ __ __ __ a1 __ __
+      - __ a1 a2 a3 a1 a1 a2 a2 a2 a1 a1 a3 a2 a1 __
+      - __ __ a3 a2 a1 a2 a2 a2 a2 a2 a1 a2 a3 __ __
+      - __ __ a1 a1 a1 a1 a3 a3 a3 a1 a1 a1 a1 __ __
+      - __ __ a1 a2 a1 a3 a3 a3 a3 a3 a1 a2 a1 __ __
+      - __ __ a2 a2 a3 a3 a3 a3 a3 a3 a3 a2 a2 __ __
+      - a4 a1 a2 a2 a3 a3 a3 a3 a3 a3 a3 a2 a2 a1 a1
+      - __ __ a2 a2 a3 a3 a3 a3 a3 a3 a3 a2 a2 __ __
+      - __ __ a1 a2 a1 a3 a3 a3 a3 a3 a1 a2 a1 __ __
+      - __ __ a1 a1 a1 a1 a3 a3 a3 a1 a1 a1 a1 __ __
+      - __ __ a3 a2 a1 a2 a2 a2 a2 a2 a1 a2 a3 __ __
+      - __ a1 a2 a3 a1 a1 a2 a2 a2 a1 a1 a3 a2 a1 __
+      - __ __ a1 __ __ __ __ a1 __ __ __ __ a1 __ __
+      - __ __ __ __ __ __ __ a1 __ __ __ __ __ __ __
+    - - __ a1 a1 a1 __ a1 a1 a1 a1 a1 __ a1 a1 a1 __
+      - a1 a1 a1 a1 __ a2 a1 a1 a1 a2 __ a1 a1 a1 a1
+      - a1 a1 a1 a1 __ a2 a1 a1 a1 a2 __ a1 a1 a1 a1
+      - a1 a1 a1 a1 __ a2 a1 a1 a1 a2 __ a1 a1 a1 a1
+      - __ __ __ __ a2 a1 a1 a1 a1 a1 a2 __ __ __ __
+      - a1 a2 a2 a2 a1 a1 a1 a1 a1 a1 a1 a2 a2 a2 a1
+      - a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+      - a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+      - a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1 a1
+      - a1 a2 a2 a2 a1 a1 a1 a1 a1 a1 a1 a2 a2 a2 a1
+      - __ __ __ __ a2 a1 a1 a1 a1 a1 a2 __ __ __ __
+      - a1 a1 a1 a1 __ a2 a1 a1 a1 a2 __ a1 a1 a1 a1
+      - a1 a1 a1 a1 __ a2 a1 a1 a1 a2 __ a1 a1 a1 a1
+      - a1 a1 a1 a1 __ a2 a1 a1 a1 a2 __ a1 a1 a1 a1
+      - __ a1 a1 a1 __ a1 a1 a1 a1 a1 __ a1 a1 a1 __
+  mapping:
+    a1:
+      material_type: mc
+      material: iron_block
+    a2:
+      material_type: mc
+      material: shroomlight
+    a3:
+      material_type: mc
+      material: red_nether_bricks
+    a4:
+      material_type: slimefun
+      material: skey_深红远星级
+      core: true
+    a5:
+      material_type: mc
+      material: red_stained_glass
+    a6:
+      material_type: mc
+      material: glass
+    a7:
+      material_type: mc
+      material: polished_blackstone_brick_wall
+  script: 多方块特效/深红远星
+  #机器自身配方
+  recipe_type: PF_KEW2
+  recipe:
+        1: #蓝图
+          amount: 1
+          material_type: slimefun
+          material: ntskey1
+          slot: 10
+        2:
+          amount: 64
+          material_type: slimefun
+          material: tswk4
+          slot: 11
+        3:
+          amount: 64
+          material_type: slimefun
+          material: tsxl5
+          slot: 12
+        4:
+          amount: 64
+          material_type: slimefun
+          material: tsgj5
+          slot: 13
+        5:
+          amount: 1
+          material: heavy_core
+          slot: 14
+  #机器支持配方
+  recipes:
+    logitech_stackable: false
+    1:
+      seconds: 60
+      input:
+        1: 
+          material_type: slimefun
+          material: tsxl5
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        2:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        3:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        4:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        5:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        6:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        7:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        8:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        9:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        10:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        11:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        12:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        13:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        14:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        15:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        16:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        17:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        18:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        19:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        20:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        21:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        22:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        23:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        24:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        25:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 60
+        26:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 30
+        27:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 30
+        28:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+          chance: 30
+    2:
+      seconds: 60
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_权限凭证2
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        2:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        3:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        4:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        5:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        6:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        7:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        8:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        9:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        10:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        11:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        12:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        13:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        14:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        15:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        16:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        17:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        18:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        19:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        20:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        21:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        22:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        23:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        24:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        25:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        26:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        27:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        28:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+    3:
+      seconds: 40
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_权限凭证3
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        2:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        3:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        4:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        5:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        6:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        7:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        8:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        9:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        10:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        11:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        12:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        13:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        14:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        15:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        16:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        17:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        18:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        19:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        20:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        21:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        22:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        23:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        24:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        25:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        26:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        27:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+        28:
+          material_type: slimefun
+          material: skey_能源土
+          amount: 64
+
+skey_灼热苍穹级:
+  item_group: B_B0
+  item:
+    material: emerald_block
+    name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#9cff6d“&#8afd6a灼&#77fa66热&#65f863苍&#53f55f穹&#40f35c”&#2ef059级&#1cee55单&#09eb52元&#00eb59化&#01ee6c高&#01f07f活&#01f392性&#02f5a5环&#02f8b8境&#02faca模&#03fddd拟&#03fff0器"
+    lore:
+    - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
+    - '&#fff5b3一台能够培育荒宙植系的大型机器的核心；'
+    - '&#fff5b3通过电力快速催化内置的生态模拟器进行极快的植物培育与采集。'
+    - '&7在不消耗除电力以外的任何材料的情况下也能运行。'
+    - '&f[&e多方块机器&f]&#e1ccbd该方块为大型多方块机器的核心，摆放后将显示实际结构投影。'
+    - '&f[&e多方块机器&f]&#e1ccbd只需要在顶层中心放置一桶水。'
+    - '&8⇨ &7速度:60秒/次'
+    - '&8⇨ &e⚡&7 1024J/秒'
+  recipe_type: PF_KEW2
+  recipe:
+  capacity: 5120
+  energyPerCraft: 512
+  speed: 1
+  hideAllRecipes: false
+  input: [4]
+  output: [10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43]
+  displayProjectiles: true
+  checkFormed: true
+  openMenuWhenClickedParts: true
+  noMenuWhenNotFormed: true
+  allowSwitchDisplayLayer: true
+  defaultNotice: true
+  displayProjectiles: true
+  ticker_type: recipe
+  structure:
+  - - __ __ __ __ __
+    - __ a1 a1 a1 __
+    - __ a1 a1 a1 __
+    - __ a1 a1 a1 __
+    - __ __ __ __ __
+  - - __ a1 a1 a1 __
+    - a1 a2 a2 a2 a1
+    - a1 a2 a2 a2 a1
+    - a1 a2 a2 a2 a1
+    - __ a1 a1 a1 __
+  - - __ a4 a4 a4 __
+    - a4 __ a6 __ a4
+    - a4 a6 a6 a6 a4
+    - a4 __ a6 __ a4
+    - __ a4 a4 a4 __
+  - - __ a4 a4 a4 __
+    - a4 __ a6 __ a4
+    - a4 a6 a5 a6 a4
+    - a4 __ a6 __ a4
+    - __ a4 a4 a4 __
+  - - __ a4 a4 a4 __
+    - a4 __ a6 __ a4
+    - a4 a6 a5 a6 a4
+    - a4 __ a6 __ a4
+    - __ a4 a4 a4 __
+  - - __ a4 a4 a4 __
+    - a4 a6 a6 a6 a4
+    - a4 a6 a5 a6 a4
+    - a4 a6 a6 a6 a4
+    - __ a4 a4 a4 __
+  - - __ a1 a1 a1 __
+    - a1 a2 a2 a2 a1
+    - a3 a2 a2 a2 a1
+    - a1 a2 a2 a2 a1
+    - __ a1 a1 a1 __
+  - - a1 a1 a1 a1 a1
+    - a1 a1 a1 a1 a1
+    - a1 a1 a1 a1 a1
+    - a1 a1 a1 a1 a1
+    - a1 a1 a1 a1 a1
+  mapping:
+    a1:
+      material_type: mc
+      material: polished_diorite
+    a2:
+      material_type: mc
+      material: moss_block
+    a3:
+      material_type: slimefun
+      material: skey_灼热苍穹级
+      core: true
+    a4:
+      material_type: mc
+      material: glass
+    a5:
+      material_type: mc
+      material: dark_prismarine
+    a6:
+      material_type: mc
+      material: water
+  #机器自身配方
+  recipe_type: PF_KEW2
+  recipe:
+        1: #蓝图
+          amount: 1
+          material_type: slimefun
+          material: ntskey1
+          slot: 10
+        2:
+          amount: 48
+          material_type: slimefun
+          material: TSwk4
+          slot: 11
+        3:
+          amount: 48
+          material_type: slimefun
+          material: tsxl5
+          slot: 12
+        4:
+          amount: 48
+          material_type: slimefun
+          material: tsgj5
+          slot: 13
+        5:
+          amount: 1
+          material: moss_block
+          slot: 14
+  #机器支持配方
+  recipes:
+    logitech_stackable: false
+    1:
+      seconds: 60
+      input:
+        1: 
+          material_type: slimefun
+          material: tsxl5
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_高钙磷根系坨
+          amount: 16
+          chance: 40
+        2:
+          material_type: slimefun
+          material: skey_残青草晶
+          amount: 16
+          chance: 40
+        3:
+          material_type: slimefun
+          material: skey_活花质
+          amount: 16
+          chance: 40
+        4:
+          material_type: slimefun
+          material: skey_长生原木
+          amount: 16
+          chance: 40
+        5:
+          material_type: slimefun
+          material: skey_奥术原木
+          amount: 16
+          chance: 40
+        6:
+          material_type: slimefun
+          material: skey_雷击原木
+          amount: 16
+          chance: 40
+        7:
+          material_type: slimefun
+          material: skey_盛槟花
+          amount: 16
+          chance: 40
+        8:
+          material_type: slimefun
+          material: skey_龙文凯安必忧兰
+          amount: 16
+          chance: 40
+        9:
+          material_type: slimefun
+          material: skey_悦鸧花
+          amount: 16
+          chance: 40
+        10:
+          material_type: slimefun
+          material: skey_古沃吉影酒神
+          amount: 16
+          chance: 40
+        11:
+          material_type: slimefun
+          material: skey_绽晶古树菇
+          amount: 16
+          chance: 40
+        12:
+          material_type: slimefun
+          material: skey_龙蛋果
+          amount: 16
+          chance: 40
+        13:
+          material_type: slimefun
+          material: skey_十九劫天赐樱
+          amount: 16
+          chance: 40
+        14:
+          material_type: slimefun
+          material: skey_叠霄竹
+          amount: 16
+          chance: 40
+        15:
+          material_type: slimefun
+          material: skey_荆棘剑麻
+          amount: 16
+          chance: 40
+        16:
+          material_type: slimefun
+          material: skey_舞火酿歌
+          amount: 8
+          chance: 20
+    2:
+      seconds: 40
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_权限凭证2
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_高钙磷根系坨
+          amount: 32
+          chance: 40
+        2:
+          material_type: slimefun
+          material: skey_残青草晶
+          amount: 32
+          chance: 40
+        3:
+          material_type: slimefun
+          material: skey_活花质
+          amount: 32
+          chance: 40
+        4:
+          material_type: slimefun
+          material: skey_长生原木
+          amount: 32
+          chance: 40
+        5:
+          material_type: slimefun
+          material: skey_奥术原木
+          amount: 32
+          chance: 40
+        6:
+          material_type: slimefun
+          material: skey_雷击原木
+          amount: 32
+          chance: 40
+        7:
+          material_type: slimefun
+          material: skey_盛槟花
+          amount: 32
+          chance: 40
+        8:
+          material_type: slimefun
+          material: skey_龙文凯安必忧兰
+          amount: 32
+          chance: 40
+        9:
+          material_type: slimefun
+          material: skey_悦鸧花
+          amount: 32
+          chance: 40
+        10:
+          material_type: slimefun
+          material: skey_古沃吉影酒神
+          amount: 32
+          chance: 40
+        11:
+          material_type: slimefun
+          material: skey_绽晶古树菇
+          amount: 32
+          chance: 40
+        12:
+          material_type: slimefun
+          material: skey_龙蛋果
+          amount: 32
+          chance: 40
+        13:
+          material_type: slimefun
+          material: skey_十九劫天赐樱
+          amount: 32
+          chance: 40
+        14:
+          material_type: slimefun
+          material: skey_叠霄竹
+          amount: 32
+          chance: 40
+        15:
+          material_type: slimefun
+          material: skey_荆棘剑麻
+          amount: 32
+          chance: 40
+        16:
+          material_type: slimefun
+          material: skey_舞火酿歌
+          amount: 16
+          chance: 20
+    3:
+      seconds: 30
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_权限凭证3
+          noConsume: true
+      output:
+        1:
+          material_type: slimefun
+          material: skey_高钙磷根系坨
+          amount: 32
+          chance: 60
+        2:
+          material_type: slimefun
+          material: skey_残青草晶
+          amount: 32
+          chance: 60
+        3:
+          material_type: slimefun
+          material: skey_活花质
+          amount: 32
+          chance: 60
+        4:
+          material_type: slimefun
+          material: skey_长生原木
+          amount: 32
+          chance: 60
+        5:
+          material_type: slimefun
+          material: skey_奥术原木
+          amount: 32
+          chance: 60
+        6:
+          material_type: slimefun
+          material: skey_雷击原木
+          amount: 32
+          chance: 60
+        7:
+          material_type: slimefun
+          material: skey_盛槟花
+          amount: 32
+          chance: 60
+        8:
+          material_type: slimefun
+          material: skey_龙文凯安必忧兰
+          amount: 32
+          chance: 60
+        9:
+          material_type: slimefun
+          material: skey_悦鸧花
+          amount: 32
+          chance: 60
+        10:
+          material_type: slimefun
+          material: skey_古沃吉影酒神
+          amount: 32
+          chance: 60
+        11:
+          material_type: slimefun
+          material: skey_绽晶古树菇
+          amount: 32
+          chance: 60
+        12:
+          material_type: slimefun
+          material: skey_龙蛋果
+          amount: 32
+          chance: 60
+        13:
+          material_type: slimefun
+          material: skey_十九劫天赐樱
+          amount: 32
+          chance: 60
+        14:
+          material_type: slimefun
+          material: skey_叠霄竹
+          amount: 32
+          chance: 60
+        15:
+          material_type: slimefun
+          material: skey_荆棘剑麻
+          amount: 32
+          chance: 60
+        16:
+          material_type: slimefun
+          material: skey_舞火酿歌
+          amount: 16
+          chance: 30
+
+skey_四目伏羲级:
+  item_group: B_B0
+  item:
+    material: crying_obsidian
+    name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffd84c“&#ffc540四&#ffb235目&#ff9e29伏&#ff8b1d羲&#ff7812”&#ff6506级&#fd6800重&#fa8100核&#f79a00裂&#f4b300变&#f1cd00反&#eee600应&#ebff00堆"
+    lore:
+    - '&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰'
+    - '&#fff5b3一台用于生产的重核裂变反应堆的核心；'
+    - '&#fff5b3内置了重核裂变与重离子加速相关组件，能通过自身的辐电循环生产光盐材料。'
+    - '&7需消耗超浓缩铀与冷却剂，产出光盐化材料与电动力阱。'
+    - '&f[&e多方块机器&f]&#e1ccbd该方块为大型多方块机器的核心，摆放后将显示实际结构投影。'
+    - '&8⇨ &7速度:12秒/次'
+    - '&8⇨ &e⚡&7 1J/秒'
+  recipe_type: PF_KEW2
+  recipe:
+  capacity: 10
+  energyPerCraft: 1
+  speed: 1
+  hideAllRecipes: false
+  input: [1,2,6,7]
+  output: [18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,41,42,43,44]
+  displayProjectiles: true
+  checkFormed: true
+  openMenuWhenClickedParts: true
+  noMenuWhenNotFormed: true
+  allowSwitchDisplayLayer: true
+  defaultNotice: true
+  displayProjectiles: true
+  ticker_type: recipe
+  structure:
+  - - __ __ __ __ __
+    - __ __ __ __ __
+    - __ a3 __ a3 __
+    - __ a3 __ a3 __
+    - __ a3 __ a3 __
+    - __ a3 __ a3 __
+    - __ a3 __ a3 __
+    - __ __ __ __ __
+  - - __ __ __ __ __
+    - __ a3 __ a3 __
+    - a1 a1 a2 a1 a1
+    - a1 a2 a2 a2 a1
+    - a2 a2 a1 a2 a2
+    - a1 a2 a2 a2 a1
+    - a1 a1 a2 a1 a1
+    - __ a3 __ a3 __
+  - - __ __ __ __ __
+    - __ a3 __ a3 __
+    - a1 a2 a2 a2 a1
+    - a2 __ a5 __ a2
+    - a2 a5 a1 a5 a2
+    - a2 __ a5 __ a2
+    - a1 a2 a2 a2 a1
+    - __ a3 __ a3 __
+  - - __ __ __ __ __
+    - __ a3 __ a3 __
+    - a2 a2 a1 a2 a2
+    - a2 a5 a1 a5 a2
+    - a1 a1 a1 a1 a1
+    - a2 a5 a1 a5 a2
+    - a2 a2 a1 a2 a2
+    - __ a3 __ a3 __
+  - - __ __ __ __ __
+    - __ a3 __ a3 __
+    - a1 a2 a2 a2 a1
+    - a2 __ a5 __ a2
+    - a2 a5 a1 a5 a2
+    - a2 __ a5 __ a2
+    - a1 a2 a2 a2 a1
+    - __ a3 __ a3 __
+  - - __ __ a4 __ __
+    - __ a3 a3 a3 __
+    - a1 a1 a2 a1 a1
+    - a1 a2 a2 a2 a1
+    - a2 a2 a1 a2 a2
+    - a1 a2 a2 a2 a1
+    - a1 a1 a2 a1 a1
+    - __ a3 a3 a3 __
+  mapping:
+    a1:
+      material_type: mc
+      material: netherite_block
+    a2:
+      material_type: mc
+      material: red_stained_glass
+    a3:
+      material_type: mc
+      material: deepslate_tiles
+    a4:
+        material_type: slimefun
+        material: skey_四目伏羲级
+        core: true
+    a5:
+      material_type: mc
+      material: sea_lantern
+  #机器自身配方
+  recipe_type: PF_KEW2
+  recipe:
+        1: #蓝图
+          amount: 1
+          material_type: slimefun
+          material: ntskey2
+          slot: 10
+        2:
+          amount: 8
+          material_type: slimefun
+          material: skey_框架2
+          slot: 11
+        3:
+          amount: 1
+          material_type: slimefun
+          material: skey_芯盘1
+          slot: 12
+  #机器支持配方
+  recipes:
+    logitech_stackable: false
+    1:
+      seconds: 12
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_超浓缩铀
+          amount: 1
+        2: 
+          material_type: slimefun
+          material: skey_权限凭证1
+          amount: 1
+        3: 
+          material_type: slimefun
+          material: skey_残余临界冷却剂
+          amount: 1
+      output:
+        1:
+          material_type: slimefun
+          material: skey_光盐化钍
+          amount: 1
+          chance: 10
+        2:
+          material_type: slimefun
+          material: skey_光盐化钔
+          amount: 1
+          chance: 10
+        3:
+          material_type: slimefun
+          material: skey_光盐化钚
+          amount: 1
+          chance: 10
+        4:
+          material_type: slimefun
+          material: skey_光盐化𫓧
+          amount: 1
+          chance: 10
+        5:
+          material_type: slimefun
+          material: skey_光盐化𫟼
+          amount: 1
+          chance: 10
+        6:
+          material_type: slimefun
+          material: skey_光盐化𬭳
+          amount: 1
+          chance: 10
+        7:
+          material_type: slimefun
+          material: skey_电动力阱
+          amount: 2
+          chance: 60
+        8:
+          material_type: slimefun
+          material: skey_电动力阱
+          amount: 3
+          chance: 20
+    2:
+      seconds: 12
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_超浓缩铀
+          amount: 1
+        2: 
+          material_type: slimefun
+          material: skey_权限凭证2
+          amount: 1
+        3: 
+          material_type: slimefun
+          material: skey_残余临界冷却剂
+          amount: 1
+      output:
+        1:
+          material_type: slimefun
+          material: skey_光盐化钍
+          amount: 1
+          chance: 20
+        2:
+          material_type: slimefun
+          material: skey_光盐化钔
+          amount: 1
+          chance: 20
+        3:
+          material_type: slimefun
+          material: skey_光盐化钚
+          amount: 1
+          chance: 20
+        4:
+          material_type: slimefun
+          material: skey_光盐化𫓧
+          amount: 1
+          chance: 20
+        5:
+          material_type: slimefun
+          material: skey_光盐化𫟼
+          amount: 1
+          chance: 20
+        6:
+          material_type: slimefun
+          material: skey_光盐化𬭳
+          amount: 1
+          chance: 20
+        7:
+          material_type: slimefun
+          material: skey_电动力阱
+          amount: 2
+          chance: 90
+        8:
+          material_type: slimefun
+          material: skey_电动力阱
+          amount: 3
+          chance: 30
+    3:
+      seconds: 12
+      input:
+        1: 
+          material_type: slimefun
+          material: skey_超浓缩铀
+          amount: 1
+        2: 
+          material_type: slimefun
+          material: skey_权限凭证3
+          amount: 1
+        3: 
+          material_type: slimefun
+          material: skey_残余临界冷却剂
+          amount: 1
+      output:
+        1:
+          material_type: slimefun
+          material: skey_光盐化钍
+          amount: 1
+          chance: 35
+        2:
+          material_type: slimefun
+          material: skey_光盐化钔
+          amount: 1
+          chance: 35
+        3:
+          material_type: slimefun
+          material: skey_光盐化钚
+          amount: 1
+          chance: 35
+        4:
+          material_type: slimefun
+          material: skey_光盐化𫓧
+          amount: 1
+          chance: 35
+        5:
+          material_type: slimefun
+          material: skey_光盐化𫟼
+          amount: 1
+          chance: 35
+        6:
+          material_type: slimefun
+          material: skey_光盐化𬭳
+          amount: 1
+          chance: 35
+        7:
+          material_type: slimefun
+          material: skey_电动力阱
+          amount: 2
+        8:
+          material_type: slimefun
+          material: skey_电动力阱
+          amount: 5
+          chance: 50

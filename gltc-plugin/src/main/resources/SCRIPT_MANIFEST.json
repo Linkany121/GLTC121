@@ -1,0 +1,266 @@
+{
+  "items": [
+    {
+      "slimefunId": "ATO_音效库",
+      "script": "道具工具/音效浏览器"
+    },
+    {
+      "slimefunId": "GLTC_银行卡",
+      "script": "能源流货币/信用卡"
+    },
+    {
+      "slimefunId": "FKR_深渊召来",
+      "script": "道具工具/深渊召来"
+    },
+    {
+      "slimefunId": "FKR_炽古花盆",
+      "script": "道具工具/炽古花盆"
+    },
+    {
+      "slimefunId": "FKR_钢铁靶",
+      "script": "道具工具/钢铁靶"
+    },
+    {
+      "slimefunId": "FKR_通古斯制式步枪",
+      "script": "枪械/通古斯制式步枪"
+    },
+    {
+      "slimefunId": "FKR_通古斯战壕霰弹",
+      "script": "枪械/通古斯战壕霰弹"
+    },
+    {
+      "slimefunId": "FKR_通古斯涡轮式单兵机枪",
+      "script": "枪械/通古斯涡轮式单兵机枪"
+    },
+    {
+      "slimefunId": "FKR_通古斯防御型脉冲手铳",
+      "script": "枪械/通古斯防御型脉冲手铳"
+    },
+    {
+      "slimefunId": "FKR_通古斯制式轨道信标投递器",
+      "script": "枪械/通古斯制式轨道信标投递器"
+    },
+    {
+      "slimefunId": "FKR_通古斯过载式步枪",
+      "script": "枪械/通古斯过载式步枪"
+    },
+    {
+      "slimefunId": "FKR_枪械集成枪",
+      "script": "枪械/枪械集成枪"
+    },
+    {
+      "slimefunId": "FKR_伏地",
+      "script": "武器/伏地"
+    },
+    {
+      "slimefunId": "FKR_风墟龙冕",
+      "script": "武器/风墟龙冕"
+    },
+    {
+      "slimefunId": "FKR_无锋破军",
+      "script": "武器/破军"
+    },
+    {
+      "slimefunId": "FKR_ASPL",
+      "script": "武器/ASPL"
+    },
+    {
+      "slimefunId": "FKR_隐兰狂玉唤剑葫",
+      "script": "武器/隐兰狂玉唤剑葫"
+    },
+    {
+      "slimefunId": "FKR_咀嚼曾世的晚梦",
+      "script": "武器/咀梦"
+    },
+    {
+      "slimefunId": "VASA_驭粒终端",
+      "script": "术士系统/装备菜单"
+    },
+    {
+      "slimefunId": "VASA_彼岸钢调控终端",
+      "script": "术士系统/调控终端"
+    },
+    {
+      "slimefunId": "VASA_通用施术道具",
+      "script": "施术道具/通用施术"
+    },
+    {
+      "slimefunId": "OST_轮椅宣言",
+      "script": "道具工具/轮椅宣言"
+    },
+    {
+      "slimefunId": "UMPV_酥脆大薯条",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_炭烤海螺",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_大盘煎蛋",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_久蒸大米饭",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_猛炸大薯条",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_肉糜煎蛋",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_烤厄索斯菜卷",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_酱烤岩兽串",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_瓜片炒餮头肉",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_翠玉卷心瓜片",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_屑切菜香肉盘",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_蘑菇萝卜厚炖",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_蛋炒鱼肉丝",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_狂野人生烤串",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_深海野兽",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_水煮虐王兽肉汤",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_大锅炖肉土豆",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_浮沉盐海的阖眸",
+      "script": "食物/浮沉盐海的阖眸"
+    },
+    {
+      "slimefunId": "UMPV_菌萝香炖稻焖饭",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_苔香辣卤海鲜汤",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_海陆双菌酒生煎",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_黄金焗酱烤整羽",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_见手金果炸全腿",
+      "script": "食物/通用饥饿值"
+    },
+    {
+      "slimefunId": "UMPV_百香爆烤整身虐王排",
+      "script": "食物/百香爆烤整身虐王排"
+    },
+    {
+      "slimefunId": "UMPV_灼金香烹餮汤锅",
+      "script": "食物/灼金香烹餮汤锅"
+    },
+    {
+      "slimefunId": "UMPV_疯狂星期四",
+      "script": "食物/疯狂星期四"
+    },
+    {
+      "slimefunId": "UMPV_黄金炒饭",
+      "script": "食物/黄金炒饭"
+    },
+    {
+      "slimefunId": "UMPV_板蓝根",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_满穗线香",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_末嫦娥",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_琼华古冶散",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_原神丸",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_半满之月",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_辟风兽角",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_悠久的群天之甘露",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_龙心",
+      "script": "食物/通用药效"
+    },
+    {
+      "slimefunId": "UMPV_果冻",
+      "script": "食物/通用药效"
+    }
+  ],
+  "machines": [
+    {
+      "slimefunId": "ATO_能源流储蓄站",
+      "script": "能源流货币/充值机"
+    },
+    {
+      "slimefunId": "FKR_枪械外观客制化组装桌",
+      "script": "机器/枪械外观客制化组装桌"
+    },
+    {
+      "slimefunId": "skey_舰体订单发布机",
+      "script": "机器/舰体订单发布机"
+    },
+    {
+      "slimefunId": "skey_舰体订单接收机",
+      "script": "机器/舰体订单接收机"
+    },
+    {
+      "slimefunId": "skey_舰体链接协议访问站",
+      "script": "机器/舰体链接协议访问站"
+    },
+    {
+      "slimefunId": "VASA_术式承载转换仪",
+      "script": "机器/术式承载转换仪"
+    }
+  ]
+}

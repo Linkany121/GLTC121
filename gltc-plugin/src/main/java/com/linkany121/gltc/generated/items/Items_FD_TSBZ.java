@@ -1,0 +1,13 @@
+package com.linkany121.gltc.generated.items;
+
+public final class Items_FD_TSBZ {
+    private Items_FD_TSBZ() {}
+    @SuppressWarnings("unchecked")
+    public static final java.util.Map<String, Object> DATA = java.util.Map.ofEntries(
+        java.util.Map.entry("name", "&#d5ff7aC&#8bff9e/&#57e6caT&#38b3ffS &#ffbd61引爆式涡轮电机"),
+        java.util.Map.entry("glow", true),
+        java.util.Map.entry("lore", java.util.List.of("&b归属&9：&#00ffbf白&#55fd7f铃&#aafc40山&#fffa00矿&#aae955业&#55d7aa/&#00c6ff霆&#039cff石&#0771ff重&#0a47ff工", "&#fff5b3依靠爆炸产生的压力发电，", "&#fff5b3很重，因为反应室是用黑曜石凿的。", "&8⇨ &e⚡&7 240 J 可存储", "&8⇨ &e⚡&7 30 J/秒")),
+        java.util.Map.entry("material_type", "skull_hash"),
+        java.util.Map.entry("material", "0d61ab0136c69d7caddd566d2e9bcb35fdc5f9e3ca351e27362abf1374c4e58")
+    );
+}

@@ -10,7 +10,8 @@ var ByteBuffer = Java.type("java.nio.ByteBuffer");
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 
 function findScriptFile(rel) {
-    rel = String(rel || "").replace(/\\/g, "/");
+    rel = String(rel || "").replace(/\\/g, "/").trim();
+    if (!/\.js$/i.test(rel)) rel = rel + ".js";
     // 仅白名单附属目录，避免扫到其它 addons 同名脚本
     var roots = ["GLTC_联合协议", "GLTC121"];
     var candidates = [];

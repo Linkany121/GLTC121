@@ -2,7 +2,6 @@
 // 通古斯过载式步枪（反卫星）· 可调配置
 // 最终伤害 = 系数 × 异能强度(SIT)；改完重载脚本生效
 // ===================================================================
-var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -24,8 +23,14 @@ function dealSitDamage(target, player, item, sitMult) { var dmg = calcSitDamage(
 function rayTraceLiving(world, start, dir, range, shooter) { return world.rayTrace(start, dir, range, FluidCollisionMode.NEVER, false, 0.3, function(ent) { return ent instanceof LivingEntity && ent !== shooter; }); }
 function scheduleReloadSound(player, cooldownMs) { if (player == null) return; var _player = player; var CloseTask = Java.extend(BukkitRunnable, { run: function() { if (_player.isOnline()) _player.getWorld().playSound(_player.getLocation(), "block.iron_door.close", 0.7, 1.0); } }); new CloseTask().runTaskLater(plugin, Math.max(1, Math.floor(cooldownMs / 50))); }
 function adjustPlayerPitch(player, degrees) { if (player == null || !player.isOnline()) return; var loc = player.getLocation(); var newPitch = loc.getPitch() - degrees; if (newPitch > 90) newPitch = 90; if (newPitch < -90) newPitch = -90; try { player.setRotation(loc.getYaw(), newPitch); } catch (e) { try { loc.setPitch(newPitch); player.teleport(loc); } catch (e2) {} } }
-function isHoldingGun(player, gunId) { if (player == null || !player.isOnline()) return false; var item = player.getInventory().getItemInMainHand(); if (!item || item.getType() === Material.AIR) return false; var sfItem = SlimefunItem.getByItem(item); return sfItem != null && sfItem.getId() === gunId; }
-function wasHoldingGun(stack, gunId) { if (!stack || stack.getType() === Material.AIR) return false; var sfItem = SlimefunItem.getByItem(stack); return sfItem != null && sfItem.getId() === gunId; }
+function isHoldingGun(player) {
+    if (player == null || !player.isOnline()) return false;
+    var item = player.getInventory().getItemInMainHand();
+    return item != null && item.getType() !== Material.AIR;
+}
+function wasHoldingGun(stack) {
+    return stack != null && stack.getType() !== Material.AIR;
+}
 
 var GUN_ID = "FKR_通古斯过载式步枪";
 var SIT_PER_BULLET = 0.6;
@@ -61,13 +66,12 @@ var Location = org.bukkit.Location;
 var Vector = org.bukkit.util.Vector;
 var DustOptions = org.bukkit.Particle.DustOptions;
 var Color = org.bukkit.Color;
-var FluidCollisionMode = Java.type("org.bukkit.FluidCollisionMode");
 var bulletDust = new DustOptions(Color.fromRGB(255, 180, 0), 1.0);
 var beamCoreDust = new DustOptions(Color.fromRGB(255, 120, 0), 1.5);
 var beamRingDust = new DustOptions(Color.fromRGB(255, 0, 0), 1.2);
 
 function fireBullet(player, bulletIndex) {
-    if (!isHoldingGun(player, GUN_ID)) return;
+    if (!isHoldingGun(player)) return;
     var world = player.getWorld();
     var item = player.getInventory().getItemInMainHand();
     var start = player.getEyeLocation();
@@ -101,7 +105,7 @@ function fireBullet(player, bulletIndex) {
 }
 
 function fireBeam(player) {
-    if (!isHoldingGun(player, GUN_ID)) return;
+    if (!isHoldingGun(player)) return;
     var world = player.getWorld();
     var item = player.getInventory().getItemInMainHand();
     var start = player.getEyeLocation();
@@ -178,8 +182,6 @@ function onUse(event) {
     var player = event.getPlayer();
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === org.bukkit.Material.AIR) return;
-    var sfItem = SlimefunItem.getByItem(item);
-    if (!sfItem || sfItem.getId() !== GUN_ID) return;
     var uuid = player.getUniqueId().toString();
     if (firingMap.containsKey(uuid)) {
         firingMap.remove(uuid);
@@ -215,7 +217,7 @@ function onUse(event) {
                 if (idleTask != null) { try { idleTask.cancel(); } catch (e2) {} }
                 return;
             }
-            if (!isHoldingGun(_player, GUN_ID)) {
+            if (!isHoldingGun(_player)) {
                 firingMap.remove(_uuid);
                 var lostTask = taskMap.remove(_uuid);
                 if (lostTask != null) { try { lostTask.cancel(); } catch (e3) {} }
@@ -245,7 +247,7 @@ function onLoad() {
         PlayerItemHeldEvent: function(evt) {
             try {
                 var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
-                if (wasHoldingGun(prev, GUN_ID)) clearGunState(evt.getPlayer());
+                if (wasHoldingGun(prev)) clearGunState(evt.getPlayer());
             } catch (e) {}
         },
         PlayerQuitEvent: function(evt) {

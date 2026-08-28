@@ -196,7 +196,7 @@ function loadGearConfig() {
 
 function loadStaffConfig() {
     if (STAFF_CFG && STAFF_CFG.STAFF_REGISTRY) return true;
-    var exported = evalScriptExport("施术道具/登记.js");
+    var exported = evalScriptExport("旧术式体系/施术道具/登记.js");
     if (exported && exported.STAFF_REGISTRY) { STAFF_CFG = exported; return true; }
     return false;
 }

@@ -1,0 +1,41 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: NETHERITE_HELMET
+  meta:
+    ==: ItemMeta
+    meta-type: ARMOR
+    enchants:
+      minecraft:aqua_affinity: 1
+      minecraft:protection: 10
+      minecraft:respiration: 3
+    attribute-modifiers:
+      minecraft:generic.armor:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 4.0
+        slot: head
+        operation: 0
+        key: minecraft:armor.helmet
+      minecraft:generic.armor_toughness:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 3.0
+        slot: head
+        operation: 0
+        key: minecraft:armor.helmet
+      minecraft:generic.knockback_resistance:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 0.10000000149011612
+        slot: head
+        operation: 0
+        key: minecraft:armor.helmet
+      minecraft:generic.attack_damage:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 2.0
+        slot: head
+        operation: 0
+        key: ankinbt:custom_1780847275302
+    repair-cost: 7
+    Unbreakable: true
+    trim:
+      material: minecraft:diamond
+      pattern: minecraft:silence

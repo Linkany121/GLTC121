@@ -1,0 +1,11 @@
+target/
+_rsc_decomp/
+tools/src/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+*.log
+.DS_Store

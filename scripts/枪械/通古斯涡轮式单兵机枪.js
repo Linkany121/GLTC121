@@ -2,7 +2,6 @@
 // 通古斯涡轮式单兵机枪 · 可调配置
 // 最终伤害 = 系数 × 异能强度(SIT)；改完重载脚本生效
 // ===================================================================
-var SlimefunItem = Java.type("io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem");
 var Bukkit = Java.type("org.bukkit.Bukkit");
 var LivingEntity = Java.type("org.bukkit.entity.LivingEntity");
 var Material = Java.type("org.bukkit.Material");
@@ -23,7 +22,9 @@ function notifyAbilityDamage(player, item, damage) { if (player == null || !play
 function dealSitDamage(target, player, item, sitMult) { var dmg = calcSitDamage(sitMult); target.setNoDamageTicks(0); target.damage(dmg, player); notifyAbilityDamage(player, item, dmg); return dmg; }
 function rayTraceLiving(world, start, dir, range, shooter) { return world.rayTrace(start, dir, range, FluidCollisionMode.NEVER, false, 0.3, function(ent) { return ent instanceof LivingEntity && ent !== shooter; }); }
 function scheduleReloadSound(player, cooldownMs) { if (player == null) return; var _player = player; var CloseTask = Java.extend(BukkitRunnable, { run: function() { if (_player.isOnline()) _player.getWorld().playSound(_player.getLocation(), "block.iron_door.close", 0.7, 1.0); } }); new CloseTask().runTaskLater(plugin, Math.max(1, Math.floor(cooldownMs / 50))); }
-function wasHoldingGun(stack, gunId) { if (!stack || stack.getType() === Material.AIR) return false; var sfItem = SlimefunItem.getByItem(stack); return sfItem != null && sfItem.getId() === gunId; }
+function wasHoldingGun(stack) {
+    return stack != null && stack.getType() !== Material.AIR;
+}
 
 var GUN_ID = "FKR_通古斯涡轮式单兵机枪";
 var SIT_DAMAGE_MULT = 1.6;
@@ -53,8 +54,6 @@ function onUse(event) {
     var player = event.getPlayer();
     var item = player.getInventory().getItemInMainHand();
     if (!item || item.getType() === org.bukkit.Material.AIR) return;
-    var sfItem = SlimefunItem.getByItem(item);
-    if (!sfItem || sfItem.getId() !== GUN_ID) return;
 
     var uuid = player.getUniqueId().toString();
     var now = Date.now();
@@ -114,7 +113,7 @@ function onLoad() {
         PlayerItemHeldEvent: function(evt) {
             try {
                 var prev = evt.getPlayer().getInventory().getItem(evt.getPreviousSlot());
-                if (wasHoldingGun(prev, GUN_ID)) clearGunState(evt.getPlayer());
+                if (wasHoldingGun(prev)) clearGunState(evt.getPlayer());
             } catch (e) {}
         },
         PlayerQuitEvent: function(evt) {

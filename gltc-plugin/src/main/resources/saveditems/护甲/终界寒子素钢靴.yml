@@ -1,0 +1,40 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: NETHERITE_BOOTS
+  meta:
+    ==: ItemMeta
+    meta-type: ARMOR
+    enchants:
+      minecraft:depth_strider: 3
+      minecraft:protection: 10
+    attribute-modifiers:
+      minecraft:generic.armor:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 4.0
+        slot: feet
+        operation: 0
+        key: minecraft:armor.boots
+      minecraft:generic.armor_toughness:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 4.0
+        slot: feet
+        operation: 0
+        key: minecraft:armor.boots
+      minecraft:generic.knockback_resistance:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 0.10000000149011612
+        slot: feet
+        operation: 0
+        key: minecraft:armor.boots
+      minecraft:generic.attack_speed:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 0.3
+        slot: feet
+        operation: 1
+        key: ankinbt:custom_1780847469119
+    repair-cost: 3
+    Unbreakable: true
+    trim:
+      material: minecraft:diamond
+      pattern: minecraft:silence

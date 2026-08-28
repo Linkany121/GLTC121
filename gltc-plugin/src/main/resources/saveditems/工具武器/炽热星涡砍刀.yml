@@ -1,0 +1,15 @@
+item:
+  ==: org.bukkit.inventory.ItemStack
+  v: 3955
+  type: NETHERITE_SWORD
+  meta:
+    ==: ItemMeta
+    meta-type: UNSPECIFIC
+    attribute-modifiers:
+      minecraft:generic.attack_damage:
+      - ==: org.bukkit.attribute.AttributeModifier
+        amount: 19.0
+        slot: mainhand
+        operation: 0
+        key: minecraft:base_attack_damage
+    Unbreakable: true

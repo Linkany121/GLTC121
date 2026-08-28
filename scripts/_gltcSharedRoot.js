@@ -210,10 +210,32 @@ function getJavaBridge(key) {
             if (v != null) return v;
         } catch (e0) {}
     }
-    // 3) 施术 Consumer 专用 Metadata
+    // 3) 施术 / 枪械 Consumer 专用 Metadata
     if (k === "gltcHandleStaffUse") {
         var staffMeta = pluginGetMetadataValue(getPlugin(), "gltc_handle_staff_use");
         if (staffMeta != null) return staffMeta;
+    }
+    if (k === "gltcIntegrationGunFire") {
+        var gunFireMeta = pluginGetMetadataValue(getPlugin(), "gltc_integration_gun_fire");
+        if (gunFireMeta != null) return gunFireMeta;
+        try {
+            var fireRef = pluginGetMetadataValue(getPlugin(), "gltc_integration_gun_fire_ref");
+            if (fireRef != null && fireRef.get != null) {
+                var fromRef = fireRef.get();
+                if (fromRef != null) return fromRef;
+            }
+        } catch (eGunRef) {}
+    }
+    if (k === "gltcIntegrationGunClear") {
+        var gunClearMeta = pluginGetMetadataValue(getPlugin(), "gltc_integration_gun_clear");
+        if (gunClearMeta != null) return gunClearMeta;
+        try {
+            var clearRef = pluginGetMetadataValue(getPlugin(), "gltc_integration_gun_clear_ref");
+            if (clearRef != null && clearRef.get != null) {
+                var fromClear = clearRef.get();
+                if (fromClear != null) return fromClear;
+            }
+        } catch (eClrRef) {}
     }
     var inst = getRscInstance();
     try {
@@ -242,6 +264,16 @@ function resolveStaffUseConsumer() {
     return pluginGetMetadataValue(getPlugin(), "gltc_handle_staff_use");
 }
 
+/** 物品 script 统一入口：枪械集成枪射击 Consumer */
+function resolveIntegrationGunFireConsumer() {
+    return getJavaBridge("gltcIntegrationGunFire");
+}
+
+/** 物品 script 统一入口：枪械集成枪清状态 Consumer */
+function resolveIntegrationGunClearConsumer() {
+    return getJavaBridge("gltcIntegrationGunClear");
+}
+
 ({
     META_KEY: META_KEY,
     getGltcSharedRoot: getGltcSharedRoot,
@@ -249,6 +281,8 @@ function resolveStaffUseConsumer() {
     putJavaBridge: putJavaBridge,
     getJavaBridge: getJavaBridge,
     resolveStaffUseConsumer: resolveStaffUseConsumer,
+    resolveIntegrationGunFireConsumer: resolveIntegrationGunFireConsumer,
+    resolveIntegrationGunClearConsumer: resolveIntegrationGunClearConsumer,
     readBridgeMapFromMetadata: readBridgeMapFromMetadata,
     publishBridgeMapToMetadata: publishBridgeMapToMetadata,
     getBridgeMapLegacy: getBridgeMapLegacy,

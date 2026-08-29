@@ -145,7 +145,7 @@ var ATTR_MOD_UUID = {
 
 function findScriptFile(relativeUnderScripts) {
     var rel = String(relativeUnderScripts || "").replace(/\\/g, "/");
-    var roots = ["GLTC_联合协议", "GLTC121"];
+    var roots = ["rsc版GLTC_联合协议", "GLTC121"];
     for (var r = 0; r < roots.length; r++) {
         var f = new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/" + roots[r] + "/scripts/" + rel);
         if (f.exists()) return f;

@@ -1,0 +1,1762 @@
+{
+  "shops": [
+    {
+      "id": "plants",
+      "title": "§x§7§7§f§7§f§f协议内容：§x§f§c§f§f§5§7植物",
+      "batchMultiplier": 2,
+      "items": [
+        {
+          "type": "vanilla",
+          "id": "OAK_SAPLING",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SPRUCE_SAPLING",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BIRCH_SAPLING",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "JUNGLE_SAPLING",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ACACIA_SAPLING",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DARK_OAK_SAPLING",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CHERRY_SAPLING",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MANGROVE_PROPAGULE",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "AZALEA",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "FLOWERING_AZALEA",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CRIMSON_FUNGUS",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WARPED_FUNGUS",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "POPPY",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DANDELION",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BLUE_ORCHID",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ALLIUM",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "AZURE_BLUET",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "OXEYE_DAISY",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CORNFLOWER",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "RED_TULIP",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ORANGE_TULIP",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WHITE_TULIP",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PINK_TULIP",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LILY_OF_THE_VALLEY",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SUNFLOWER",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LILAC",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ROSE_BUSH",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PEONY",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PITCHER_PLANT",
+          "priceId": "AL_A3",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TORCHFLOWER",
+          "priceId": "AL_A3",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PINK_PETALS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CHORUS_FLOWER",
+          "priceId": "AL_A3",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SPORE_BLOSSOM",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WITHER_ROSE",
+          "priceId": "AL_A3",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BROWN_MUSHROOM",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "RED_MUSHROOM",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WHEAT_SEEDS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PUMPKIN_SEEDS",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MELON_SEEDS",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BEETROOT_SEEDS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TORCHFLOWER_SEEDS",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PITCHER_POD",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHER_WART",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "COCOA_BEANS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CARROT",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "POTATO",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WHEAT",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BEETROOT",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "APPLE",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MELON_SLICE",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PUMPKIN",
+          "priceId": "AL_A3",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MELON",
+          "priceId": "AL_A3",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SWEET_BERRIES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GLOW_BERRIES",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BAMBOO",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SUGAR_CANE",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CACTUS",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SEA_PICKLE",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CHORUS_FRUIT",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SHORT_GRASS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TALL_GRASS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "FERN",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LARGE_FERN",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "VINE",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LILY_PAD",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MOSS_BLOCK",
+          "priceId": "AL_A3",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MOSS_CARPET",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BIG_DRIPLEAF",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SMALL_DRIPLEAF",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GLOW_LICHEN",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "HANGING_ROOTS",
+          "priceId": "AL_A3",
+          "priceAmt": 6,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SEAGRASS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "KELP",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "OAK_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SPRUCE_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BIRCH_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "JUNGLE_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ACACIA_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DARK_OAK_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CHERRY_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MANGROVE_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "AZALEA_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "FLOWERING_AZALEA_LEAVES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CRIMSON_ROOTS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WARPED_ROOTS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WEEPING_VINES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TWISTING_VINES",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MANGROVE_ROOTS",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DEAD_BUSH",
+          "priceId": "AL_A3",
+          "priceAmt": 2,
+          "giveAmount": 1
+        }
+      ]
+    },
+    {
+      "id": "minerals",
+      "title": "§x§7§7§f§7§f§f协议内容：§x§f§c§f§f§5§7矿物",
+      "batchMultiplier": 3,
+      "items": [
+        {
+          "type": "vanilla",
+          "id": "COAL",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "REDSTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LAPIS_LAZULI",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "QUARTZ",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "COPPER_INGOT",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "IRON_INGOT",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GOLD_INGOT",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "AMETHYST_SHARD",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DIAMOND",
+          "priceId": "AL_A1",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "EMERALD",
+          "priceId": "AL_A1",
+          "priceAmt": 12,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ANCIENT_DEBRIS",
+          "priceId": "AL_A1",
+          "priceAmt": 64,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHERITE_SCRAP",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHERITE_INGOT",
+          "priceId": "AL_A1",
+          "priceAmt": 128,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "COAL_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "COPPER_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "IRON_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GOLD_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "REDSTONE_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LAPIS_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DIAMOND_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "EMERALD_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHER_QUARTZ_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHER_GOLD_ORE",
+          "priceId": "AL_A1",
+          "priceAmt": 80,
+          "giveAmount": 1
+        }
+      ]
+    },
+    {
+      "id": "drops",
+      "title": "§x§7§7§f§7§f§f协议内容：§x§f§c§f§f§5§7掉落物",
+      "batchMultiplier": 5,
+      "items": [
+        {
+          "type": "vanilla",
+          "id": "ROTTEN_FLESH",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BONE",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "STRING",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ARROW",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "FEATHER",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "INK_SAC",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LEATHER",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SPIDER_EYE",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GUNPOWDER",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SLIME_BALL",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MAGMA_CREAM",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PRISMARINE_SHARD",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PRISMARINE_CRYSTALS",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GLOW_INK_SAC",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "RABBIT_HIDE",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ENDER_PEARL",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NAUTILUS_SHELL",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "RABBIT_FOOT",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BLAZE_ROD",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PHANTOM_MEMBRANE",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GHAST_TEAR",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SHULKER_SHELL",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SPONGE",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WITHER_SKELETON_SKULL",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TRIDENT",
+          "priceId": "AL_A1",
+          "priceAmt": 16,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CHICKEN",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BEEF",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PORKCHOP",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MUTTON",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "RABBIT",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "COD",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SALMON",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PUFFERFISH",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TROPICAL_FISH",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        }
+      ]
+    },
+    {
+      "id": "misc",
+      "title": "§x§7§7§f§7§f§f协议内容：§x§f§c§f§f§5§7杂物",
+      "batchMultiplier": 10,
+      "items": [
+        {
+          "type": "vanilla",
+          "id": "STICK",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 5
+        },
+        {
+          "type": "vanilla",
+          "id": "SNOWBALL",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 5
+        },
+        {
+          "type": "vanilla",
+          "id": "PAPER",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 3
+        },
+        {
+          "type": "vanilla",
+          "id": "SUGAR",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 3
+        },
+        {
+          "type": "vanilla",
+          "id": "BOWL",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 3
+        },
+        {
+          "type": "vanilla",
+          "id": "GLASS_BOTTLE",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 3
+        },
+        {
+          "type": "vanilla",
+          "id": "CLAY_BALL",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 3
+        },
+        {
+          "type": "vanilla",
+          "id": "BUCKET",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BOOK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BRICK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHER_BRICK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "FLINT",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WATER_BUCKET",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NAME_TAG",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LEAD",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "HONEYCOMB",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "HONEY_BOTTLE",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GLOWSTONE_DUST",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BLAZE_POWDER",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "FIREWORK_ROCKET",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MILK_BUCKET",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LAVA_BUCKET",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SADDLE",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BELL",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "FERMENTED_SPIDER_EYE",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "EXPERIENCE_BOTTLE",
+          "priceId": "AL_A1",
+          "priceAmt": 48,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DRAGON_BREATH",
+          "priceId": "AL_A1",
+          "priceAmt": 64,
+          "giveAmount": 1
+        }
+      ]
+    },
+    {
+      "id": "blocks",
+      "title": "§x§7§7§f§7§f§f协议内容：§x§f§c§f§f§5§7方块",
+      "batchMultiplier": 5,
+      "items": [
+        {
+          "type": "vanilla",
+          "id": "DIRT",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "GRASS_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "COARSE_DIRT",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "COBBLESTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHERRACK",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "STONE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "DEEPSLATE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "SAND",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "COBBLED_DEEPSLATE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 2
+        },
+        {
+          "type": "vanilla",
+          "id": "RED_SAND",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GRAVEL",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ANDESITE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DIORITE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GRANITE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SANDSTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BLACKSTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BASALT",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CLAY",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SNOW_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PODZOL",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MYCELIUM",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CRIMSON_NYLIUM",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WARPED_NYLIUM",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ROOTED_DIRT",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MUD",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "RED_SANDSTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "ICE",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TUFF",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "END_STONE",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SOUL_SAND",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SOUL_SOIL",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MAGMA_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PACKED_ICE",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BONE_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "MUDDY_MANGROVE_ROOTS",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DRIPSTONE_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "POINTED_DRIPSTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NETHER_WART_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "WARPED_WART_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "DRIED_KELP_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 2,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "OBSIDIAN",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GLOWSTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SEA_LANTERN",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CALCITE",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BOOKSHELF",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "TNT",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "NOTE_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "AMETHYST_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "QUARTZ_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "HONEYCOMB_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "HONEY_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SLIME_BLOCK",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "GILDED_BLACKSTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SHROOMLIGHT",
+          "priceId": "AL_A1",
+          "priceAmt": 8,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SCULK_VEIN",
+          "priceId": "AL_A1",
+          "priceAmt": 16,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "CRYING_OBSIDIAN",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BLUE_ICE",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "OCHRE_FROGLIGHT",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "VERDANT_FROGLIGHT",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "PEARLESCENT_FROGLIGHT",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "JUKEBOX",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "RESPAWN_ANCHOR",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SCULK",
+          "priceId": "AL_A1",
+          "priceAmt": 32,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SCULK_CATALYST",
+          "priceId": "AL_A1",
+          "priceAmt": 48,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SCULK_SHRIEKER",
+          "priceId": "AL_A1",
+          "priceAmt": 64,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "SCULK_SENSOR",
+          "priceId": "AL_A1",
+          "priceAmt": 64,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "BUDDING_AMETHYST",
+          "priceId": "AL_A1",
+          "priceAmt": 48,
+          "giveAmount": 1
+        },
+        {
+          "type": "vanilla",
+          "id": "LODESTONE",
+          "priceId": "AL_A1",
+          "priceAmt": 48,
+          "giveAmount": 1
+        }
+      ]
+    },
+    {
+      "id": "slimefun",
+      "title": "§x§7§7§f§7§f§f协议内容：§x§f§c§f§f§5§7原版粘液科技",
+      "batchMultiplier": 1,
+      "items": [
+        {
+          "type": "slimefun",
+          "id": "ENERGY_REGULATOR",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1
+        },
+        {
+          "type": "slimefun",
+          "id": "ENERGY_CONNECTOR",
+          "priceId": "AL_A1",
+          "priceAmt": 4,
+          "giveAmount": 1
+        },
+        {
+          "type": "slimefun",
+          "id": "COAL_GENERATOR",
+          "priceId": "AL_A1",
+          "priceAmt": 64,
+          "giveAmount": 1
+        },
+        {
+          "type": "slimefun",
+          "id": "GG板子",
+          "priceId": "AL_A1",
+          "priceAmt": 1,
+          "giveAmount": 1,
+          "limit": 10
+        }
+      ]
+    }
+  ]
+}

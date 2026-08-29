@@ -11,7 +11,7 @@ var ABILITY_POWER_CONFIG_KEY = "StarbyssAdjustment";
 var DAMAGE_NOTIFY_CONFIG_KEY = "DamageNotifyMode";
 var DAMAGE_NOTIFY_DEFAULT = "chat";
 var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
-var COOLDOWN_MS = 4000; // 冷却时间（毫秒）
+var COOLDOWN_MS = 3000; // 冷却时间（毫秒），与 items.yml lore"再装填3秒"一致
 var RANGE = 40; // 水球最大飞行距离（米）
 var BLAST_RADIUS = 12; // 爆炸伤害范围（米）
 var LEVITATION_TICKS = 20; // 飘浮持续时间（tick），20=1秒

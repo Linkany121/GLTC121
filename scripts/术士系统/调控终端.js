@@ -17,7 +17,7 @@ var Listener = Java.type("org.bukkit.event.Listener");
 var ClickType = Java.type("org.bukkit.event.inventory.ClickType");
 
 var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
-var GUI_TITLE = "§c§l彼岸钢™ · 智能调控终端";
+var GUI_TITLE = "§c§l彼岸钢™ · 领域管控终端";
 var MENU_ITEM_ID = "VASA_彼岸钢调控终端";
 var GLTC_PREFIX = "§f[§x§F§F§2§5§F§1G§x§D§2§2§A§F§5L§x§A§5§2§F§F§9T§x§7§8§3§4§F§DC§x§5§8§4§C§F§F联§x§4§5§7§6§F§F合§x§3§1§9§F§F协§x§1§E§C§9§F§F议§f] ";
 
@@ -72,7 +72,7 @@ function loadMageCore() {
         var StandardCharsets = java.nio.charset.StandardCharsets;
         var ByteBuffer = Java.type("java.nio.ByteBuffer");
         var dataDir = PLUGIN.getDataFolder();
-        var file = new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js");
+        var file = new File(dataDir.getAbsolutePath() + "/addons/rsc版GLTC_联合协议/scripts/术士系统/核心.js");
         if (!file.exists()) file = new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js");
         if (file.exists()) {
             var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
@@ -251,7 +251,7 @@ function onUse(event) {
     if (!player || !(player instanceof Player)) return;
 
     if (!isAdmin(player)) {
-        player.sendMessage(GLTC_PREFIX + "§c仅管理员可使用彼岸钢™智能调控终端。");
+        player.sendMessage(GLTC_PREFIX + "§c仅管理员可使用彼岸钢™领域管控终端。");
         return;
     }
     if (!loadMageCore()) {

@@ -43,7 +43,7 @@ function findGunScriptFile(scriptRel) {
         if (fromLoader != null) return fromLoader;
     }
     if (PLUGIN == null) return null;
-    var roots = ["GLTC_联合协议", "GLTC121"];
+    var roots = ["rsc版GLTC_联合协议", "GLTC121"];
     var base = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/";
     for (var i = 0; i < roots.length; i++) {
         var f = new File(base + roots[i] + "/scripts/" + scriptRel);

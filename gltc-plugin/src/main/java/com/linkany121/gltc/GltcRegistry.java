@@ -54,6 +54,8 @@ public final class GltcRegistry {
         GltcArmorSetsRegistry.register(addon);
         GltcFoodsRegistry.register(addon);
 
+        com.linkany121.gltc.generated.GltcMachineSpeeds.apply();
+
         com.linkany121.gltc.item.GltcRecipeFixup.schedule(plugin);
         // Scripted items register before archives; Slimefun may populate groups after onEnable.
         com.linkany121.gltc.item.GltcGuideOrderFixup.schedule(plugin);
@@ -64,6 +66,7 @@ public final class GltcRegistry {
         plugin.getServer().getPluginManager().registerEvents(new com.linkany121.gltc.multiblock.GltcSuperMultiBlockListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new com.linkany121.gltc.guide.GltcRecipeGuideListener(), plugin);
         plugin.getServer().getPluginManager().registerEvents(new com.linkany121.gltc.listener.GltcMachineBreakListener(), plugin);
+        plugin.getServer().getPluginManager().registerEvents(new com.linkany121.gltc.logic.credit.ShopGuideClickListener(), plugin);
 
         // Resolve drop ItemStacks after every Slimefun item exists.
         plugin.getServer().getScheduler().runTask(plugin, GltcBlockDropListener::warmUp);

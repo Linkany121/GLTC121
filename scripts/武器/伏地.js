@@ -42,7 +42,7 @@ var DAMAGE_NOTIFY_DEFAULT = "chat";
 var GLTC_DAMAGE_MSG_PREFIX = "§f[§x§e§0§1§7§e§8G§x§c§b§1§2§f§2L§x§b§7§0§e§f§cT§x§9§b§2§2§f§fC§x§7§c§3§f§f§f联§x§5§d§5§b§f§f合§x§4§c§7§8§f§f协§x§4§b§9§5§f§f议§f]§f";
 var COOLDOWN_MS = 3000;               // 右键再装填时间（毫秒）3秒
 var RANGE = 20;                       // 标记范围（格）
-var FOV_DEG = 100;                     // 视野夹角（度），左右各45°
+var FOV_DEG = 90;                      // 视野夹角（度），左右各45°（共90°，与 items.yml lore 一致）
 var SLOWNESS_TICKS = 60;              // 缓慢持续时间（tick），60 = 3秒
 var SLOWNESS_LEVEL = 2;               // 缓慢等级（2 = III）
 var MARK_DURATION_MS = 4500;          // 标记状态保留时间（毫秒），略长于缓慢时长

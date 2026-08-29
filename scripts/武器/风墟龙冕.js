@@ -51,7 +51,7 @@ var TYPE_BLINDNESS  = PotionEffectType.getByName("BLINDNESS");
 var TYPE_SPEED      = PotionEffectType.getByName("SPEED");
 
 // === 气斩参数 ===
-var AIR_SLASH_COOLDOWN_MS       = 500;   // 再装填0.8秒
+var AIR_SLASH_COOLDOWN_MS       = 800;   // 再装填0.8秒（与 items.yml lore 一致）
 var SIT_AIR_SLASH_MULT          = 4;     // 气斩：4x SIT
 var AIR_SLASH_SPEED             = 1.1;  // 
 var AIR_SLASH_RANGE             = 16;    // 持续16格

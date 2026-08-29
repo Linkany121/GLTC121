@@ -4,7 +4,7 @@
 //   剑光(左键)：向前发射一道剑光，命中后召唤白剑从天而降，造成 70 伤害
 //   焰眸(右键)：在前方高空召唤法阵，3秒内每0.5秒发射一道红剑落下，
 //               单次最多 5 道，冷却 6 秒。每把伤害 = 总伤害 / 实际道数
-//   心霆机制  ：每次施展(剑光/焰眸)增加 1 层 [心霆]；到达 10 层后自动进入
+//   心霆机制  ：每次施展(剑光/焰眸)增加 1 层 [心霆]；到达 9 层后自动进入
 //               持续 10 秒的心霆状态，期间缓慢升空，只能左键施展剑霆
 //   剑霆(心霆状态左键)：在视线位置(最长40米)中心放射黑/深红/红射线 +
 //               黄紫白爆炸 + 落雷；半径 5 内敌人 10x SIT
@@ -110,7 +110,7 @@ var SOUND_RESPAWN_ANCHOR_EXPLODE = "block.respawn_anchor.explode"; // 重生锚�
 // 心霆机制参数
 // ===================================================================
 var XINTING_MAX         = 9;    // 心霆最大层数
-var XINTING_DECAY_TICKS = 80;    // 每 3 秒减少一层心霆（倒计时不被获得重置）
+var XINTING_DECAY_TICKS = 80;    // 每 4 秒减少一层心霆（倒计时不被获得重置）
 var XINTING_STATE_TICKS = 200;   // 心霆状态持续 10 秒
 var XINTING_LEVITATION_LEVEL = 1; // 心霆状态飘浮等级(amplifier=1 => 飘浮II)
 var XINTING_SLOW_FALL_TICKS  = 300; // 心霆状态缓降持续 15 秒
@@ -1271,7 +1271,8 @@ function handleHuanjianhuInteract(event) {
     }
 }
 function handleHuanjianhuMelee(event) {
-    if (event == null || event.isCancelled()) return;
+    if (event == null) return;
+    // 无条件触发：即使近战伤害被取消（免伤/防暴），只要手持武器左键攻击即施展技能
     var damager = edbeDamager(event);
     if (!isPlayer(damager)) return;
     if (isApplyingAbilityDamage(damager)) return;
@@ -1340,7 +1341,7 @@ var initListener = new RunnableImpl({
         Bukkit.getPluginManager().registerEvent(
             PlayerInteractEvent,
             huanjianhuListener,
-            EventPriority.NORMAL,
+            EventPriority.HIGHEST,
             function (l, event) {
                 try { handleHuanjianhuInteract(event); } catch (e) {
                     plugin.getLogger().warning("[隐兰狂玉唤剑葫] 交互异常: " + e);
@@ -1351,7 +1352,7 @@ var initListener = new RunnableImpl({
         Bukkit.getPluginManager().registerEvent(
             EntityDamageByEntityEvent,
             huanjianhuListener,
-            EventPriority.NORMAL,
+            EventPriority.HIGHEST,
             function (l, event) {
                 try { handleHuanjianhuMelee(event); } catch (e) {
                     try { plugin.getLogger().warning("[隐兰狂玉唤剑葫] 近战左键异常: " + e); } catch (eLog) {}

@@ -119,7 +119,7 @@ function loadCreditApi() {
         seen[p] = true;
         candidates.push(file);
     }
-    addPath(new File(basePath + "/addons/GLTC_联合协议/scripts/能源流/_信用点.js"));
+    addPath(new File(basePath + "/addons/rsc版GLTC_联合协议/scripts/能源流/_信用点.js"));
     addPath(new File(basePath + "/addons/GLTC121/scripts/能源流/_信用点.js"));
     try {
         var addonsDir = new File(basePath + "/addons");

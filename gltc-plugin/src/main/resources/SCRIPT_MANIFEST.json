@@ -262,5 +262,17 @@
       "slimefunId": "VASA_术式承载转换仪",
       "script": "机器/术式承载转换仪"
     }
+  ],
+  "recipe_machines": [
+    {
+      "slimefunId": "FKR_锻造锤",
+      "script": "机器/锻造锤"
+    }
+  ],
+  "multiblocks": [
+    {
+      "slimefunId": "skey_深红远星级",
+      "script": "多方块特效/深红远星"
+    }
   ]
 }

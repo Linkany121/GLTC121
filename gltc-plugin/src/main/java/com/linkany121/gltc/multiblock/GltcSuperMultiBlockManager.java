@@ -59,6 +59,9 @@ public final class GltcSuperMultiBlockManager {
     private static final Map<String, Set<UUID>> DISPLAYS = new ConcurrentHashMap<>();
     private static final Map<String, Integer> DISPLAY_LAYERS = new ConcurrentHashMap<>();
     private static final Map<String, Boolean> FORMED = new ConcurrentHashMap<>();
+    /** Last facing-inference attempt per core (limits how often we scan the structure). */
+    private static final Map<String, Long> INFER_ATTEMPTS = new ConcurrentHashMap<>();
+    private static final long INFER_INTERVAL_MS = 20_000L;
 
     private record CoreState(Location location, String machineId, BlockFace facing) {
     }
@@ -80,6 +83,7 @@ public final class GltcSuperMultiBlockManager {
         DISPLAY_LAYERS.put(key, layer);
         persistLayer(blockLoc, layer);
         FORMED.put(key, false);
+        INFER_ATTEMPTS.put(key, 0L);
         GltcPlugin plugin = GltcPlugin.getInstance();
         Bukkit.getScheduler().runTask(plugin, () -> refresh(blockLoc, machineId, null));
     }
@@ -120,6 +124,7 @@ public final class GltcSuperMultiBlockManager {
         int layer = readPersistedLayer(blockLoc);
         DISPLAY_LAYERS.put(key, layer);
         FORMED.put(key, false);
+        INFER_ATTEMPTS.put(key, 0L);
         return true;
     }
 
@@ -277,6 +282,7 @@ public final class GltcSuperMultiBlockManager {
         CORES.remove(key);
         DISPLAY_LAYERS.remove(key);
         FORMED.remove(key);
+        INFER_ATTEMPTS.remove(key);
     }
 
     public static void clearAllDisplays() {
@@ -287,6 +293,7 @@ public final class GltcSuperMultiBlockManager {
         CORES.clear();
         DISPLAY_LAYERS.clear();
         FORMED.clear();
+        INFER_ATTEMPTS.clear();
     }
 
     /** Drop in-memory SMB state for a whole world (unload). */
@@ -337,8 +344,12 @@ public final class GltcSuperMultiBlockManager {
         loadCoreState(blockLoc, machineId);
         String key = blockKey(blockLoc);
         boolean wasFormed = Boolean.TRUE.equals(FORMED.get(key));
-        boolean nowFormed = isFormed(blockLoc, machineId);
         GltcSuperMultiBlockData.Definition definition = GltcSuperMultiBlockData.get(machineId);
+        boolean nowFormed = isFormed(blockLoc, machineId);
+        if (!nowFormed && definition != null) {
+            tryInferFacing(blockLoc, machineId, definition);
+            nowFormed = isFormed(blockLoc, machineId);
+        }
         if (nowFormed) {
             removeProjectiles(blockLoc);
             FORMED.put(key, true);
@@ -373,6 +384,8 @@ public final class GltcSuperMultiBlockManager {
                 onCoreRemoved(core);
                 continue;
             }
+            // A block changed nearby — allow the facing to be re-inferred.
+            INFER_ATTEMPTS.put(blockKey(core), 0L);
             refresh(core, id, notifier);
         }
     }
@@ -470,18 +483,75 @@ public final class GltcSuperMultiBlockManager {
         if (loadCoreState(blockLoc, machineId)) {
             runOnMain(() -> refresh(blockLoc, machineId, null));
         }
-        return isFormed(core, definition);
+        boolean formed = isFormed(core, definition);
+        if (!formed) {
+            tryInferFacing(blockLoc, machineId, definition);
+            formed = isFormed(core, definition);
+        }
+        return formed;
     }
 
     private static boolean isFormed(Location core, GltcSuperMultiBlockData.Definition definition) {
+        return isFormedWithFacing(core, definition, facingOf(core));
+    }
+
+    private static boolean isFormedWithFacing(Location core, GltcSuperMultiBlockData.Definition definition, BlockFace facing) {
         for (Map.Entry<Vector, GltcSuperMultiBlockData.PartSpec> entry : definition.parts().entrySet()) {
-            Vector rotated = worldOffset(core, entry.getKey());
+            Vector rotated = SmbRotationUtil.rotateOffset(entry.getKey(), facing);
             Block block = core.clone().add(rotated).getBlock();
             if (!matchesPart(block, entry.getValue())) {
                 return false;
             }
         }
         return true;
+    }
+
+    /**
+     * After a restart, {@code HorizonDirection} may be missing or stale (e.g. the core was
+     * placed before facing persistence existed). Instead of trusting it blindly, try to infer
+     * the actual facing by matching the structure built around the core.
+     *
+     * @return true if a matching facing was found and applied
+     */
+    private static boolean tryInferFacing(Location blockLoc, String machineId, GltcSuperMultiBlockData.Definition definition) {
+        String key = blockKey(blockLoc);
+        long now = System.currentTimeMillis();
+        Long last = INFER_ATTEMPTS.get(key);
+        if (last != null && now - last < INFER_INTERVAL_MS) {
+            return false;
+        }
+        INFER_ATTEMPTS.put(key, now);
+        BlockFace inferred = inferFacing(blockLoc, definition);
+        if (inferred == null) {
+            return false;
+        }
+        applyFacing(blockLoc, machineId, inferred);
+        return true;
+    }
+
+    private static BlockFace inferFacing(Location core, GltcSuperMultiBlockData.Definition definition) {
+        BlockFace current = facingOf(core);
+        if (isFormedWithFacing(core, definition, current)) {
+            return current;
+        }
+        for (BlockFace f : new BlockFace[]{BlockFace.SOUTH, BlockFace.NORTH, BlockFace.EAST, BlockFace.WEST}) {
+            if (isFormedWithFacing(core, definition, f)) {
+                return f;
+            }
+        }
+        return null;
+    }
+
+    /** Update the in-memory facing and persist it (persist happens on the main thread). */
+    private static void applyFacing(Location blockLoc, String machineId, BlockFace facing) {
+        String key = blockKey(blockLoc);
+        CoreState state = CORES.get(key);
+        if (state != null && state.facing() == facing) {
+            return;
+        }
+        CORES.put(key, new CoreState(blockLoc, machineId, facing));
+        BlockFace f = facing;
+        runOnMain(() -> persistFacing(blockLoc, f));
     }
 
     private static Vector worldOffset(Location core, Vector templateOffset) {

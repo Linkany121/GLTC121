@@ -31,7 +31,7 @@ var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 function loadShipCurrencyApi() {
     if (PLUGIN.gltcShipCurrencyApi != null) return PLUGIN.gltcShipCurrencyApi;
     try {
-        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/机器/_舰体货币.js";
+        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/rsc版GLTC_联合协议/scripts/机器/_舰体货币.js";
         var apiFile = new File(path);
         if (!apiFile.exists()) return null;
         var ByteBuffer = Java.type("java.nio.ByteBuffer");
@@ -341,6 +341,11 @@ function deliverOne(player, data) {
 }
 
 function processDeliver(player, inv) {
+    // 前置校验：舰体货币模块必须可用，否则不扣任何物资（防止吞物资不发报酬）
+    if (!CURRENCY_API) {
+        player.sendMessage(GLTC_PREFIX + "§c舰体货币系统加载失败，无法结算订单报酬！请联系管理员检查 _舰体货币.js。");
+        return;
+    }
     // 从左到右找第一张可交付的订单
     for (var oi = 0; oi < ORDER_SLOTS.length; oi++) {
         var slot = ORDER_SLOTS[oi];

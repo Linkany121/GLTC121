@@ -416,6 +416,7 @@ public final class GltcIds {
         IdCanonicalizer.register("VASA_术式承载转换仪");
         IdCanonicalizer.register("VASA_火球术");
         IdCanonicalizer.register("VASA_花如画卷");
+        IdCanonicalizer.register("VASA_调试术式");
         IdCanonicalizer.register("VASA_送花");
         IdCanonicalizer.register("VASA_通用施术道具");
         IdCanonicalizer.register("VASA_驭粒终端");

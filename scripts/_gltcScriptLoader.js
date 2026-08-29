@@ -13,7 +13,7 @@ function findScriptFile(rel) {
     rel = String(rel || "").replace(/\\/g, "/").trim();
     if (!/\.js$/i.test(rel)) rel = rel + ".js";
     // 仅白名单附属目录，避免扫到其它 addons 同名脚本
-    var roots = ["GLTC_联合协议", "GLTC121"];
+    var roots = ["rsc版GLTC_联合协议", "GLTC121"];
     var candidates = [];
     for (var r = 0; r < roots.length; r++) {
         candidates.push(new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/" + roots[r] + "/scripts/" + rel));
@@ -84,7 +84,7 @@ function evalScriptExport(rel, opts) {
 
 function findScriptDir(relativeDir) {
     relativeDir = String(relativeDir || "").replace(/\\/g, "/").replace(/\/$/, "");
-    var roots = ["GLTC_联合协议", "GLTC121"];
+    var roots = ["rsc版GLTC_联合协议", "GLTC121"];
     var candidates = [];
     for (var r = 0; r < roots.length; r++) {
         candidates.push(new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/" + roots[r] + "/scripts/" + relativeDir));

@@ -357,6 +357,7 @@ import com.linkany121.gltc.generated.items.Items_VASA_微风花流;
 import com.linkany121.gltc.generated.items.Items_VASA_庇护脉络;
 import com.linkany121.gltc.generated.items.Items_VASA_花如画卷;
 import com.linkany121.gltc.generated.items.Items_VASA_火球术;
+import com.linkany121.gltc.generated.items.Items_VASA_调试术式;
 import com.linkany121.gltc.generated.items.Items_咆哮系统介绍;
 import com.linkany121.gltc.generated.items.Items_咆哮外壳;
 import com.linkany121.gltc.generated.items.Items_shop_阿米洛索你是谁1;
@@ -734,6 +735,7 @@ public final class GltcItemsRegistry {
         pending.add(new GltcSlimefunItem(GltcItemGroups.MA_3, GltcItemBuilder.slimefunStack("VASA_庇护脉络", Items_VASA_庇护脉络.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("VASA_庇护脉络", Items_VASA_庇护脉络.DATA, 1)));
         pending.add(new GltcSlimefunItem(GltcItemGroups.MA_3, GltcItemBuilder.slimefunStack("VASA_花如画卷", Items_VASA_花如画卷.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("VASA_花如画卷", Items_VASA_花如画卷.DATA, 1)));
         pending.add(new GltcSlimefunItem(GltcItemGroups.MA_4, GltcItemBuilder.slimefunStack("VASA_火球术", Items_VASA_火球术.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("VASA_火球术", Items_VASA_火球术.DATA, 1)));
+        pending.add(new GltcSlimefunItem(GltcItemGroups.MA_5, GltcItemBuilder.slimefunStack("VASA_调试术式", Items_VASA_调试术式.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("VASA_调试术式", Items_VASA_调试术式.DATA, 1)));
         pending.add(new GltcSlimefunItem(GltcItemGroups.Z_PX, GltcItemBuilder.slimefunStack("咆哮系统介绍", Items_咆哮系统介绍.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("咆哮系统介绍", Items_咆哮系统介绍.DATA, 1)));
         pending.add(new GltcSlimefunItem(GltcItemGroups.Z_PX, GltcItemBuilder.slimefunStack("咆哮外壳", Items_咆哮外壳.DATA, 1), RecipeUtil.resolveRecipeType("PF_PX"), new Object[] { new org.bukkit.inventory.ItemStack(org.bukkit.Material.SHULKER_SHELL, 1), RecipeUtil.deferredSlimefun("TSgj5", 48), RecipeUtil.deferredSlimefun("TSxl5", 48), RecipeUtil.deferredSlimefun("LScs3", 48), RecipeUtil.deferredSlimefun("UMPV_果冻", 48), RecipeUtil.deferredSlimefun("skey_权限凭证2", 1), null, null, null }, GltcItemBuilder.slimefunStack("咆哮外壳", Items_咆哮外壳.DATA, 1)));
         pending.add(new GltcSlimefunItem(GltcItemGroups.SHOP_ZiW, GltcItemBuilder.slimefunStack("shop_阿米洛索你是谁1", Items_shop_阿米洛索你是谁1.DATA, 1), RecipeUtil.resolveRecipeType("PF_HCQ"), new Object[0], GltcItemBuilder.slimefunStack("shop_阿米洛索你是谁1", Items_shop_阿米洛索你是谁1.DATA, 1)));
@@ -758,6 +760,10 @@ public final class GltcItemsRegistry {
         pending.add(new GltcSlimefunItem(GltcItemGroups.DLC_B1, GltcItemBuilder.slimefunStack("OST_魔力逻素", Items_OST_魔力逻素.DATA, 1), RecipeUtil.resolveRecipeType("PF_SF_HSQ"), new Object[] { RecipeUtil.deferredSlimefun("AL_B1", 1), null, null, null, null, null, null, null, null }, GltcItemBuilder.slimefunStack("OST_魔力逻素", Items_OST_魔力逻素.DATA, 1)));
         pending.add(new GltcSlimefunItem(GltcItemGroups.DLC_C1, GltcItemBuilder.slimefunStack("al_q_hinet", Items_al_q_hinet.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("al_q_hinet", Items_al_q_hinet.DATA, 1)));
         for (com.linkany121.gltc.item.GltcSlimefunItem item : pending) {
+            // Placeholder-only items for the energy-flow shops: never show them in the guide.
+            if (item.getId().startsWith("shop_阿米洛索")) {
+                item.setHidden(true);
+            }
             item.register(addon);
         }
     }

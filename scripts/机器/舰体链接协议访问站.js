@@ -100,7 +100,7 @@ var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 function loadShipCurrencyApi() {
     if (PLUGIN.gltcShipCurrencyApi != null) return PLUGIN.gltcShipCurrencyApi;
     try {
-        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/机器/_舰体货币.js";
+        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/rsc版GLTC_联合协议/scripts/机器/_舰体货币.js";
         var apiFile = new File(path);
         if (!apiFile.exists()) return null;
         var code = StandardCharsets.UTF_8.decode(java.nio.ByteBuffer.wrap(Files.readAllBytes(apiFile.toPath()))).toString();

@@ -48,7 +48,7 @@ var PLUGIN = Bukkit.getPluginManager().getPlugin("RykenSlimefunCustomizer");
 function loadShipCurrencyApi() {
     if (PLUGIN.gltcShipCurrencyApi != null) return PLUGIN.gltcShipCurrencyApi;
     try {
-        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/机器/_舰体货币.js";
+        var path = PLUGIN.getDataFolder().getAbsolutePath() + "/addons/rsc版GLTC_联合协议/scripts/机器/_舰体货币.js";
         var apiFile = new File(path);
         if (!apiFile.exists()) return null;
         var ByteBuffer = Java.type("java.nio.ByteBuffer");
@@ -452,12 +452,13 @@ var ORDER_NAME_TEMPLATE = "&#2998ff舰&#21a6ff体&#19b5ff需&#10c3ff求&#08d2ff�
 var ORDER_LORE_TEMPLATE = [
     "&b归属&9：&#6f7dffS&#8f9affe&#afb7ffk&#cfd4fft&#eff1ffh&#fbfbfbi&#f2f2f2y&#e9e9e9远&#e1e1e1航&#d8d8d8舰",
     "&#fff5b3一张订单，上面写着舰体当前所需的物质需求。",
-    "&f————————————————————",
+    "&f——————————————————",
     "&f[&b订单等级&f]&#fff5b3%等级%",
     "&f[&b订单回报&f]&#fff5b3%报酬%",
     "&f[&b需求内容&f]",
     "%交易内容%",
-    "&f————————————————————",
+    "&f——————————————————",
+    "&f[&e!&f]&#e1ccbd需在舰体订单发布器中获取。",
     "%话语%"
 ];
 
@@ -674,8 +675,8 @@ function processGenerate(player, inv, count) {
         player.sendMessage(GLTC_PREFIX + "§c空白订单不足！需要 §e" + count + "张§c，当前仅 §e" + total + "§c张。");
         return;
     }
-    consumeLogs(inv, count);
 
+    // 先在内存中生成全部订单，确认至少成功生成一张后再消耗空白订单，避免吞材料
     var items = [];
     for (var i = 0; i < count; i++) {
         var order = generateOrder(count);
@@ -684,9 +685,10 @@ function processGenerate(player, inv, count) {
         if (oi) items.push(oi);
     }
     if (items.length === 0) {
-        player.sendMessage(GLTC_PREFIX + "§c生成订单失败：无法获取 §e" + ORDER_ITEM_ID + " §c物品！");
+        player.sendMessage(GLTC_PREFIX + "§c生成订单失败：无法获取 §e" + ORDER_ITEM_ID + " §c物品！空白订单未消耗。");
         return;
     }
+    consumeLogs(inv, count);
     placeOrders(player, inv, items);
 
     // 特效

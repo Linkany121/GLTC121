@@ -56,7 +56,7 @@ var TYPE_SPEED     = PotionEffectType.getByName("SPEED");
 var TYPE_STRENGTH  = PotionEffectType.getByName("STRENGTH");
 
 // === 旌旗参数 ===
-var BANNER_RADIUS          = 14;      // 玩家直径12格内随机（半径6格）
+var BANNER_RADIUS          = 6;       // 玩家直径12格内随机（半径6格，与 items.yml lore"12格"一致）
 var BANNER_TRIGGER_DIST    = 1.2;    // 玩家踩到水平范围（格）
 var BANNER_LIFETIME_MS     = 12000; // 旌旗存活时间（12秒）
 var BANNER_MAX_PER_PLAYER  = 5;      // 每玩家最多同时存在旌旗数

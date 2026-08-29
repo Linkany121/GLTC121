@@ -1,6 +1,7 @@
 package com.linkany121.gltc;
 
 import com.linkany121.gltc.item.GltcRecipeFixup;
+import com.linkany121.gltc.logic.bootstrap.GltcLogicBootstrap;
 import com.linkany121.gltc.machine.GltcRecipeMachine;
 import com.linkany121.gltc.multiblock.GltcSuperMultiBlockManager;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
@@ -19,10 +20,16 @@ public final class GltcPlugin extends JavaPlugin implements SlimefunAddon {
         instance = this;
         saveDefaultConfig();
         GltcRegistry.registerAll(this);
+        GltcLogicBootstrap.init(this);
     }
 
     @Override
     public void onDisable() {
+        try {
+            GltcLogicBootstrap.shutdown(this);
+        } catch (Throwable ex) {
+            getLogger().log(Level.WARNING, "[GLTC逻辑] shutdown 失败", ex);
+        }
         try {
             GltcSuperMultiBlockManager.clearAllDisplays();
         } catch (Throwable ex) {

@@ -99,6 +99,19 @@ public class GltcRecipeMachine extends AContainer implements RecipeDisplayItem, 
         setProcessingSpeed(1);
     }
 
+    /**
+     * YAML {@code speed} — divides each recipe's seconds directly, matching RSC semantics.
+     * e.g. a 16s recipe on a machine with speed 4 becomes a 4s recipe.
+     */
+    public void applyYamlSpeed(int speed) {
+        if (speed > 1) {
+            for (GltcMachineRecipe recipe : gltcRecipes) {
+                recipe.scaleSeconds(speed);
+            }
+        }
+        setProcessingSpeed(1);
+    }
+
     @Override
     protected boolean takeCharge(Location l) {
         if (freeToRun) {
@@ -320,6 +333,12 @@ public class GltcRecipeMachine extends AContainer implements RecipeDisplayItem, 
 
     @Override
     protected void tick(Block b) {
+        com.linkany121.gltc.logic.GltcMachineLogic logic =
+            com.linkany121.gltc.logic.GltcLogicRegistry.machine(getId());
+        if (logic != null && logic.onTick(b.getLocation(), this)) {
+            return;
+        }
+
         if (!canProcess(b)) {
             return;
         }
@@ -479,7 +498,7 @@ public class GltcRecipeMachine extends AContainer implements RecipeDisplayItem, 
         GltcMachineRecipe recipe,
         io.github.thebusybiscuit.slimefun4.implementation.operations.CraftingOperation operation
     ) {
-        return 1;
+        return Math.max(1, getSpeed());
     }
 
     /** Live template count used for speed/output scaling; default 1. */
@@ -726,6 +745,7 @@ public class GltcRecipeMachine extends AContainer implements RecipeDisplayItem, 
         private final List<RecipeUtil.GltcInputSlot> inputSpecs;
         private final List<RecipeUtil.GltcOutputSlot> outputSpecs;
         private final boolean noConsume;
+        private int scaledSeconds = -1;
         private List<RecipeUtil.GltcInputSlot> resolvedInputs = List.of();
         private List<RecipeUtil.GltcOutputSlot> resolvedOutputs = List.of();
 
@@ -742,7 +762,12 @@ public class GltcRecipeMachine extends AContainer implements RecipeDisplayItem, 
         }
 
         public int seconds() {
-            return seconds;
+            return scaledSeconds > 0 ? scaledSeconds : seconds;
+        }
+
+        /** Divide recipe seconds by {@code divisor} (speed), keeping at least 1 tick. */
+        public void scaleSeconds(int divisor) {
+            scaledSeconds = Math.max(1, seconds / divisor);
         }
 
         public boolean noConsume() {

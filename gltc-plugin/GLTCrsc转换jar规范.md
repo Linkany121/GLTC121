@@ -813,14 +813,18 @@ public static void registerAll(SlimefunAddon addon) {
 
 ## 13. 后续阶段接口（本指南不执行，仅留钩子）
 
-JS 阶段接入时：
+行为逻辑（原 YAML `script:` / `scripts/*.js`）**不得**以嵌入 JS 引擎为终局。
 
-1. 读取 `SCRIPT_MANIFEST.json`
-2. 在 `GltcScriptedItem` / `GltcScriptedMachine` 上挂接 GraalJS
-3. `getAddonConfig()` → `GltcPlugin.getInstance().getConfig()`
-4. 共享根 / 术士 API → `GltcRuntimeBridge`（新建，替代 RSC.INSTANCE）
+移植要求：
 
-本指南 **到此结束**；完成 Phase 0–7 即「非 JS 内容完全独立化」交付标准。
+1. 以 `SCRIPT_MANIFEST.json`（及全库 `script:`）为清单  
+2. 将逻辑重写为 Java（`com.linkany121.gltc.logic.*`），挂到原空壳物品/机器上  
+3. 配置走 `GltcPlugin.getConfig()`；数据走 `plugins/GLTC/data/`  
+4. 完成后移除任何 Graal/JS 运行时  
+
+**展开规范**：见同目录 [`GLTC_脚本转Java规范.md`](./GLTC_脚本转Java规范.md)（Phase J0–J10）。
+
+本指南 **到此结束**；完成 Phase 0–7 即「非脚本行为内容完全独立化」交付标准。
 
 ---
 

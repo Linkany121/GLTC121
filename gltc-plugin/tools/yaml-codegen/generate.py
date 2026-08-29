@@ -1221,7 +1221,8 @@ def codegen_scripted_machines(source: Path) -> None:
         menu_title = str(menu.get("title", key))
         rec = common["recipe"]
         rt = f"RecipeUtil.resolveRecipeType({jstr(common['recipe_type'])})"
-        recipe_arr = crafting_recipe_expr(rec) if rec else "new ItemStack[0]"
+        deferred_rec = deferred_recipe_expr(rec) if rec else "new Object[0]"
+        recipe_arr = "RecipeUtil.resolveCraftingRecipe(new Object[0])"
         out = f"GltcItemBuilder.slimefunStack({jstr(register_id(key))}, Items_{java_id(key)}.DATA)"
         class_name = f"Scripted_{java_id(key)}"
         input_slots = ", ".join(str(i) for i in common["input"]) or "2"
@@ -1251,8 +1252,10 @@ def codegen_scripted_machines(source: Path) -> None:
             f"            {max(common['capacity'], 1)},",
             f"            {common['energy']},",
             f"            RecipeUtil.intArray(java.util.List.of({input_slots})),",
-            f"            RecipeUtil.intArray(java.util.List.of({output_slots}))",
+            f"            RecipeUtil.intArray(java.util.List.of({output_slots})),",
+            "            SCRIPT_ID",
             "        );",
+            f"        machine.setDeferredCraftingRecipe({deferred_rec});",
             f"        machine.applyMenu({jstr(key)}, {jstr(menu_title)});",
             "        machine.register(addon);",
             "    }",

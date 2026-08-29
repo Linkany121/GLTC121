@@ -13,7 +13,7 @@ var Files = java.nio.file.Files;
 var StandardCharsets = java.nio.charset.StandardCharsets;
 
 var CARD_ID = "GLTC_银行卡";
-var GUI_TITLE = "§c能源流信用储蓄站";
+var GUI_TITLE = "§c能源流拇指终端站点";
 
 var ITEM_NAMES = {
     "AL_A1": "基本地层物质", "AL_A2": "基本金属物质", "AL_A3": "基本有机物质",
@@ -65,7 +65,7 @@ function loadCreditApi() {
         seen[p] = true;
         candidates.push(file);
     }
-    addPath(new File(basePath + "/addons/GLTC_联合协议/scripts/能源流/_信用点.js"));
+    addPath(new File(basePath + "/addons/rsc版GLTC_联合协议/scripts/能源流/_信用点.js"));
     addPath(new File(basePath + "/addons/GLTC121/scripts/能源流/_信用点.js"));
     try {
         var addonsDir = new File(basePath + "/addons");

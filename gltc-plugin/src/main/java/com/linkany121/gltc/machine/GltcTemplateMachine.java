@@ -108,14 +108,15 @@ public class GltcTemplateMachine extends GltcRecipeMachine {
 
     @Override
     protected int progressStep(BlockMenu inv, GltcMachineRecipe recipe, CraftingOperation operation) {
+        int base = Math.max(1, getSpeed());
         if (!fasterIfMoreTemplates) {
-            return 1;
+            return base;
         }
         ItemStack template = inv.getItemInSlot(templateSlot);
         if (template == null || template.getType() == Material.AIR) {
-            return 1;
+            return base;
         }
-        return Math.max(1, template.getAmount());
+        return Math.max(1, base * template.getAmount());
     }
 
     @Override

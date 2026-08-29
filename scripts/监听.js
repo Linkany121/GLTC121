@@ -84,7 +84,7 @@ function findGltcScriptFile(rel) {
         if (fromLoader != null) return fromLoader;
     }
     var candidates = [
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/" + rel),
+        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/rsc版GLTC_联合协议/scripts/" + rel),
         new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/" + rel)
     ];
     for (var c = 0; c < candidates.length; c++) {
@@ -115,7 +115,7 @@ function gltcEvalScriptEx(relativePath, captureExport, isolated) {
     // 回退：仅白名单附属目录，禁止扫全部 addons
     var candidates = [
         findGltcScriptFile(rel),
-        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC_联合协议/scripts/" + relFile),
+        new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/rsc版GLTC_联合协议/scripts/" + relFile),
         new File(PLUGIN.getDataFolder().getAbsolutePath() + "/addons/GLTC121/scripts/" + relFile)
     ];
     for (var c = 0; c < candidates.length; c++) {

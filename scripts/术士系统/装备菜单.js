@@ -142,7 +142,7 @@ function loadMageCore() {
         var StandardCharsets = java.nio.charset.StandardCharsets;
         var ByteBuffer = Java.type("java.nio.ByteBuffer");
         var dataDir = PLUGIN.getDataFolder();
-        var file = new File(dataDir.getAbsolutePath() + "/addons/GLTC_联合协议/scripts/术士系统/核心.js");
+        var file = new File(dataDir.getAbsolutePath() + "/addons/rsc版GLTC_联合协议/scripts/术士系统/核心.js");
         if (!file.exists()) file = new File(dataDir.getAbsolutePath() + "/addons/GLTC121/scripts/术士系统/核心.js");
         if (file.exists()) {
             var code = StandardCharsets.UTF_8.decode(ByteBuffer.wrap(Files.readAllBytes(file.toPath()))).toString();
@@ -194,7 +194,7 @@ function evalGearExport() {
         var Files = java.nio.file.Files;
         var StandardCharsets = java.nio.charset.StandardCharsets;
         var ByteBuffer = Java.type("java.nio.ByteBuffer");
-        var roots = ["GLTC_联合协议", "GLTC121"];
+        var roots = ["rsc版GLTC_联合协议", "GLTC121"];
         for (var r = 0; r < roots.length; r++) {
             var file = new File(PLUGIN.getDataFolder().getAbsolutePath()
                 + "/addons/" + roots[r] + "/scripts/" + rel);

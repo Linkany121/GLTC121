@@ -3,7 +3,7 @@ name: 'GLTC联合协议'
 depends: []
 pluginDepends: []
 scriptListener: 监听
-version: 4.0.2
+version: 5.0.0
 description: "GLTC联合协议"
 authors:
 - 'Linkany121'
@@ -11,9 +11,13 @@ repo: 'Linkany121/GLTC121'
 idPattern : 
 loadStartTexts:
 - "==================="
+- " 注意 RSC版自5.0.0版后不再更新 请下载jar版本"
 - " GLTC联合协议 正在启动"
+- " 注意 RSC版自5.0.0版后不再更新 请下载jar版本"
 - "==================="
 enabledTexts:
 - "==================="
+- " 注意 RSC版自5.0.0版后不再更新 请下载jar版本"
 - "GLTC联合协议成功运行"
+- " 注意 RSC版自5.0.0版后不再更新 请下载jar版本"
 - "==================="

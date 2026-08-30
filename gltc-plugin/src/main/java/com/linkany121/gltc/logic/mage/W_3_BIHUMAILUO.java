@@ -25,7 +25,7 @@ import java.util.UUID;
  *
  * <p>粒子环为[已投射]状态，打开术式选择 GUI 不会被清除。
  */
-public final class BiHuMaiLuoSpell implements MageSpell {
+public final class W_3_BIHUMAILUO implements MageSpell {
 
     public static final String SPELL_ID = "VASA_庇护脉络";
 
@@ -71,6 +71,11 @@ public final class BiHuMaiLuoSpell implements MageSpell {
     @Override
     public MageSpellDamage.SpellDamageType damageType() {
         return MageSpellDamage.SpellDamageType.PARTICLE;
+    }
+
+    @Override
+    public int ringCount() {
+        return 3; // 庇护脉络：3环（术士等级 < 3 时越环侵蚀）
     }
 
     @Override

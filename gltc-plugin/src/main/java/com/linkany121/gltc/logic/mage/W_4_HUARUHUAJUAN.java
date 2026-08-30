@@ -26,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * <p>环绕花为[未投射]：打开术式选择 GUI / 切换术式时清除；
  * 已发射的追踪弹为[已投射]，保留至自然结束。
  */
-public final class HuaRuHuaJuanSpell implements MageSpell {
+public final class W_4_HUARUHUAJUAN implements MageSpell {
 
     public static final String SPELL_ID = "VASA_花如画卷";
 
@@ -87,6 +87,11 @@ public final class HuaRuHuaJuanSpell implements MageSpell {
     @Override
     public MageSpellDamage.SpellDamageType damageType() {
         return MageSpellDamage.SpellDamageType.PARTICLE;
+    }
+
+    @Override
+    public int ringCount() {
+        return 4; // 花如画卷：4环（术士等级 < 4 时越环侵蚀）
     }
 
     @Override

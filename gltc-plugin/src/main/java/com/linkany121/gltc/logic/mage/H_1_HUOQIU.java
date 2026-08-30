@@ -23,7 +23,7 @@ import java.util.UUID;
  * <p>对齐旧 JS 版表现：飞行体为 ItemDisplay 火球实体（FIRE_CHARGE），命中时爆炸粒子；
  * 伤害 = 系数 × 释放者粒子强度 × GLI；火球飞行体属于[已投射]状态，打开术式选择 GUI 不会被清除。
  */
-public final class FireballSpell implements MageSpell {
+public final class H_1_HUOQIU implements MageSpell {
 
     public static final String SPELL_ID = "VASA_火球术";
 

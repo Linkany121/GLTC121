@@ -21,7 +21,7 @@ import java.util.UUID;
  *
  * <p>弹体为[已投射]状态，打开术式选择 GUI 不会被清除。
  */
-public final class TiaoShiShuShiSpell implements MageSpell {
+public final class N_1_TIAOSHI implements MageSpell {
 
     public static final String SPELL_ID = "VASA_调试术式";
 
@@ -33,7 +33,7 @@ public final class TiaoShiShuShiSpell implements MageSpell {
     private static final double MAX_DISTANCE = 24.0;    // 粒子球最大飞行距离（格）
 
     /** 三个粒子球速度（格/tick）：4 / 6 / 8 格每秒，速度不一致但都较缓慢。 */
-    private static final double[] BALL_SPEEDS = {0.2, 0.3, 0.4};
+    private static final double[] BALL_SPEEDS = {0.4, 0.43, 0.46};
 
     /** 三个粒子球颜色：白 / 蓝 / 红。 */
     private static final Color[] BALL_COLORS = {Color.WHITE, Color.BLUE, Color.RED};

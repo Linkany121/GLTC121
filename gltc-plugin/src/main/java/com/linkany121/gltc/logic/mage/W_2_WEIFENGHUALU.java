@@ -22,7 +22,7 @@ import java.util.UUID;
  *
  * <p>每朵郁金香弹体为独立[已投射]会话，打开术式选择 GUI 不会被清除。
  */
-public final class WeiFengHuaLiuSpell implements MageSpell {
+public final class W_2_WEIFENGHUALU implements MageSpell {
 
     public static final String SPELL_ID = "VASA_微风花流";
 
@@ -68,6 +68,11 @@ public final class WeiFengHuaLiuSpell implements MageSpell {
     @Override
     public MageSpellDamage.SpellDamageType damageType() {
         return MageSpellDamage.SpellDamageType.PARTICLE;
+    }
+
+    @Override
+    public int ringCount() {
+        return 2; // 微风花流：2环（术士等级 < 2 时越环侵蚀）
     }
 
     @Override

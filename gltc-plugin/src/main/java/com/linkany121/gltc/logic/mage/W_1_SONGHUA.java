@@ -20,7 +20,7 @@ import java.util.UUID;
  *
  * <p>弹体为[已投射]状态，打开术式选择 GUI 不会被清除；冷却由 {@link StaffCastLogic} 统一结算。
  */
-public final class SongHuaSpell implements MageSpell {
+public final class W_1_SONGHUA implements MageSpell {
 
     public static final String SPELL_ID = "VASA_送花";
 

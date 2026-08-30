@@ -64,7 +64,7 @@ public final class StaffCastLogic implements GltcItemLogic, Listener {
     /** {@code uuid|spellId} → 冷却结束时间戳（毫秒）。 */
     private final Map<String, Long> castCdUntil = new ConcurrentHashMap<>();
     private final LightRuinSkill lightRuin = new LightRuinSkill();
-    private FireballSpell fireballSpell;
+    private H_1_HUOQIU fireballSpell;
 
     private StaffCastLogic() {
     }
@@ -77,14 +77,14 @@ public final class StaffCastLogic implements GltcItemLogic, Listener {
         StaffCastLogic logic = new StaffCastLogic();
         instance = logic;
         MageSpellRegistry.clear();
-        FireballSpell fireball = new FireballSpell();
+        H_1_HUOQIU fireball = new H_1_HUOQIU();
         logic.fireballSpell = fireball;
         MageSpellRegistry.register(fireball);
-        MageSpellRegistry.register(new SongHuaSpell());
-        MageSpellRegistry.register(new WeiFengHuaLiuSpell());
-        MageSpellRegistry.register(new BiHuMaiLuoSpell());
-        MageSpellRegistry.register(new HuaRuHuaJuanSpell());
-        MageSpellRegistry.register(new TiaoShiShuShiSpell());
+        MageSpellRegistry.register(new W_1_SONGHUA());
+        MageSpellRegistry.register(new W_2_WEIFENGHUALU());
+        MageSpellRegistry.register(new W_3_BIHUMAILUO());
+        MageSpellRegistry.register(new W_4_HUARUHUAJUAN());
+        MageSpellRegistry.register(new N_1_TIAOSHI());
         GltcLogicRegistry.registerItem(ITEM_ID, logic);
         Bukkit.getPluginManager().registerEvents(logic, plugin);
     }
@@ -321,7 +321,14 @@ public final class StaffCastLogic implements GltcItemLogic, Listener {
             return;
         }
         // 侵蚀等级 = 环数 - 术士等级
-        int erosion = MageSpellDamage.calcErosion(player, spell.ringCount());
+        int ring = spell.ringCount();
+        int erosion = MageSpellDamage.calcErosion(player, ring);
+        try {
+            GltcPlugin.getInstance().getLogger().info(
+                "[GLTC侵蚀] 施术 " + player.getName() + " 术式=" + spellId
+                    + " 环数=" + ring + " 侵蚀=" + erosion);
+        } catch (Throwable ignored) {
+        }
         long cd = computeCastCooldown(player, spell, erosion);
         castCdUntil.put(cdKey, now + cd);
         try {
@@ -336,7 +343,7 @@ public final class StaffCastLogic implements GltcItemLogic, Listener {
         }
         // 侵蚀 > 0：对自身造成 20% 最大生命值 × 侵蚀等级 的脉冲伤害，冷却已乘侵蚀等级
         if (erosion > 0) {
-            MageSpellDamage.applyErosionSelfDamage(player, erosion, StaffPdc.spellDisplayName(spellId));
+            MageSpellDamage.applyErosionSelfDamage(player, erosion, spellId);
         }
     }
 

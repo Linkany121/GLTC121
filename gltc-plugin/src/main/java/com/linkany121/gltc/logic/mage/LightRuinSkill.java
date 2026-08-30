@@ -32,6 +32,7 @@ public final class LightRuinSkill {
 
     public static final String SKILL_ID = "light_ruin";
     public static final String SKILL_NAME = "光影废墟";
+    public static final String SKILL_NAME_COLOR = "§f光影废墟"; // 播报用（白色，与 SKILL_HINT 一致）
     public static final String SKILL_HINT = "§f光影废墟 §7· §f打开施术界面时触发（30s）";
 
     // ===== 配置区（光影废墟核心技能，改完需重新打包 jar 并重启生效）=====
@@ -181,15 +182,15 @@ public final class LightRuinSkill {
                             continue;
                         }
                         LivingEntity living = (LivingEntity) ent;
+                        // 记录死亡归属必须在 applyPulseDamage（内部会同步触发死亡事件）之前，
+                        // 否则死亡时归属尚未写入，会泄漏原版死亡消息。
+                        SpellDeathAnnouncer.recordHit(player, living, SKILL_NAME_COLOR,
+                            MageSpellDamage.SpellDamageType.PULSE);
+                        // 伤害播报同样必须在伤害结算之前，否则直接击杀时死亡播报会先出现。
+                        MageSpellDamage.announceHit(player, "light_ruin", SKILL_NAME_COLOR, living,
+                            dmg, MageSpellDamage.SpellDamageType.PULSE, false);
                         // 脉冲伤害：虚空模型，不受任何减伤影响
                         double dealt = MageSpellDamage.applyPulseDamage(player, living, dmg);
-                        // 播报与术式一致：逐次命中播报 + 记录死亡归属
-                        if (dealt > 0) {
-                            MageSpellDamage.announceHit(player, "light_ruin", SKILL_NAME, living,
-                                dealt, MageSpellDamage.SpellDamageType.PULSE, false);
-                            SpellDeathAnnouncer.recordHit(player, living, SKILL_NAME,
-                                MageSpellDamage.SpellDamageType.PULSE);
-                        }
                         // 击退：沿玩家向外方向
                         try {
                             Vector dir = living.getLocation().toVector().subtract(origin);

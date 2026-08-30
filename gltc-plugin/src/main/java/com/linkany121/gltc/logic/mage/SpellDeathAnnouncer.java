@@ -30,10 +30,22 @@ public final class SpellDeathAnnouncer implements Listener {
 
     // ===== 内置默认（与 addon_configs/GLTC/术式死亡播报.yml 一致）=====
     private static final long DEFAULT_WINDOW_MS = 10_000L;
-    private static final String DEFAULT_PLAYER_TEMPLATE = "{killer} §7使用术式 {spell} §7杀死了 {victim}";
-    private static final String DEFAULT_PLAYER_TEMPLATE_TYPE = "{killer} §f通过 {damageType}术式 {spell} §f杀死了 {victim}";
-    private static final String DEFAULT_MOB_TEMPLATE = "{killer} §f通过 {damageType}§f术式 {spell} §f杀死了 {victim}";
-    private static final String DEFAULT_EROSION_TEMPLATE = "{victim} §f因 {erosion} §f在施展 {spell} §f时因血脑屏障熔毁而亡";
+    // 击杀者 &e、被击杀者 &c、术式自身颜色、伤害类型渐变、常规文字 #fff5b3
+    private static final String C_MSG = "§x§f§f§f§5§b§3"; // #fff5b3
+    private static final String C_KILLER = "§e";           // 击杀者 &e
+    private static final String C_VICTIM = "§c";           // 被击杀者 &c
+
+    // 统一死亡播报（按伤害类型分支；%词% 用对应伤害类型渐变，非直接/侵蚀为固定文案）
+    private static final String DEATH_PHYSICAL =
+        C_KILLER + "{killer} " + C_MSG + "通过 {spell} " + C_MSG + "的 " + MageSpellDamage.LABEL_PHYSICAL + C_MSG + " 杀死了 " + C_VICTIM + "{victim}";
+    private static final String DEATH_PARTICLE =
+        C_KILLER + "{killer} " + C_MSG + "使用 " + MageSpellDamage.LABEL_PARTICLE_SPELL + " {spell} " + C_MSG + "将 " + C_VICTIM + "{victim} " + C_MSG + "击杀";
+    private static final String DEATH_PULSE =
+        C_KILLER + "{killer} " + C_MSG + "通过 {spell} " + C_MSG + "激发 " + MageSpellDamage.LABEL_PULSE_FIELD + C_MSG + " 粉碎了 " + C_VICTIM + "{victim}";
+    private static final String DEATH_INDIRECT =
+        C_KILLER + "{killer} " + C_MSG + "通过 {spell} " + C_MSG + "迫使 " + C_VICTIM + "{victim} " + C_MSG + "走向绝路";
+    private static final String DEATH_EROSION =
+        C_VICTIM + "{victim} " + C_MSG + "执意越环使用 {spell} " + C_MSG + "使自己血脑屏障熔毁而亡";
 
     private static SpellDeathAnnouncer instance;
 
@@ -41,14 +53,11 @@ public final class SpellDeathAnnouncer implements Listener {
 
     private long windowMs = DEFAULT_WINDOW_MS;
     private boolean playerKillEnabled = true;
-    private boolean showDamageType = true;
     private boolean mobKillEnabled = true;
     private double nearbyRange = 256.0;
     private boolean erosionEnabled = true;
-    private String playerTemplate = DEFAULT_PLAYER_TEMPLATE;
-    private String playerTemplateType = DEFAULT_PLAYER_TEMPLATE_TYPE;
-    private String mobTemplate = DEFAULT_MOB_TEMPLATE;
-    private String erosionTemplate = DEFAULT_EROSION_TEMPLATE;
+    /** 直接击杀判定阈值：死亡事件与归属记录时间差小于此值视为术式直接击杀。 */
+    private long directKillThresholdMs = 2_000L;
 
     private SpellDeathAnnouncer() {
     }
@@ -95,7 +104,7 @@ public final class SpellDeathAnnouncer implements Listener {
             caster != null ? caster.getUniqueId() : null,
             caster != null ? caster.getName() : "未知",
             spellDisplayName,
-            type != null ? type.label() : "未知",
+            type,
             System.currentTimeMillis(),
             erosion
         ));
@@ -134,34 +143,39 @@ public final class SpellDeathAnnouncer implements Listener {
         String victimName = EntityNameZh.name(victim);
         if (hit.erosion) {
             if (isPlayer && erosionEnabled) {
-                broadcast(true, victim.getLocation(),
-                    fill(erosionTemplate, hit, victimName, "侵蚀反噬"));
+                broadcast(true, victim.getLocation(), fill(DEATH_EROSION, hit, victimName));
                 return true;
             }
             return false;
         }
-        if (isPlayer) {
-            if (!playerKillEnabled) {
-                return false;
-            }
-            String tpl = showDamageType ? playerTemplateType : playerTemplate;
-            broadcast(true, victim.getLocation(), fill(tpl, hit, victimName, ""));
-            return true;
-        }
-        if (!mobKillEnabled) {
+        if (isPlayer && !playerKillEnabled) {
             return false;
         }
-        broadcast(false, victim.getLocation(), fill(mobTemplate, hit, victimName, ""));
+        if (!isPlayer && !mobKillEnabled) {
+            return false;
+        }
+        // 直接击杀 vs 间接（术式致伤但非直接致死）
+        boolean direct = System.currentTimeMillis() - hit.time <= directKillThresholdMs;
+        String message = direct ? directTemplate(hit, victimName) : fill(DEATH_INDIRECT, hit, victimName);
+        broadcast(isPlayer, victim.getLocation(), message);
         return true;
     }
 
-    private static String fill(String template, Hit hit, String victimName, String erosionLabel) {
+    /** 按伤害类型选择直接击杀播报模板。 */
+    private static String directTemplate(Hit hit, String victimName) {
+        String template = switch (hit.type != null ? hit.type : MageSpellDamage.SpellDamageType.PHYSICAL) {
+            case PHYSICAL -> DEATH_PHYSICAL;
+            case PARTICLE -> DEATH_PARTICLE;
+            case PULSE -> DEATH_PULSE;
+        };
+        return fill(template, hit, victimName);
+    }
+
+    private static String fill(String template, Hit hit, String victimName) {
         return template
             .replace("{killer}", hit.killerName)
             .replace("{spell}", hit.spell)
-            .replace("{victim}", victimName)
-            .replace("{damageType}", hit.damageType)
-            .replace("{erosion}", erosionLabel);
+            .replace("{victim}", victimName);
     }
 
     private void broadcast(boolean allPlayers, Location loc, String message) {
@@ -201,32 +215,15 @@ public final class SpellDeathAnnouncer implements Listener {
         ConfigurationSection pk = cfg.getConfigurationSection("PlayerKill");
         if (pk != null) {
             playerKillEnabled = pk.getBoolean("Enabled", true);
-            showDamageType = pk.getBoolean("ShowDamageType", true);
-            playerTemplate = pk.getString("Template", DEFAULT_PLAYER_TEMPLATE);
-            playerTemplateType = pk.getString("TemplateWithType", DEFAULT_PLAYER_TEMPLATE_TYPE);
         }
         ConfigurationSection mk = cfg.getConfigurationSection("MobKill");
         if (mk != null) {
             mobKillEnabled = mk.getBoolean("Enabled", true);
             nearbyRange = mk.getDouble("NearbyRange", 256.0);
-            mobTemplate = mk.getString("Template", DEFAULT_MOB_TEMPLATE);
         }
         ConfigurationSection es = cfg.getConfigurationSection("ErosionSelfDeath");
         if (es != null) {
             erosionEnabled = es.getBoolean("Enabled", true);
-            erosionTemplate = es.getString("Template", DEFAULT_EROSION_TEMPLATE);
-        }
-        if (playerTemplate == null || playerTemplate.isBlank()) {
-            playerTemplate = DEFAULT_PLAYER_TEMPLATE;
-        }
-        if (playerTemplateType == null || playerTemplateType.isBlank()) {
-            playerTemplateType = DEFAULT_PLAYER_TEMPLATE_TYPE;
-        }
-        if (mobTemplate == null || mobTemplate.isBlank()) {
-            mobTemplate = DEFAULT_MOB_TEMPLATE;
-        }
-        if (erosionTemplate == null || erosionTemplate.isBlank()) {
-            erosionTemplate = DEFAULT_EROSION_TEMPLATE;
         }
     }
 
@@ -255,15 +252,17 @@ public final class SpellDeathAnnouncer implements Listener {
         final UUID killerId;
         final String killerName;
         final String spell;
-        final String damageType;
+        @Nullable
+        final MageSpellDamage.SpellDamageType type;
         final long time;
         final boolean erosion;
 
-        Hit(@Nullable UUID killerId, String killerName, String spell, String damageType, long time, boolean erosion) {
+        Hit(@Nullable UUID killerId, String killerName, String spell,
+            @Nullable MageSpellDamage.SpellDamageType type, long time, boolean erosion) {
             this.killerId = killerId;
             this.killerName = killerName == null || killerName.isBlank() ? "未知" : killerName;
             this.spell = spell == null || spell.isBlank() ? "未知术式" : spell;
-            this.damageType = damageType == null || damageType.isBlank() ? "未知" : damageType;
+            this.type = type;
             this.time = time;
             this.erosion = erosion;
         }

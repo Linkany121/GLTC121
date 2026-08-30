@@ -1,12 +1,15 @@
 package com.linkany121.gltc.logic.mage;
 
+import com.linkany121.gltc.GltcPlugin;
 import com.linkany121.gltc.logic.common.GltcMessages;
+import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.damage.DamageSource;
 import org.bukkit.damage.DamageType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
 
@@ -44,18 +47,25 @@ public final class MageSpellDamage {
     // ===== 配置区（改完需重新打包 jar 并重启生效）=====
     /** 侵蚀反噬自伤比例：释放术式时按「当前最大生命 × 此值 × 侵蚀等级」对自身造成脉冲伤害。 */
     private static final double EROSION_HP_PCT = 0.2;  // 0.2 = 每级侵蚀损失 20% 最大生命，调小侵蚀代价更低
+    /** 粒子/脉冲伤害的击退力度（原版虚空伤害无击退，此处手动补上，模拟近战受击反馈）。 */
+    private static final double BYPASS_KNOCKBACK = 0.35;
 
-    private static final String C_MSG = "§x§f§f§f§5§b§3"; // #fff5b3
-    private static final String C_SPELL = "§x§6§2§c§6§f§f"; // #62c6ff
-    private static final String C_TARGET = "§x§9§6§8§6§d§7"; // #9686d7
-    private static final String C_DMG = "§c";
+    private static final String C_MSG = "§x§f§f§f§5§b§3"; // #fff5b3 常规文字
+    private static final String C_TARGET = "§c";             // 受伤者 &c
+    private static final String C_DMG = "§x§f§f§0§0§0§0§l"; // #ff0000&l 伤害值（纯红加粗）
 
-    private static final String LABEL_PHYSICAL =
+    public static final String LABEL_PHYSICAL =
         "§x§d§7§9§5§8§6物§x§c§f§8§3§7§7理§x§c§6§7§1§6§8伤§x§b§e§5§f§5§9害";
-    private static final String LABEL_PARTICLE =
+    public static final String LABEL_PARTICLE =
         "§x§9§6§8§6§d§7粒§x§9§5§7§7§c§f子§x§9§3§6§8§c§6伤§x§9§2§5§9§b§e害";
-    private static final String LABEL_PULSE =
+    public static final String LABEL_PULSE =
         "§x§e§a§7§2§c§9脉§x§e§5§6§5§a§1冲§x§d§f§5§7§7§a伤§x§d§a§4§a§5§2害";
+
+    // 死亡播报专用词（复用伤害类型渐变色，文字不同）
+    public static final String LABEL_PARTICLE_SPELL =
+        "§x§9§6§8§6§d§7粒§x§9§5§7§7§c§f子§x§9§3§6§8§c§6术§x§9§2§5§9§b§e式"; // 粒子术式
+    public static final String LABEL_PULSE_FIELD =
+        "§x§e§a§7§2§c§9立§x§e§5§6§5§a§1场§x§d§f§5§7§7§a脉§x§d§a§4§a§5§2冲"; // 立场脉冲
 
     private MageSpellDamage() {
     }
@@ -87,6 +97,12 @@ public final class MageSpellDamage {
         }
         double maxHp = getMaxHealth(player);
         double amount = maxHp * EROSION_HP_PCT * erosion;
+        try {
+            GltcPlugin.getInstance().getLogger().info(
+                "[GLTC侵蚀] 自伤 " + player.getName() + " 术式=" + spellName
+                    + " 侵蚀=" + erosion + " 最大生命=" + maxHp + " 自伤=" + amount);
+        } catch (Throwable ignored) {
+        }
         dealSpellDamage(player, player, spellName, SpellDamageType.PULSE, amount, true);
     }
 
@@ -100,7 +116,7 @@ public final class MageSpellDamage {
         return dealSpellDamage(caster, target, spellId, SpellDamageType.PHYSICAL, rawAmount, false);
     }
 
-    /** 粒子伤害：受[粒子折射]与[最终减伤]影响；音波模型绕过护甲。 */
+    /** 粒子伤害：受[粒子折射]与[最终减伤]影响；虚空模型绕过护甲。 */
     public static double dealParticleSpellDamage(Player caster, LivingEntity target,
                                                  @Nullable String spellId, double rawAmount) {
         return dealSpellDamage(caster, target, spellId, SpellDamageType.PARTICLE, rawAmount, false);
@@ -156,6 +172,15 @@ public final class MageSpellDamage {
         if (!(finalAmount > 0)) {
             return 0;
         }
+        String displayName = spellId == null || spellId.isBlank()
+            ? "未知术式"
+            : StaffPdc.spellDisplayName(spellId);
+        // 记录死亡归属必须在 damage() 之前：死亡事件在 damage() 内部同步触发，
+        // 若此时未记录归属，死亡播报会命中不到记录而泄漏原版死亡消息。
+        SpellDeathAnnouncer.recordHit(caster, target, displayName, type, erosionKind);
+        // 伤害播报同样必须在 damage() 之前：否则目标被直接击杀时，
+        // 死亡事件在 damage() 内部同步触发，死亡播报会先于伤害播报出现。
+        announceHit(caster, spellId, displayName, target, finalAmount, type, erosionKind);
         double hpBefore = getHealth(target);
         if (type == SpellDamageType.PHYSICAL) {
             // 近战伤害模型：原版护甲/韧性/保护自然减免
@@ -163,15 +188,10 @@ public final class MageSpellDamage {
             target.damage(finalAmount, caster);
         } else {
             applyBypassDamage(target, finalAmount, caster);
+            // 虚空伤害无原版击退/受击动画，手动补上以对齐近战受击反馈
+            applyHitFeedback(target, caster);
         }
-        double dealt = Math.max(0, hpBefore - getHealth(target));
-        String displayName = spellId == null || spellId.isBlank()
-            ? "未知术式"
-            : StaffPdc.spellDisplayName(spellId);
-        // 记录死亡归属（侵蚀反噬同样记录，死亡时按侵蚀模板播报）
-        SpellDeathAnnouncer.recordHit(caster, target, displayName, type, erosionKind);
-        announceHit(caster, spellId, displayName, target, dealt, type, erosionKind);
-        return dealt;
+        return Math.max(0, hpBefore - getHealth(target));
     }
 
     // -------------------------------------------------------------------------
@@ -218,6 +238,7 @@ public final class MageSpellDamage {
      * 注意：粒子原使用 {@link DamageType#SONIC_BOOM} 音波模型，但困难难度下对玩家伤害 ×1.5（多造成伤害），故弃用。
      */
     private static void applyBypassDamage(LivingEntity target, double amount, Player attacker) {
+        double hpBefore = getHealth(target);
         try {
             DamageType dt = DamageType.GENERIC_KILL;
             DamageSource.Builder b = DamageSource.builder(dt);
@@ -233,15 +254,70 @@ public final class MageSpellDamage {
             }
             target.setNoDamageTicks(0);
             target.damage(amount, b.build());
-            return;
         } catch (Throwable ignored) {
         }
-        // Fallback
-        target.setNoDamageTicks(0);
-        if (attacker != null) {
-            target.damage(amount, attacker);
-        } else {
-            target.damage(amount);
+        // 兜底：damage() 抛异常或未实际扣血（如自伤被服务器保护拦截）时，直接扣血确保伤害生效
+        if (getHealth(target) >= hpBefore - 0.0001) {
+            setHealthBypass(target, amount);
+        }
+    }
+
+    /** 直接扣血兜底（绕过所有伤害事件/护甲/减伤），仅在 damage() 无法生效时使用。 */
+    private static void setHealthBypass(LivingEntity target, double amount) {
+        try {
+            double cur = Math.max(0, target.getHealth());
+            target.setHealth(Math.max(0, cur - amount));
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /**
+     * 粒子/脉冲（虚空模型）伤害的受击反馈：原版虚空伤害不产生击退与受击动画，
+     * 此处手动补上击退（沿施术者→目标方向）与受击动画（屏幕抖动/红屏），对齐近战手感。
+     */
+    private static void applyHitFeedback(LivingEntity target, @Nullable Player attacker) {
+        if (target == null || target.isDead()) {
+            return;
+        }
+        try {
+            // 击退方向：从攻击者指向目标
+            double dx = 0, dz = 0;
+            if (attacker != null) {
+                Location a = attacker.getLocation();
+                Location t = target.getLocation();
+                dx = t.getX() - a.getX();
+                dz = t.getZ() - a.getZ();
+                double len = Math.sqrt(dx * dx + dz * dz);
+                if (len < 1.0e-4) {
+                    // 重叠时用攻击者朝向
+                    Vector dir = attacker.getLocation().getDirection();
+                    dx = dir.getX();
+                    dz = dir.getZ();
+                    len = Math.sqrt(dx * dx + dz * dz);
+                    if (len < 1.0e-4) {
+                        dx = 0;
+                        dz = 1;
+                        len = 1;
+                    }
+                }
+                dx /= len;
+                dz /= len;
+            }
+            // 击退：knockback(strength, 来源X, 来源Z) —— 传攻击者位置，实体被推向相反方向
+            target.knockback(BYPASS_KNOCKBACK, dx * -1, dz * -1);
+        } catch (Throwable ignored) {
+        }
+        // 受击动画（红屏/屏幕抖动）：yaw 为伤害来源相对实体的朝向角度
+        if (target instanceof Player) {
+            try {
+                float yaw = attacker != null
+                    ? (float) Math.toDegrees(Math.atan2(
+                        attacker.getLocation().getZ() - target.getLocation().getZ(),
+                        attacker.getLocation().getX() - target.getLocation().getX()))
+                    : 0f;
+                target.playHurtAnimation(yaw);
+            } catch (Throwable ignored) {
+            }
         }
     }
 
@@ -250,8 +326,9 @@ public final class MageSpellDamage {
     // -------------------------------------------------------------------------
 
     /**
-     * 所有术式造成伤害时的播报：
-     * {@code [GLTC联合协议]使用 xxx术式 对 xxx生物 造成了 xxx某种类型的伤害。}
+     * 所有术式造成伤害时的播报（统一格式与颜色）：
+     * {@code [GLTC联合协议] &#fff5b3使用 术式名 &#fff5b3对 &c目标名 &#fff5b3造成 &#ff0000&l伤害值 类型。}
+     * 术式名使用术式自身颜色（物品显示名自带）。
      */
     public static void announceHit(Player caster, @Nullable String spellId, LivingEntity target,
                                    double finalDmg, SpellDamageType type, boolean erosionKind) {
@@ -266,21 +343,26 @@ public final class MageSpellDamage {
         }
         String amt = C_DMG + formatDamage(finalDmg);
         if (erosionKind) {
-            caster.sendMessage(GltcMessages.PREFIX + C_MSG + "侵蚀反噬对 " + C_DMG
-                + targetName(target) + C_MSG + " 造成了 " + amt + " " + typeLabel(type));
+            // 侵蚀反噬：施法者即受害者
+            caster.sendMessage(GltcMessages.PREFIX + C_MSG + "侵蚀反噬对 " + C_TARGET
+                + targetName(target) + C_MSG + " 造成了 " + amt + C_MSG + " " + typeLabel(type));
             return;
         }
-        String name;
-        if (displayNameOverride != null && !displayNameOverride.isBlank()) {
-            name = C_SPELL + displayNameOverride;
-        } else if (spellId == null || spellId.isBlank()) {
-            name = C_SPELL + "未知术式";
-        } else {
-            name = C_SPELL + StaffPdc.spellDisplayName(spellId);
-        }
+        String name = spellDisplayName(spellId, displayNameOverride);
         caster.sendMessage(GltcMessages.PREFIX + C_MSG + "使用 " + name
             + C_MSG + " 对 " + C_TARGET + targetName(target)
-            + C_MSG + " 造成了 " + amt + " " + typeLabel(type));
+            + C_MSG + " 造成 " + amt + C_MSG + " " + typeLabel(type));
+    }
+
+    /** 术式显示名：优先 displayNameOverride，其次术式自身颜色（物品显示名），回退"未知术式"。 */
+    private static String spellDisplayName(@Nullable String spellId, @Nullable String displayNameOverride) {
+        if (displayNameOverride != null && !displayNameOverride.isBlank()) {
+            return displayNameOverride;
+        }
+        if (spellId == null || spellId.isBlank()) {
+            return "§f未知术式";
+        }
+        return StaffPdc.spellDisplayName(spellId);
     }
 
     private static String typeLabel(SpellDamageType type) {

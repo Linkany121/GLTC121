@@ -21,7 +21,7 @@ public final class Machines_skey_四目伏羲级 {
             RecipeUtil.resolveCraftingRecipe(new Object[0]),
             GltcItemBuilder.slimefunStack("skey_四目伏羲级", Items_skey_四目伏羲级.DATA),
             10,
-            1,
+            0,
             RecipeUtil.intArray(java.util.List.of(1, 2, 6, 7)),
             RecipeUtil.intArray(java.util.List.of(18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 41, 42, 43, 44))
         );

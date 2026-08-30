@@ -29,6 +29,7 @@ import com.linkany121.gltc.generated.generators.Generators_FD_鼓风机电容3;
 import com.linkany121.gltc.generated.generators.Generators_FD_场地电容;
 import com.linkany121.gltc.generated.generators.Generators_FD_场地电容2;
 import com.linkany121.gltc.generated.generators.Generators_FD_场地电容3;
+import com.linkany121.gltc.generated.generators.Generators_skey_爆破式电阱分解座;
 
 /** Auto-generated. Do not edit. */
 
@@ -52,5 +53,6 @@ public final class GltcGeneratorsRegistry {
         Generators_FD_场地电容.register(addon);
         Generators_FD_场地电容2.register(addon);
         Generators_FD_场地电容3.register(addon);
+        Generators_skey_爆破式电阱分解座.register(addon);
     }
 }

@@ -383,3 +383,12 @@ PF_SMFX:
   name: "&#6f7dffS&#9fa8ffe&#cfd4ffk&#ffffffy &#ffd84c“&#ffc540四&#ffb235目&#ff9e29伏&#ff8b1d羲&#ff7812”&#ff6506级&#fd6800重&#fa8100核&#f79a00裂&#f4b300变&#f1cd00反&#eee600应&#ebff00堆"
   lore:
     - "&7一台能够进行重核裂变生产光盐材料的大型多方块机器。"
+
+
+##e单元化魔素提取器
+PF_MSTQ:
+  glow: true
+  material: "sculk_catalyst"
+  name: "&#801bff单&#902bff元&#a03cff化&#b04cff魔&#bf5dff素&#cf6dff提&#df7eff取&#ef8eff器"
+  lore:
+    - "&7&#fff5b3能够快速处理不同类型的基本原材料"

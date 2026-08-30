@@ -12,6 +12,8 @@ import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
 import io.github.thebusybiscuit.slimefun4.implementation.SlimefunItems;
 import org.bukkit.inventory.ItemStack;
 import com.linkany121.gltc.generated.items.Items_ATO_音效库;
+import com.linkany121.gltc.generated.items.Items_ATO_调试配方记录器;
+import com.linkany121.gltc.generated.items.Items_ATO_调试菜单生成器;
 import com.linkany121.gltc.generated.items.Items_GLTC_银行卡;
 import com.linkany121.gltc.generated.items.Items_FKR_深渊召来;
 import com.linkany121.gltc.generated.items.Items_FKR_炽古花盆;
@@ -87,6 +89,10 @@ public final class GltcScriptedRegistry {
         java.util.List<com.linkany121.gltc.script.GltcScriptedItem> __scriptedItems = new java.util.ArrayList<>();
         // item script: 道具工具/音效浏览器
         __scriptedItems.add(new com.linkany121.gltc.script.GltcScriptedItem(GltcItemGroups.A_B1, GltcItemBuilder.slimefunStack("ATO_音效库", Items_ATO_音效库.DATA, 1), RecipeUtil.resolveRecipeType("ENHANCED_CRAFTING_TABLE"), new Object[] { null, null, null, null, new org.bukkit.inventory.ItemStack(org.bukkit.Material.NOTE_BLOCK, 1), null, null, null, null }, GltcItemBuilder.slimefunStack("ATO_音效库", Items_ATO_音效库.DATA, 1)));
+        // item script: 道具工具/调试配方记录器
+        __scriptedItems.add(new com.linkany121.gltc.script.GltcScriptedItem(GltcItemGroups.A_B1, GltcItemBuilder.slimefunStack("ATO_调试配方记录器", Items_ATO_调试配方记录器.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("ATO_调试配方记录器", Items_ATO_调试配方记录器.DATA, 1)));
+        // item script: 道具工具/调试菜单生成器
+        __scriptedItems.add(new com.linkany121.gltc.script.GltcScriptedItem(GltcItemGroups.A_B1, GltcItemBuilder.slimefunStack("ATO_调试菜单生成器", Items_ATO_调试菜单生成器.DATA, 1), RecipeUtil.resolveRecipeType("None"), new Object[0], GltcItemBuilder.slimefunStack("ATO_调试菜单生成器", Items_ATO_调试菜单生成器.DATA, 1)));
         // item script: 能源流货币/信用卡
         __scriptedItems.add(new com.linkany121.gltc.script.GltcScriptedItem(GltcItemGroups.A_B1, GltcItemBuilder.slimefunStack("GLTC_银行卡", Items_GLTC_银行卡.DATA, 1), RecipeUtil.resolveRecipeType("PF_ATO_GT"), new Object[] { RecipeUtil.deferredSlimefun("IRON_INGOT", 1), RecipeUtil.deferredSlimefun("AL_A3", 1), null, null, null, null, null, null, null }, GltcItemBuilder.slimefunStack("GLTC_银行卡", Items_GLTC_银行卡.DATA, 1)));
         // item script: 道具工具/深渊召来

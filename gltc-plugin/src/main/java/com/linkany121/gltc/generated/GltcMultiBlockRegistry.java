@@ -21,5 +21,9 @@ public final class GltcMultiBlockRegistry {
         com.linkany121.gltc.generated.machines.Machines_skey_深红远星级.register(addon);
         com.linkany121.gltc.generated.machines.Machines_skey_灼热苍穹级.register(addon);
         com.linkany121.gltc.generated.machines.Machines_skey_四目伏羲级.register(addon);
+        com.linkany121.gltc.generated.machines.Machines_vasa_帝女乘电级.register(addon);
+        com.linkany121.gltc.generated.machines.Machines_vasa_黄金仪式级.register(addon);
+        com.linkany121.gltc.generated.machines.Machines_vasa_艾坦拉姆级.register(addon);
+        com.linkany121.gltc.generated.machines.Machines_vasa_夜幕指标级.register(addon);
     }
 }

@@ -135,5 +135,7 @@ public final class GltcRecipeMachinesRegistry {
         com.linkany121.gltc.generated.machines.Machines_HInet_网络入门工具包.register(addon);
         com.linkany121.gltc.generated.machines.Machines_HInet_网络管道批量生产床.register(addon);
         com.linkany121.gltc.generated.machines.Machines_HInet_网络存储磁块转化器.register(addon);
+        com.linkany121.gltc.generated.machines.Machines_vasa_单元化魔素提取器.register(addon);
+        com.linkany121.gltc.generated.machines.Machines_vasa_标准打印站.register(addon);
     }
 }

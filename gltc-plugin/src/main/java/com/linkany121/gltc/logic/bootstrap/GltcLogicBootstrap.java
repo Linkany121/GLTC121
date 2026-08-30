@@ -22,6 +22,7 @@ import com.linkany121.gltc.logic.gun.PulsePistolLogic;
 import com.linkany121.gltc.logic.gun.RifleGunLogic;
 import com.linkany121.gltc.logic.gun.ShotgunGunLogic;
 import com.linkany121.gltc.logic.machine.CrimsonFarStarLogic;
+import com.linkany121.gltc.logic.machine.FourEyesFuxiLogic;
 import com.linkany121.gltc.logic.machine.ForgeHammerLogic;
 import com.linkany121.gltc.logic.machine.GunAppearanceDeskLogic;
 import com.linkany121.gltc.logic.machine.VasaStaffConverterLogic;
@@ -33,6 +34,8 @@ import com.linkany121.gltc.logic.mage.YuLiTerminalLogic;
 import com.linkany121.gltc.logic.prop.AbyssCallLogic;
 import com.linkany121.gltc.logic.prop.AtoSoundBrowserLogic;
 import com.linkany121.gltc.logic.prop.ChiGuFlowerPotLogic;
+import com.linkany121.gltc.logic.prop.DebugRecipeRecorderLogic;
+import com.linkany121.gltc.logic.prop.DebugMenuGeneratorLogic;
 import com.linkany121.gltc.logic.prop.SteelTargetLogic;
 import com.linkany121.gltc.logic.prop.WheelchairManifestLogic;
 import com.linkany121.gltc.logic.skey.ShipCurrencyService;
@@ -65,6 +68,8 @@ public final class GltcLogicBootstrap {
     private static PojunWeaponLogic pojun;
     private static HuanjianhuWeaponLogic huanjianhu;
     private static AtoSoundBrowserLogic soundBrowser;
+    private static DebugRecipeRecorderLogic recipeRecorder;
+    private static DebugMenuGeneratorLogic menuGenerator;
     private static ForgeHammerLogic forgeHammer;
     private static GunAppearanceDeskLogic gunAppearanceDesk;
     private static ShipOrderPublisherLogic shipPublisher;
@@ -148,6 +153,14 @@ public final class GltcLogicBootstrap {
         GltcLogicRegistry.registerItem(AtoSoundBrowserLogic.ITEM_ID, soundBrowser);
         soundBrowser.register(plugin);
 
+        recipeRecorder = new DebugRecipeRecorderLogic();
+        GltcLogicRegistry.registerItem(DebugRecipeRecorderLogic.ITEM_ID, recipeRecorder);
+        recipeRecorder.register(plugin);
+
+        menuGenerator = new DebugMenuGeneratorLogic();
+        GltcLogicRegistry.registerItem(DebugMenuGeneratorLogic.ITEM_ID, menuGenerator);
+        menuGenerator.register(plugin);
+
         GltcLogicRegistry.registerItem(AbyssCallLogic.ITEM_ID, new AbyssCallLogic());
         GltcLogicRegistry.registerItem(ChiGuFlowerPotLogic.ITEM_ID, new ChiGuFlowerPotLogic());
         GltcLogicRegistry.registerItem(SteelTargetLogic.ITEM_ID, new SteelTargetLogic());
@@ -162,6 +175,7 @@ public final class GltcLogicBootstrap {
         forgeHammer.register(plugin);
 
         GltcLogicRegistry.registerMachine(CrimsonFarStarLogic.MACHINE_ID, new CrimsonFarStarLogic());
+        GltcLogicRegistry.registerMachine(FourEyesFuxiLogic.MACHINE_ID, new FourEyesFuxiLogic());
 
         gunAppearanceDesk = new GunAppearanceDeskLogic();
         gunAppearanceDesk.register(plugin); // also registerMachine
@@ -261,6 +275,14 @@ public final class GltcLogicBootstrap {
         if (soundBrowser != null) {
             soundBrowser.unregister();
             soundBrowser = null;
+        }
+        if (menuGenerator != null) {
+            menuGenerator.unregister();
+            menuGenerator = null;
+        }
+        if (recipeRecorder != null) {
+            recipeRecorder.unregister();
+            recipeRecorder = null;
         }
         if (staffConverter != null) {
             staffConverter.unregister();

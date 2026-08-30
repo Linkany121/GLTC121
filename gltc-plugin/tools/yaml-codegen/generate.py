@@ -307,8 +307,8 @@ def codegen_groups(source: Path) -> None:
             subs.append((key, cfg))
 
     extra_imports = [
-        "import io.github.thebusybiscuit.slimefun4.api.items.groups.NestedItemGroup;",
-        "import io.github.thebusybiscuit.slimefun4.api.items.groups.SubItemGroup;",
+        "import com.linkany121.gltc.item.GltcNestedItemGroup;",
+        "import com.linkany121.gltc.item.GltcSubItemGroup;",
         "import org.bukkit.NamespacedKey;",
     ]
     for key, _ in nested + subs:
@@ -320,16 +320,16 @@ def codegen_groups(source: Path) -> None:
         "    private GltcItemGroups() {}",
     ]
     for key, cfg in nested:
-        lines.append(f"    public static final NestedItemGroup {group_field_name(key)};")
+        lines.append(f"    public static final GltcNestedItemGroup {group_field_name(key)};")
     for key, cfg in subs:
-        lines.append(f"    public static final SubItemGroup {group_field_name(key)};")
+        lines.append(f"    public static final GltcSubItemGroup {group_field_name(key)};")
     lines.append("")
     lines.append("    static {")
     for key, cfg in nested:
         name = group_field_name(key)
         tier = int(cfg.get("tier", 0))
         lines.append(
-            f"        {name} = new NestedItemGroup(new NamespacedKey(GltcPlugin.getInstance(), {jstr(key.lower())}), "
+            f"        {name} = new GltcNestedItemGroup(new NamespacedKey(GltcPlugin.getInstance(), {jstr(key.lower())}), "
             f"Groups_{name}.icon(), {tier});"
         )
     for key, cfg in subs:
@@ -337,7 +337,7 @@ def codegen_groups(source: Path) -> None:
         parent = group_field_name(str(cfg.get("parent")))
         tier = int(cfg.get("tier", 0))
         lines.append(
-            f"        {name} = new SubItemGroup(new NamespacedKey(GltcPlugin.getInstance(), {jstr(key.lower())}), "
+            f"        {name} = new GltcSubItemGroup(new NamespacedKey(GltcPlugin.getInstance(), {jstr(key.lower())}), "
             f"{parent}, Groups_{name}.icon(), {tier});"
         )
     lines.append("    }")

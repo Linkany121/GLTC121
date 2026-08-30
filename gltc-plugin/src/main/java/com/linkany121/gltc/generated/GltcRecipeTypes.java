@@ -62,6 +62,10 @@ import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_GK;
 import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_SHYX;
 import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_ZRCQ;
 import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_SMFX;
+import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_CC23_SJS;
+import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_HYDYJ;
+import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_CSZX;
+import com.linkany121.gltc.generated.recipetypes.RecipeTypeIcon_PF_MSTQ;
 
 /** Auto-generated. Do not edit. */
 
@@ -117,6 +121,10 @@ public final class GltcRecipeTypes {
     public static final RecipeType PF_SHYX;
     public static final RecipeType PF_ZRCQ;
     public static final RecipeType PF_SMFX;
+    public static final RecipeType PF_CC23_SJS;
+    public static final RecipeType PF_HYDYJ;
+    public static final RecipeType PF_CSZX;
+    public static final RecipeType PF_MSTQ;
 
     static {
         PF_PX = new RecipeType(new NamespacedKey(GltcPlugin.getInstance(), "pf_px"), RecipeTypeIcon_PF_PX.icon());
@@ -217,6 +225,14 @@ public final class GltcRecipeTypes {
         BY_NAME.put("PF_ZRCQ", PF_ZRCQ);
         PF_SMFX = new RecipeType(new NamespacedKey(GltcPlugin.getInstance(), "pf_smfx"), RecipeTypeIcon_PF_SMFX.icon());
         BY_NAME.put("PF_SMFX", PF_SMFX);
+        PF_CC23_SJS = new RecipeType(new NamespacedKey(GltcPlugin.getInstance(), "pf_cc23_sjs"), RecipeTypeIcon_PF_CC23_SJS.icon());
+        BY_NAME.put("PF_CC23_SJS", PF_CC23_SJS);
+        PF_HYDYJ = new RecipeType(new NamespacedKey(GltcPlugin.getInstance(), "pf_hydyj"), RecipeTypeIcon_PF_HYDYJ.icon());
+        BY_NAME.put("PF_HYDYJ", PF_HYDYJ);
+        PF_CSZX = new RecipeType(new NamespacedKey(GltcPlugin.getInstance(), "pf_cszx"), RecipeTypeIcon_PF_CSZX.icon());
+        BY_NAME.put("PF_CSZX", PF_CSZX);
+        PF_MSTQ = new RecipeType(new NamespacedKey(GltcPlugin.getInstance(), "pf_mstq"), RecipeTypeIcon_PF_MSTQ.icon());
+        BY_NAME.put("PF_MSTQ", PF_MSTQ);
     }
 
     public static void register(SlimefunAddon addon) {}

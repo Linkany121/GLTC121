@@ -7519,6 +7519,74 @@ VASA_彼岸钢调控终端:
   recipe_type: NULL
   amount: 1
 
+##新增
+VASA_芯片_五色石:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#00e0ff五&#00ff47色&#ebff00石"
+    material: prismarine_crystals
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3一个色彩绚丽的信息载体；'
+    - '&#fff5b3存储了大量的术式结构信息，不能直接使用，'
+    - '&#fff5b3整体非常脆弱，妥善保管。'
+    - '&f[&e!&f]&#e1ccbd能够信息解合为术式载体。'
+  recipe_type: null
+  amount: 1
+
+##新增
+VASA_芯片_此刻之线:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#fbff3d此&#fce729刻&#fed014之&#ffb800线"
+    material: yellow_dye
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3一个金色仿佛丝绸的信息载体；'
+    - '&#fff5b3存储了大量的术式结构信息，不能直接使用，'
+    - '&#fff5b3整体非常脆弱，妥善保管。'
+    - '&f[&e!&f]&#e1ccbd能够信息解合为术式载体。'
+  recipe_type: null
+  amount: 1
+
+##新增
+VASA_芯片_鸢尾花:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#3dffb9鸢&#1fe8dc尾&#00d1ff花"
+    material: lily_of_the_valley
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3一个刻有复杂纹路的信息载体；'
+    - '&#fff5b3存储了大量的术式结构信息，不能直接使用，'
+    - '&#fff5b3整体非常脆弱，妥善保管。'
+    - '&f[&e!&f]&#e1ccbd能够信息解合为术式载体。'
+  recipe_type: null
+  amount: 1
+
+##新增
+VASA_芯片_环夜聚合:
+  lateInit: false
+  item_group: B_C0
+  item:
+    name: "&#eb00ffV&#c66bffA&#00f0ffS&#4b9effA &#26d8ff环&#36abff夜&#457fff聚&#5552ff合"
+    material: amethyst_shard
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3一个暗沉而普通的信息载体；'
+    - '&#fff5b3存储了大量的术式结构信息，不能直接使用，'
+    - '&#fff5b3整体非常脆弱，妥善保管。'
+    - '&f[&e!&f]&#e1ccbd能够信息解合为术式载体。'
+  recipe_type: null
+  amount: 1
+
 VASA_通用施术道具:
   lateInit: false
   item_group: B_C0
@@ -9553,3 +9621,163 @@ UMPV_果冻:
       material_type: slimefun
       material: UMPV_龙心
       amount: 5
+
+vasa_奥术原木提取物:
+  item_group: B_C0
+  item:
+    name: "&f奥术原木提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_奥术原木
+      amount: 4
+
+vasa_盛槟花提取物:
+  item_group: B_C0
+  item:
+    name: "&f盛槟花提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_盛槟花
+      amount: 4
+
+vasa_龙文凯安必忧兰提取物:
+  item_group: B_C0
+  item:
+    name: "&f龙文凯安必忧兰提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_龙文凯安必忧兰
+      amount: 4
+
+vasa_悦鸧花提取物:
+  item_group: B_C0
+  item:
+    name: "&f悦鸧花提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_悦鸧花
+      amount: 4
+
+vasa_绽晶古树菇提取物:
+  item_group: B_C0
+  item:
+    name: "&f绽晶古树菇提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_绽晶古树菇
+      amount: 4
+
+vasa_龙蛋果提取物:
+  item_group: B_C0
+  item:
+    name: "&f龙蛋果提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_龙蛋果
+      amount: 4
+
+vasa_十九劫天赐樱提取物:
+  item_group: B_C0
+  item:
+    name: "&f十九劫天赐樱提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_十九劫天赐樱
+      amount: 4
+
+vasa_叠霄竹提取物:
+  item_group: B_C0
+  item:
+    name: "&f叠霄竹提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_叠霄竹
+      amount: 4
+
+vasa_荆棘剑麻提取物:
+  item_group: B_C0
+  item:
+    name: "&f荆棘剑麻提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_荆棘剑麻
+      amount: 4
+
+vasa_舞火酿歌提取物:
+  item_group: B_C0
+  item:
+    name: "&f舞火酿歌提取物"
+    material: glowstone_dust
+    glow: true
+    lore:
+    - '&b归属&9：&#cc5eff环&#b372ff夜&#9986ff谷&#809aff术&#6dbcfb士&#59ddf8学&#46fff4会'
+    - '&#fff5b3（占位 lore，待补充）'
+  recipe_type: PF_MSTQ
+  recipe:
+    1:
+      material_type: slimefun
+      material: skey_舞火酿歌
+      amount: 4
